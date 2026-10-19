@@ -1,0 +1,7 @@
+date_demande,agence_code,canal,famille_demandee,date_debut_souhaitee,duree_souhaitee_jours,motif_refus,suite_connue
+2026-09-29,LYS,téléphone,Nacelle articulée,2026-10-06,5,aucune nacelle articulée disponible à la date,non renseigné
+2026-10-02,GRE,formulaire web,Mini-pelle,2026-10-12,10,aucune mini-pelle disponible sur la période,non renseigné
+2026-10-05,MRS,courriel,Groupe électrogène,2026-10-09,7,parc de groupes électrogènes épuisé sur la période,non renseigné
+2026-10-07,TLS,téléphone,Chariot élévateur,2026-10-13,3,"machine en contrôle, indisponible",non renseigné
+2026-10-08,BDX,formulaire web,Échafaudage,2026-10-20,14,stock d'échafaudage insuffisant pour la surface demandée,non renseigné
+2026-10-12,LYS,téléphone,Nacelle ciseaux,2026-10-19,4,aucune nacelle ciseaux libre avant le 25/10,non renseigné

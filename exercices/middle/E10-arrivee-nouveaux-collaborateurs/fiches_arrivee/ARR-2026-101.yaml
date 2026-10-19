@@ -1,0 +1,11 @@
+id: "ARR-2026-101"
+nom: "Antoine"
+prenom: "Noémie"
+poste: "Développeuse logiciel junior"
+metier: "DEV"
+site: "BRU"
+date_arrivee: "2026-10-19"
+manager: "Thomas Lerouge"
+type_contrat: "CDI"
+acces_complementaires:
+  - "Environnement de test de l'équipe paiement (demande du manager)"

@@ -1,0 +1,7 @@
+{
+  "description": "Jours fériés légaux pris en compte dans le calcul des jours ouvrés (liste modifiable).",
+  "jours": [
+    "2026-01-01", "2026-04-06", "2026-05-01", "2026-05-14", "2026-05-25",
+    "2026-07-21", "2026-08-15", "2026-11-01", "2026-11-11", "2026-12-25"
+  ]
+}

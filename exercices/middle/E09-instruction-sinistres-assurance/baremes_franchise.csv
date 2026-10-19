@@ -1,0 +1,7 @@
+nature,option,type_franchise,valeur,minimum,maximum,article,regle
+degat_des_eaux,,fixe,150,,,art. 14,Montant fixe
+bris_de_glace,,fixe,75,,,art. 14,"Montant fixe (formule Confort, sans option)"
+bris_de_glace,bris_de_glace_renforce,fixe,25,,,art. 14,Montant fixe (option bris de glace renforcé)
+vol_domicile,,pourcentage,10,100,300,art. 14,10 % du montant estimé ; minimum 100 € ; maximum 300 €
+vol_hors_domicile,vol_hors_domicile,fixe,200,,,art. 14,Montant fixe (option vol hors domicile)
+incendie,,fixe,200,,,art. 14,Montant fixe

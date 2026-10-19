@@ -1,0 +1,6 @@
+code,nom,adresse,accueil,horaires,restauration,contact_rh
+BRU,Brumval,"12 rue des Forges, 00000 Brumval","Hall principal, bâtiment A ; badge visiteur à retirer à l'accueil",08 h 30 à 17 h 30,"Restaurant d'entreprise, 11 h 30 à 14 h 00","Isabelle Mercier, 000-000-101, rh.brumval@vandamme.example"
+OST,Ostrevel,"4 chemin du Canal, 00000 Ostrevel",Accueil du bâtiment central,08 h 00 à 17 h 00,"Espace repas, 11 h 45 à 13 h 45","Yannick Roux, 000-000-102, rh.ostrevel@vandamme.example"
+COR,Corbeille,"20 avenue de l'Industrie, 00000 Corbeille","Accueil du bâtiment B, porte nord",08 h 30 à 17 h 30,"Cafétéria, 12 h 00 à 14 h 00","Nadia Cassar, 000-000-103, rh.corbeille@vandamme.example"
+LAN,Lanvale,"1 place de la Halle, 00000 Lanvale",Accueil du rez-de-chaussée,09 h 00 à 17 h 30,Pas de restauration sur site,"Paul Dubreuil, 000-000-104, rh.lanvale@vandamme.example"
+PIE,Pierrelonge,"7 rue des Tanneurs, 00000 Pierrelonge","Accueil du hall, bâtiment Qualité",08 h 30 à 17 h 00,"Restaurant d'entreprise, 12 h 00 à 13 h 30","Solange Vidal, 000-000-105, rh.pierrelonge@vandamme.example"

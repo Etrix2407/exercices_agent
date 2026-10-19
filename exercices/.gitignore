@@ -1,0 +1,40 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Données générées (recréées par init_donnees.py)
+*.db
+*.sqlite
+*.sqlite3
+chroma/
+chroma_db/
+.chroma/
+
+# Node / n8n
+node_modules/
+.n8n/
+
+# Office : fichiers verrous temporaires
+~$*
+
+# IDE et système
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Claude Code : réglages locaux
+.claude/settings.local.json

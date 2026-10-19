@@ -1,0 +1,7 @@
+Type de pièce : Carte d'identité
+Nom : Sophie Lambert
+Date d'émission : 14/02/2020
+Numéro de document : 000-0000000-00
+Date d'expiration : 14/02/2030
+
+Document fictif produit pour l'exercice.

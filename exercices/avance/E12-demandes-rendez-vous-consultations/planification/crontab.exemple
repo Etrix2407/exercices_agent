@@ -1,0 +1,4 @@
+# Ligne à ajouter avec « crontab -e » : tous les jours à 2 h.
+# Adapter le chemin du kit. Rendre le script exécutable : chmod +x lancer_nuit.sh
+# minute heure jour-du-mois mois jour-de-semaine commande
+0 2 * * * /chemin/vers/avance/E12-demandes-rendez-vous-consultations/planification/lancer_nuit.sh

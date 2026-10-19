@@ -1,0 +1,8 @@
+Type de pièce : Attestation d'employeur
+Nom : Léa Vanderstraeten
+Date d'émission : 02/10/2026
+Employeur : Atelier Verlinden SRL (fictif)
+Type de contrat : Contrat à durée indéterminée
+Ancienneté depuis : 01/02/2019
+
+Document fictif produit pour l'exercice.

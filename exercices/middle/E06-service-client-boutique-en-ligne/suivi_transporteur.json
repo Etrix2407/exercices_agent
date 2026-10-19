@@ -1,0 +1,457 @@
+{
+  "transporteur": "ExpressTest (fictif)",
+  "date_extraction": "2026-10-14T08:00:00",
+  "suivis": [
+    {
+      "numero_suivi": "ETX261002BE",
+      "statut": "Pris en charge",
+      "code_statut": "PICKED_UP",
+      "derniere_etape": {
+        "date": "2026-10-07T16:05:00",
+        "lieu": "Hub Gand-Test",
+        "evenement": "Colis pris en charge par le transporteur"
+      },
+      "date_estimee_livraison": "2026-10-15"
+    },
+    {
+      "numero_suivi": "ETX261003BE",
+      "statut": "En cours d'acheminement",
+      "code_statut": "IN_TRANSIT",
+      "derniere_etape": {
+        "date": "2026-10-11T16:05:00",
+        "lieu": "Agence Namur-Test",
+        "evenement": "Colis trié vers le centre de distribution"
+      },
+      "date_estimee_livraison": "2026-10-15"
+    },
+    {
+      "numero_suivi": "ETX261004BE",
+      "statut": "En cours d'acheminement",
+      "code_statut": "IN_TRANSIT",
+      "derniere_etape": {
+        "date": "2026-10-04T16:05:00",
+        "lieu": "Hub Bruxelles-Test",
+        "evenement": "Colis trié vers le centre de distribution"
+      },
+      "date_estimee_livraison": "2026-10-15"
+    },
+    {
+      "numero_suivi": "ETX261005BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-10-07T15:10:00",
+        "lieu": "Hub Liège-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-10-07"
+    },
+    {
+      "numero_suivi": "ETX261006BE",
+      "statut": "En cours de livraison",
+      "code_statut": "OUT_FOR_DELIVERY",
+      "derniere_etape": {
+        "date": "2026-10-14T07:45:00",
+        "lieu": "Hub Gand-Test",
+        "evenement": "Colis chargé dans le véhicule de livraison"
+      },
+      "date_estimee_livraison": "2026-10-14"
+    },
+    {
+      "numero_suivi": "ETX261007BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-09-25T15:10:00",
+        "lieu": "Agence Namur-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-09-25"
+    },
+    {
+      "numero_suivi": "ETX261009BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-10-02T15:10:00",
+        "lieu": "Hub Liège-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-10-02"
+    },
+    {
+      "numero_suivi": "ETX261010BE",
+      "statut": "Pris en charge",
+      "code_statut": "PICKED_UP",
+      "derniere_etape": {
+        "date": "2026-10-10T16:05:00",
+        "lieu": "Hub Gand-Test",
+        "evenement": "Colis pris en charge par le transporteur"
+      },
+      "date_estimee_livraison": "2026-10-15"
+    },
+    {
+      "numero_suivi": "ETX261011BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-09-28T15:10:00",
+        "lieu": "Agence Namur-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-09-28"
+    },
+    {
+      "numero_suivi": "ETX261012BE",
+      "statut": "Exception : adresse incomplète",
+      "code_statut": "EXCEPTION_ADDRESS",
+      "derniere_etape": {
+        "date": "2026-10-06T16:05:00",
+        "lieu": "Hub Bruxelles-Test",
+        "evenement": "Adresse incomplète, livraison suspendue"
+      },
+      "date_estimee_livraison": "2026-10-15"
+    },
+    {
+      "numero_suivi": "ETX261013BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-09-18T15:10:00",
+        "lieu": "Hub Liège-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-09-18"
+    },
+    {
+      "numero_suivi": "ETX261015BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-09-26T15:10:00",
+        "lieu": "Agence Namur-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-09-26"
+    },
+    {
+      "numero_suivi": "ETX261016BE",
+      "statut": "En cours de livraison",
+      "code_statut": "OUT_FOR_DELIVERY",
+      "derniere_etape": {
+        "date": "2026-10-14T07:45:00",
+        "lieu": "Hub Bruxelles-Test",
+        "evenement": "Colis chargé dans le véhicule de livraison"
+      },
+      "date_estimee_livraison": "2026-10-14"
+    },
+    {
+      "numero_suivi": "ETX261017BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-09-09T15:10:00",
+        "lieu": "Hub Liège-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-09-09"
+    },
+    {
+      "numero_suivi": "ETX261018BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-09-28T15:10:00",
+        "lieu": "Hub Gand-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-09-28"
+    },
+    {
+      "numero_suivi": "ETX261019BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-09-18T15:10:00",
+        "lieu": "Agence Namur-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-09-18"
+    },
+    {
+      "numero_suivi": "ETX261020BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-08-03T15:10:00",
+        "lieu": "Hub Bruxelles-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-08-03"
+    },
+    {
+      "numero_suivi": "ETX261021BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-09-27T15:10:00",
+        "lieu": "Hub Liège-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-09-27"
+    },
+    {
+      "numero_suivi": "ETX261022BE",
+      "statut": "Pris en charge",
+      "code_statut": "PICKED_UP",
+      "derniere_etape": {
+        "date": "2026-10-13T16:05:00",
+        "lieu": "Hub Gand-Test",
+        "evenement": "Colis pris en charge par le transporteur"
+      },
+      "date_estimee_livraison": "2026-10-15"
+    },
+    {
+      "numero_suivi": "ETX261023BE",
+      "statut": "En cours d'acheminement",
+      "code_statut": "IN_TRANSIT",
+      "derniere_etape": {
+        "date": "2026-10-11T16:05:00",
+        "lieu": "Agence Namur-Test",
+        "evenement": "Colis trié vers le centre de distribution"
+      },
+      "date_estimee_livraison": "2026-10-15"
+    },
+    {
+      "numero_suivi": "ETX261025BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-10-03T15:10:00",
+        "lieu": "Hub Liège-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-10-03"
+    },
+    {
+      "numero_suivi": "ETX261026BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-09-27T15:10:00",
+        "lieu": "Hub Gand-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-09-27"
+    },
+    {
+      "numero_suivi": "ETX261028BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-10-06T15:10:00",
+        "lieu": "Hub Bruxelles-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-10-06"
+    },
+    {
+      "numero_suivi": "ETX261030BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-10-08T15:10:00",
+        "lieu": "Hub Gand-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-10-08"
+    },
+    {
+      "numero_suivi": "ETX261032BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-10-08T15:10:00",
+        "lieu": "Hub Bruxelles-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-10-08"
+    },
+    {
+      "numero_suivi": "ETX261034BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-09-26T15:10:00",
+        "lieu": "Hub Gand-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-09-26"
+    },
+    {
+      "numero_suivi": "ETX261035BE",
+      "statut": "Pris en charge",
+      "code_statut": "PICKED_UP",
+      "derniere_etape": {
+        "date": "2026-10-11T16:05:00",
+        "lieu": "Agence Namur-Test",
+        "evenement": "Colis pris en charge par le transporteur"
+      },
+      "date_estimee_livraison": "2026-10-15"
+    },
+    {
+      "numero_suivi": "ETX261036BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-10-07T15:10:00",
+        "lieu": "Hub Bruxelles-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-10-07"
+    },
+    {
+      "numero_suivi": "ETX261038BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-09-25T15:10:00",
+        "lieu": "Hub Gand-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-09-25"
+    },
+    {
+      "numero_suivi": "ETX261039BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-09-11T15:10:00",
+        "lieu": "Agence Namur-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-09-11"
+    },
+    {
+      "numero_suivi": "ETX261040BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-10-03T15:10:00",
+        "lieu": "Hub Bruxelles-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-10-03"
+    },
+    {
+      "numero_suivi": "ETX261041BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-09-22T15:10:00",
+        "lieu": "Hub Liège-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-09-22"
+    },
+    {
+      "numero_suivi": "ETX261042BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-10-10T15:10:00",
+        "lieu": "Hub Gand-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-10-10"
+    },
+    {
+      "numero_suivi": "ETX261043BE",
+      "statut": "Pris en charge",
+      "code_statut": "PICKED_UP",
+      "derniere_etape": {
+        "date": "2026-10-13T16:05:00",
+        "lieu": "Agence Namur-Test",
+        "evenement": "Colis pris en charge par le transporteur"
+      },
+      "date_estimee_livraison": "2026-10-15"
+    },
+    {
+      "numero_suivi": "ETX261044BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-10-08T15:10:00",
+        "lieu": "Hub Bruxelles-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-10-08"
+    },
+    {
+      "numero_suivi": "ETX261045BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-10-09T15:10:00",
+        "lieu": "Hub Liège-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-10-09"
+    },
+    {
+      "numero_suivi": "ETX261046BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-09-13T15:10:00",
+        "lieu": "Hub Gand-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-09-13"
+    },
+    {
+      "numero_suivi": "ETX261047BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-10-02T15:10:00",
+        "lieu": "Agence Namur-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-10-02"
+    },
+    {
+      "numero_suivi": "ETX261048BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-09-14T15:10:00",
+        "lieu": "Hub Bruxelles-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-09-14"
+    },
+    {
+      "numero_suivi": "ETX261049BE",
+      "statut": "Livré",
+      "code_statut": "DELIVERED",
+      "derniere_etape": {
+        "date": "2026-09-19T15:10:00",
+        "lieu": "Hub Liège-Test",
+        "evenement": "Colis remis au destinataire"
+      },
+      "date_estimee_livraison": "2026-09-19"
+    },
+    {
+      "numero_suivi": "ETX261050BE",
+      "statut": "Retard de livraison signalé",
+      "code_statut": "DELAYED",
+      "derniere_etape": {
+        "date": "2026-10-09T11:30:00",
+        "lieu": "Hub Gand-Test",
+        "evenement": "Retard lié à un incident de tri"
+      },
+      "date_estimee_livraison": "2026-10-20"
+    }
+  ]
+}

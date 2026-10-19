@@ -1,0 +1,11 @@
+id: "ARR-2026-104"
+nom: "Tahri"
+prenom: "Samir"
+poste: "Dessinateur projeteur"
+metier: "DES"
+site: "LAN"
+date_arrivee: "2026-11-02"
+manager: "Claire Nédélec"
+type_contrat: "CDI"
+acces_complementaires:
+  - "Dossier des marchés publics en lecture (demande du manager)"

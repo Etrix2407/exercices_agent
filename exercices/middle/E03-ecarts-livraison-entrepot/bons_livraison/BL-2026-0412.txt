@@ -1,0 +1,9 @@
+RAPIDO FRET - Bordereau de livraison
+Réf. bordereau : BL-2026-0412
+Réceptionné le : 2026-10-13 07:55
+Distributeur   : Orbis Commerce NV
+Ref. commande  : CMD 2026 0412
+Articles livrés :
+  * REF-1215D | Mèche de perçage béton 8 mm | qté : 3? unité(s)
+  * REF-1216D | Mèche de perçage béton 10 mm | qté : 24 unité(s)
+Remarques : Quantité de la première ligne illisible sur le scan

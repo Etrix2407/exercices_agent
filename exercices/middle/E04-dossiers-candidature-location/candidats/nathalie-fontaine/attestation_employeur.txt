@@ -1,0 +1,8 @@
+Type de pièce : Attestation d'employeur
+Nom : Nathalie Fontaine-Roux
+Date d'émission : 28/09/2026
+Employeur : Atelier Verlinden SRL (fictif)
+Type de contrat : Contrat à durée indéterminée
+Ancienneté depuis : 01/02/2019
+
+Document fictif produit pour l'exercice.

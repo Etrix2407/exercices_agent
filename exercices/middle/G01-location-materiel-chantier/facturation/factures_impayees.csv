@@ -1,0 +1,11 @@
+facture_id,client,contrat_id,montant_ttc_eur,date_emission,date_echeance,nombre_relances,historique_paiement_simplifie,statut
+F-2026-0305,Ets Malrieu Travaux Publics,LOC-2026-0104,1296.00,2026-04-14,2026-05-14,3,"11 factures réglées sur 14, retards de 15 à 40 jours",échue
+F-2026-0212,Maçonnerie Dufresne SARL,LOC-2026-0102,1584.00,2026-03-17,2026-04-16,4,6 retards sur 8 factures,échue
+F-2026-0457,Commune de Saint-Aurèle,LOC-2026-0103,4320.00,2026-05-30,2026-07-29,2,"paiements réguliers, mandat de paiement en attente de signature",échue
+F-2026-0634,Bâti-Renov Pyrénées,LOC-2026-0118,1656.00,2026-08-08,2026-09-07,1,facture précédente réglée à l'échéance,échue - contestée
+F-2026-0446,Lauzet Maçonnerie,LOC-2026-0107,2838.00,2026-05-25,2026-06-24,2,un paiement partiel en juin,échue - contestée
+F-2026-0745,Gros Œuvre Azuréen,LOC-2026-0124,3384.00,2026-09-28,2026-10-05,1,premier cycle de facturation avec ce client,échue - contestée
+F-2026-0561,Terrassements Delorme,LOC-2026-0112,3630.00,2026-07-10,2026-08-09,5,relances restées sans réponse depuis juillet,échue - contestée
+F-2026-0702,Événements Lumière Sud SAS,LOC-2026-0121,2160.00,2026-09-12,2026-10-12,1,contestation de dommage en cours,échue - litige
+F-2026-0398,M. Yannick Oudin (particulier),LOC-2026-0105,1854.00,2026-05-04,2026-06-03,3,"un paiement fractionné, solde en attente",échue
+F-2026-0763,Groupe Almeria Construction,LOC-2026-0127,2916.00,2026-10-08,2026-11-07,0,3 factures réglées dans les délais,non échue

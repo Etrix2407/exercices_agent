@@ -1,0 +1,7 @@
+Type de pièce : Justificatif d'activité indépendante
+Nom : Olivier Mertens
+Date d'émission : 10/09/2026
+Numéro d'entreprise : 0000.000.000 (fictif)
+Statut : Indépendant à titre principal
+
+Document fictif produit pour l'exercice.

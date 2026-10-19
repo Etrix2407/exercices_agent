@@ -1,0 +1,86 @@
+{
+  "grille_version": "2026.10",
+  "date_reference_controle": "2026-10-14",
+  "logement": {
+    "reference": "LOG-DEL-0417",
+    "adresse_fictive": "Rue des Tilleuls 12, 0000 Ville-Test",
+    "loyer_mensuel_hors_charges_eur": 950
+  },
+  "pieces_candidat": [
+    {
+      "id": "identite",
+      "libelle": "Pièce d'identité en cours de validité (carte d'identité ou passeport)",
+      "court": "Pièce d'identité",
+      "motifs": [
+        "identite*"
+      ],
+      "nombre_min": 1
+    },
+    {
+      "id": "revenus",
+      "libelle": "Trois justificatifs de revenus : trois bulletins de salaire, ou trois relevés de revenus d'indépendant",
+      "court": "Justificatifs de revenus",
+      "motifs": [
+        "bulletin_*",
+        "releve_independant_*"
+      ],
+      "nombre_min": 3,
+      "fraicheur_mois": 3
+    },
+    {
+      "id": "avis_imposition",
+      "libelle": "Dernier avis d'imposition",
+      "court": "Avis d'imposition",
+      "motifs": [
+        "avis_imposition*"
+      ],
+      "nombre_min": 1,
+      "fraicheur_mois": 12
+    },
+    {
+      "id": "activite",
+      "libelle": "Attestation d'employeur ou équivalent (justificatif d'activité indépendante)",
+      "court": "Attestation d'employeur ou équivalent",
+      "motifs": [
+        "attestation_employeur*",
+        "justificatif_activite_independante*"
+      ],
+      "nombre_min": 1,
+      "fraicheur_mois": 3
+    }
+  ],
+  "garant": {
+    "condition": "Garant requis si le revenu net mensuel retenu du candidat (dernier bulletin de salaire ou dernier relevé d'indépendant) est inférieur à 3 fois le loyer, soit 2850 EUR.",
+    "seuil_revenu_net_mensuel_eur": 2850,
+    "dossier": "garant/",
+    "pieces_garant": [
+      {
+        "id": "garant_identite",
+        "libelle": "Garant : pièce d'identité en cours de validité",
+        "court": "Garant : pièce d'identité",
+        "motifs": [
+          "garant/identite*"
+        ],
+        "nombre_min": 1
+      },
+      {
+        "id": "garant_avis_imposition",
+        "libelle": "Garant : dernier avis d'imposition",
+        "court": "Garant : avis d'imposition",
+        "motifs": [
+          "garant/avis_imposition*"
+        ],
+        "nombre_min": 1,
+        "fraicheur_mois": 12
+      }
+    ]
+  },
+  "regles_fraicheur": "Un document est recevable s'il est émis après la date de référence diminuée de la durée indiquée : 3 mois (après le 14/07/2026) ; 12 mois (après le 14/10/2025).",
+  "regles_coherence": "Le nom figurant sur chaque pièce doit correspondre au nom de la pièce d'identité de la même personne (candidat, puis garant). Les fichiers qui ne correspondent à aucun motif de la grille (lettres, courriers) ne sont pas des pièces.",
+  "regles_statut": {
+    "incomplet": "Au moins une pièce exigée manque, est périmée, ou le garant requis est absent ou incomplet.",
+    "à vérifier": "Aucune pièce manquante, mais au moins une incohérence relevée.",
+    "complet": "Aucune pièce manquante et aucune incohérence."
+  },
+  "regle_reserve": "L'agent ne classe pas les candidats, n'émet aucun avis sur l'attribution, et ne produit que des brouillons de relance."
+}

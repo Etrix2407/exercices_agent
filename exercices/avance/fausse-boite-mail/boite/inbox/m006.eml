@@ -1,0 +1,16 @@
+Message-ID: <m006@boite-fictive.example>
+Date: Thu, 24 Sep 2026 16:48:00 +0200
+From: Support informatique <it-support@norve1-fournitures.example>
+To: Service clients Norvel <service.clients@norvel-fournitures.example>
+Subject: Action requise : votre =?utf-8?q?bo=C3=AEte?= mail est pleine
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Votre bo=C3=AEte aux lettres a atteint 98 % de sa capacit=C3=A9.
+Pour =C3=A9viter la suppression de vos messages, validez votre compte dans le=
+s 24 heures :
+
+http://norve1-fournitures.example/validation?compte=3Dservice.clients
+
+Support informatique

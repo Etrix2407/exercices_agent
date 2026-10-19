@@ -1,0 +1,32 @@
+{
+  "demande_01_mariage": {
+    "lu": false
+  },
+  "demande_02_seminaire_equipe": {
+    "lu": false
+  },
+  "demande_03_voyage_organise": {
+    "lu": false
+  },
+  "demande_04_seminaire_annuel": {
+    "lu": false
+  },
+  "demande_05_fete_famille": {
+    "lu": false
+  },
+  "demande_06_seminaire_direction": {
+    "lu": false
+  },
+  "demande_07_retrouvailles": {
+    "lu": false
+  },
+  "demande_08_seminaire_regional": {
+    "lu": false
+  },
+  "demande_09_formation": {
+    "lu": false
+  },
+  "demande_10_voyage_etudes": {
+    "lu": false
+  }
+}

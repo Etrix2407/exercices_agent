@@ -1,0 +1,253 @@
+classe,matricule,matiere,enseignant,moyenne_trimestre_precedent,moyenne_trimestre,appreciation
+2nde 4,2N4-001,Français,Mme Lefèvre,9.7,13.9,"Participation correcte, les efforts personnels sont à poursuivre. Nette progression depuis le début de l'année. Trois devoirs n'ont pas été rendus."
+2nde 4,2N4-001,Mathématiques,M. Haddad,9.4,11.8,"Résultats réguliers ; l'écrit doit gagner en précision. Progrès sensible, en particulier à l'écrit."
+2nde 4,2N4-001,Histoire-géographie,Mme Vallet,8.9,12.8,Résultats réguliers ; l'écrit doit gagner en précision. Nette progression depuis le début de l'année. Les exercices à la maison sont rendus régulièrement.
+2nde 4,2N4-001,Anglais LV1,M. Okafor,9.4,11.5,"Trimestre correct, travail globalement régulier. Nette progression depuis le début de l'année. Un devoir n'a pas été rendu."
+2nde 4,2N4-001,Espagnol LV2,Mme Ruiz,9.1,11.3,"Trimestre correct, travail globalement régulier. Progrès sensible, en particulier à l'écrit. Trois devoirs n'ont pas été rendus."
+2nde 4,2N4-001,Physique-chimie,M. Caron,9.6,12.7,"Trimestre correct, travail globalement régulier. Progrès sensible, en particulier à l'écrit."
+2nde 4,2N4-001,SVT,Mme Perrot,9.3,12.4,"Trimestre correct, travail globalement régulier. Nette progression depuis le début de l'année."
+2nde 4,2N4-001,EPS,M. Lambert,10.0,13.5,"Participation correcte, les efforts personnels sont à poursuivre. Nette progression depuis le début de l'année."
+2nde 4,2N4-001,SES,M. Dehaene,10.2,13.2,"Participation correcte, les efforts personnels sont à poursuivre. Progrès sensible, en particulier à l'écrit. Le vocabulaire est bien réinvesti à l'oral."
+2nde 4,2N4-002,Français,Mme Lefèvre,7.8,9.9,Difficultés persistantes sur les notions de base ; un accompagnement est conseillé. Nette progression depuis le début de l'année.
+2nde 4,2N4-002,Mathématiques,M. Haddad,9.4,12.2,"Résultats réguliers ; l'écrit doit gagner en précision. Progrès sensible, en particulier à l'écrit. Un devoir n'a pas été rendu."
+2nde 4,2N4-002,Histoire-géographie,Mme Vallet,8.2,12.2,"Élève timide et peu sûr de lui, il gagnerait à s'exprimer davantage à l'oral."
+2nde 4,2N4-002,Anglais LV1,M. Okafor,8.6,12.1,"Trimestre correct, travail globalement régulier. Progrès sensible, en particulier à l'écrit."
+2nde 4,2N4-002,Espagnol LV2,Mme Ruiz,7.5,11.6,"Participation correcte, les efforts personnels sont à poursuivre. Nette progression depuis le début de l'année. Un devoir n'a pas été rendu."
+2nde 4,2N4-002,Physique-chimie,M. Caron,7.2,11.5,Résultats réguliers ; l'écrit doit gagner en précision. Nette progression depuis le début de l'année. Un devoir n'a pas été rendu.
+2nde 4,2N4-002,SVT,Mme Perrot,7.7,9.9,"Des efforts sont visibles, mais les résultats restent insuffisants. Nette progression depuis le début de l'année. Le cahier est tenu avec soin."
+2nde 4,2N4-002,EPS,M. Lambert,7.8,11.9,"Résultats réguliers ; l'écrit doit gagner en précision. Progrès sensible, en particulier à l'écrit."
+2nde 4,2N4-002,SES,M. Dehaene,8.2,10.8,"Participation correcte, les efforts personnels sont à poursuivre. Progrès sensible, en particulier à l'écrit."
+2nde 4,2N4-003,Français,Mme Lefèvre,9.4,13.5,Résultats réguliers ; l'écrit doit gagner en précision. Nette progression depuis le début de l'année. Le cahier est tenu avec soin.
+2nde 4,2N4-003,Mathématiques,M. Haddad,9.4,11.6,"Participation correcte, les efforts personnels sont à poursuivre. Nette progression depuis le début de l'année."
+2nde 4,2N4-003,Histoire-géographie,Mme Vallet,8.8,13.0,Résultats réguliers ; l'écrit doit gagner en précision. Nette progression depuis le début de l'année.
+2nde 4,2N4-003,Anglais LV1,M. Okafor,9.4,13.5,Résultats réguliers ; l'écrit doit gagner en précision. Nette progression depuis le début de l'année.
+2nde 4,2N4-003,Espagnol LV2,Mme Ruiz,9.2,12.7,"Trimestre correct, travail globalement régulier. Nette progression depuis le début de l'année. Le cahier est tenu avec soin."
+2nde 4,2N4-003,Physique-chimie,M. Caron,9.5,12.8,Résultats réguliers ; l'écrit doit gagner en précision. Nette progression depuis le début de l'année.
+2nde 4,2N4-003,SVT,Mme Perrot,8.7,11.9,"Résultats réguliers ; l'écrit doit gagner en précision. Progrès sensible, en particulier à l'écrit."
+2nde 4,2N4-003,EPS,M. Lambert,9.2,12.6,Résultats réguliers ; l'écrit doit gagner en précision. Nette progression depuis le début de l'année.
+2nde 4,2N4-003,SES,M. Dehaene,9.1,13.1,"Participation correcte, les efforts personnels sont à poursuivre. Progrès sensible, en particulier à l'écrit. Trois devoirs n'ont pas été rendus."
+2nde 4,2N4-004,Français,Mme Lefèvre,9.2,13.5,"Trimestre correct, travail globalement régulier. Nette progression depuis le début de l'année."
+2nde 4,2N4-004,Mathématiques,M. Haddad,8.8,11.6,"Résultats réguliers ; l'écrit doit gagner en précision. Progrès sensible, en particulier à l'écrit. Participation orale régulière."
+2nde 4,2N4-004,Histoire-géographie,Mme Vallet,9.4,13.0,"Trimestre correct, travail globalement régulier. Nette progression depuis le début de l'année. Le cahier est tenu avec soin."
+2nde 4,2N4-004,Anglais LV1,M. Okafor,10.0,13.7,"Trimestre correct, travail globalement régulier. Nette progression depuis le début de l'année."
+2nde 4,2N4-004,Espagnol LV2,Mme Ruiz,7.9,10.2,"Trimestre correct, travail globalement régulier. Nette progression depuis le début de l'année. Trois devoirs n'ont pas été rendus."
+2nde 4,2N4-004,Physique-chimie,M. Caron,8.8,12.6,"Participation correcte, les efforts personnels sont à poursuivre. Nette progression depuis le début de l'année."
+2nde 4,2N4-004,SVT,Mme Perrot,8.9,11.1,"Participation correcte, les efforts personnels sont à poursuivre. Nette progression depuis le début de l'année."
+2nde 4,2N4-004,EPS,M. Lambert,9.9,13.3,"Trimestre correct, travail globalement régulier. Nette progression depuis le début de l'année. Investissement régulier en séance."
+2nde 4,2N4-004,SES,M. Dehaene,9.5,13.1,"Participation correcte, les efforts personnels sont à poursuivre. Progrès sensible, en particulier à l'écrit. Participation orale régulière."
+2nde 4,2N4-005,Français,Mme Lefèvre,14.1,14.6,"Très bon trimestre, travail rigoureux et autonome. Le cahier est tenu avec soin."
+2nde 4,2N4-005,Mathématiques,M. Haddad,14.9,15.3,Résultats solides et participation active en classe.
+2nde 4,2N4-005,Histoire-géographie,Mme Vallet,13.7,11.5,"Participation correcte, les efforts personnels sont à poursuivre. Résultats en recul par rapport au trimestre précédent."
+2nde 4,2N4-005,Anglais LV1,M. Okafor,15.3,13.9,"Trimestre correct, travail globalement régulier. Résultats en recul par rapport au trimestre précédent."
+2nde 4,2N4-005,Espagnol LV2,Mme Ruiz,13.1,11.6,Résultats réguliers ; l'écrit doit gagner en précision. Résultats en recul par rapport au trimestre précédent.
+2nde 4,2N4-005,Physique-chimie,M. Caron,14.3,12.3,"Résultats réguliers ; l'écrit doit gagner en précision. Baisse sensible, à reprendre rapidement avec le professeur. Trois devoirs n'ont pas été rendus."
+2nde 4,2N4-005,SVT,Mme Perrot,13.5,11.2,Résultats réguliers ; l'écrit doit gagner en précision. Résultats en recul par rapport au trimestre précédent. Trois devoirs n'ont pas été rendus.
+2nde 4,2N4-005,EPS,M. Lambert,15.4,13.5,"Participation correcte, les efforts personnels sont à poursuivre. Baisse sensible, à reprendre rapidement avec le professeur."
+2nde 4,2N4-005,SES,M. Dehaene,12.5,12.3,"Trimestre correct, travail globalement régulier. Le cahier est tenu avec soin."
+2nde 4,2N4-006,Français,Mme Lefèvre,14.4,13.0,"Trimestre correct, travail globalement régulier. Résultats en recul par rapport au trimestre précédent. Trois devoirs n'ont pas été rendus."
+2nde 4,2N4-006,Mathématiques,M. Haddad,14.9,13.4,"Participation correcte, les efforts personnels sont à poursuivre. Baisse sensible, à reprendre rapidement avec le professeur. Le cahier est tenu avec soin."
+2nde 4,2N4-006,Histoire-géographie,Mme Vallet,15.0,13.0,"Trimestre correct, travail globalement régulier. Résultats en recul par rapport au trimestre précédent."
+2nde 4,2N4-006,Anglais LV1,M. Okafor,14.0,14.2,Résultats solides et participation active en classe. Participation orale régulière.
+2nde 4,2N4-006,Espagnol LV2,Mme Ruiz,14.1,13.9,Résultats réguliers ; l'écrit doit gagner en précision.
+2nde 4,2N4-006,Physique-chimie,M. Caron,14.6,12.3,"Trimestre correct, travail globalement régulier. Baisse sensible, à reprendre rapidement avec le professeur."
+2nde 4,2N4-006,SVT,Mme Perrot,14.4,12.6,Résultats réguliers ; l'écrit doit gagner en précision. Résultats en recul par rapport au trimestre précédent.
+2nde 4,2N4-006,EPS,M. Lambert,14.6,14.7,"Très bon trimestre, travail rigoureux et autonome. Investissement régulier en séance."
+2nde 4,2N4-006,SES,M. Dehaene,13.2,11.2,"Participation correcte, les efforts personnels sont à poursuivre. Baisse sensible, à reprendre rapidement avec le professeur. Participation orale régulière."
+2nde 4,2N4-007,Français,Mme Lefèvre,13.8,11.4,Résultats réguliers ; l'écrit doit gagner en précision. Résultats en recul par rapport au trimestre précédent.
+2nde 4,2N4-007,Mathématiques,M. Haddad,13.2,11.3,"Résultats réguliers ; l'écrit doit gagner en précision. Baisse sensible, à reprendre rapidement avec le professeur."
+2nde 4,2N4-007,Histoire-géographie,Mme Vallet,13.8,11.3,"Résultats réguliers ; l'écrit doit gagner en précision. Baisse sensible, à reprendre rapidement avec le professeur."
+2nde 4,2N4-007,Anglais LV1,M. Okafor,12.8,10.9,"Résultats réguliers ; l'écrit doit gagner en précision. Baisse sensible, à reprendre rapidement avec le professeur."
+2nde 4,2N4-007,Espagnol LV2,Mme Ruiz,13.3,11.8,"Participation correcte, les efforts personnels sont à poursuivre. Baisse sensible, à reprendre rapidement avec le professeur."
+2nde 4,2N4-007,Physique-chimie,M. Caron,12.6,12.9,"Participation correcte, les efforts personnels sont à poursuivre."
+2nde 4,2N4-007,SVT,Mme Perrot,13.7,12.3,Résultats réguliers ; l'écrit doit gagner en précision. Résultats en recul par rapport au trimestre précédent.
+2nde 4,2N4-007,EPS,M. Lambert,13.4,13.4,Résultats réguliers ; l'écrit doit gagner en précision. Tenue de sport oubliée à deux reprises.
+2nde 4,2N4-007,SES,M. Dehaene,13.8,14.1,"Travail soigné et régulier, à poursuivre. Le vocabulaire est bien réinvesti à l'oral."
+2nde 4,2N4-008,Français,Mme Lefèvre,10.9,11.7,Les difficultés semblent liées à une situation familiale compliquée.
+2nde 4,2N4-008,Mathématiques,M. Haddad,10.5,11.2,Résultats réguliers ; l'écrit doit gagner en précision. Trois devoirs n'ont pas été rendus.
+2nde 4,2N4-008,Histoire-géographie,Mme Vallet,13.2,12.5,"Trimestre correct, travail globalement régulier."
+2nde 4,2N4-008,Anglais LV1,M. Okafor,12.1,12.3,Résultats réguliers ; l'écrit doit gagner en précision.
+2nde 4,2N4-008,Espagnol LV2,Mme Ruiz,12.6,12.4,"Participation correcte, les efforts personnels sont à poursuivre. Un devoir n'a pas été rendu."
+2nde 4,2N4-008,Physique-chimie,M. Caron,13.1,13.6,"Participation correcte, les efforts personnels sont à poursuivre."
+2nde 4,2N4-008,SVT,Mme Perrot,11.4,11.7,Résultats réguliers ; l'écrit doit gagner en précision.
+2nde 4,2N4-008,EPS,M. Lambert,13.3,14.0,"Très bon trimestre, travail rigoureux et autonome."
+2nde 4,2N4-008,SES,M. Dehaene,12.3,11.7,"Participation correcte, les efforts personnels sont à poursuivre."
+2nde 4,2N4-009,Français,Mme Lefèvre,10.9,11.1,"Participation correcte, les efforts personnels sont à poursuivre."
+2nde 4,2N4-009,Mathématiques,M. Haddad,14.7,15.0,Résultats solides et participation active en classe.
+2nde 4,2N4-009,Histoire-géographie,Mme Vallet,12.3,13.1,"Participation correcte, les efforts personnels sont à poursuivre. Les exercices à la maison sont rendus régulièrement."
+2nde 4,2N4-009,Anglais LV1,M. Okafor,11.6,11.1,Résultats réguliers ; l'écrit doit gagner en précision.
+2nde 4,2N4-009,Espagnol LV2,Mme Ruiz,8.6,8.0,"Résultats fragiles, le travail personnel doit devenir plus régulier."
+2nde 4,2N4-009,Physique-chimie,M. Caron,11.1,10.4,"Participation correcte, les efforts personnels sont à poursuivre."
+2nde 4,2N4-009,SVT,Mme Perrot,13.1,12.6,Résultats réguliers ; l'écrit doit gagner en précision.
+2nde 4,2N4-009,EPS,M. Lambert,13.0,13.3,"Trimestre correct, travail globalement régulier."
+2nde 4,2N4-009,SES,M. Dehaene,11.2,12.0,"Trimestre correct, travail globalement régulier. Le cahier est tenu avec soin."
+2nde 4,2N4-010,Français,Mme Lefèvre,9.7,10.1,Résultats réguliers ; l'écrit doit gagner en précision. Les exercices à la maison sont rendus régulièrement.
+2nde 4,2N4-010,Mathématiques,M. Haddad,9.4,9.4,"Des efforts sont visibles, mais les résultats restent insuffisants."
+2nde 4,2N4-010,Histoire-géographie,Mme Vallet,10.2,10.6,"Trimestre correct, travail globalement régulier."
+2nde 4,2N4-010,Anglais LV1,M. Okafor,11.1,11.6,"Trimestre correct, travail globalement régulier."
+2nde 4,2N4-010,Espagnol LV2,Mme Ruiz,9.0,8.3,"Des efforts sont visibles, mais les résultats restent insuffisants. Un devoir n'a pas été rendu."
+2nde 4,2N4-010,Physique-chimie,M. Caron,10.2,11.0,"Trimestre correct, travail globalement régulier. Un devoir n'a pas été rendu."
+2nde 4,2N4-010,SVT,Mme Perrot,10.2,10.4,Résultats réguliers ; l'écrit doit gagner en précision.
+2nde 4,2N4-010,EPS,M. Lambert,8.7,8.6,"Des efforts sont visibles, mais les résultats restent insuffisants."
+2nde 4,2N4-010,SES,M. Dehaene,15.4,15.7,"Très bon trimestre, travail rigoureux et autonome. Les exercices à la maison sont rendus régulièrement."
+2nde 4,2N4-011,Français,Mme Lefèvre,10.4,10.5,"Participation correcte, les efforts personnels sont à poursuivre. Le vocabulaire est bien réinvesti à l'oral."
+2nde 4,2N4-011,Mathématiques,M. Haddad,12.4,12.9,"Participation correcte, les efforts personnels sont à poursuivre. Participation orale régulière."
+2nde 4,2N4-011,Histoire-géographie,Mme Vallet,10.1,9.3,Difficultés persistantes sur les notions de base ; un accompagnement est conseillé. Le vocabulaire est bien réinvesti à l'oral.
+2nde 4,2N4-011,Anglais LV1,M. Okafor,10.9,10.2,Résultats réguliers ; l'écrit doit gagner en précision. Trois devoirs n'ont pas été rendus.
+2nde 4,2N4-011,Espagnol LV2,Mme Ruiz,11.6,11.8,"Participation correcte, les efforts personnels sont à poursuivre. Le cahier est tenu avec soin."
+2nde 4,2N4-011,Physique-chimie,M. Caron,10.6,10.7,Résultats réguliers ; l'écrit doit gagner en précision.
+2nde 4,2N4-011,SVT,Mme Perrot,9.7,9.9,"Résultats fragiles, le travail personnel doit devenir plus régulier. Un devoir n'a pas été rendu."
+2nde 4,2N4-011,EPS,M. Lambert,9.1,9.5,Difficultés persistantes sur les notions de base ; un accompagnement est conseillé.
+2nde 4,2N4-011,SES,M. Dehaene,8.9,8.8,Difficultés persistantes sur les notions de base ; un accompagnement est conseillé.
+2nde 4,2N4-012,Français,Mme Lefèvre,13.6,11.9,"Résultats réguliers ; l'écrit doit gagner en précision. Baisse sensible, à reprendre rapidement avec le professeur."
+2nde 4,2N4-012,Mathématiques,M. Haddad,15.0,12.5,"Trimestre correct, travail globalement régulier. Baisse sensible, à reprendre rapidement avec le professeur."
+2nde 4,2N4-012,Histoire-géographie,Mme Vallet,14.5,12.1,"Trimestre correct, travail globalement régulier. Résultats en recul par rapport au trimestre précédent."
+2nde 4,2N4-012,Anglais LV1,M. Okafor,13.9,11.6,"Trimestre correct, travail globalement régulier. Résultats en recul par rapport au trimestre précédent. Les exercices à la maison sont rendus régulièrement."
+2nde 4,2N4-012,Espagnol LV2,Mme Ruiz,15.3,12.9,"Participation correcte, les efforts personnels sont à poursuivre. Baisse sensible, à reprendre rapidement avec le professeur. Trois devoirs n'ont pas été rendus."
+2nde 4,2N4-012,Physique-chimie,M. Caron,14.2,14.5,"Très bon trimestre, travail rigoureux et autonome."
+2nde 4,2N4-012,SVT,Mme Perrot,15.4,15.3,Résultats solides et participation active en classe.
+2nde 4,2N4-012,EPS,M. Lambert,14.5,14.3,Résultats solides et participation active en classe.
+2nde 4,2N4-012,SES,M. Dehaene,15.2,15.7,Résultats solides et participation active en classe. Le cahier est tenu avec soin.
+2nde 4,2N4-013,Français,Mme Lefèvre,12.9,12.8,"Participation correcte, les efforts personnels sont à poursuivre. Les exercices à la maison sont rendus régulièrement."
+2nde 4,2N4-013,Mathématiques,M. Haddad,13.9,12.0,Résultats réguliers ; l'écrit doit gagner en précision. Résultats en recul par rapport au trimestre précédent.
+2nde 4,2N4-013,Histoire-géographie,Mme Vallet,12.1,12.2,"Participation correcte, les efforts personnels sont à poursuivre."
+2nde 4,2N4-013,Anglais LV1,M. Okafor,13.4,13.1,Résultats réguliers ; l'écrit doit gagner en précision.
+2nde 4,2N4-013,Espagnol LV2,Mme Ruiz,13.6,13.4,"Participation correcte, les efforts personnels sont à poursuivre."
+2nde 4,2N4-013,Physique-chimie,M. Caron,12.1,10.5,"Participation correcte, les efforts personnels sont à poursuivre. Baisse sensible, à reprendre rapidement avec le professeur."
+2nde 4,2N4-013,SVT,Mme Perrot,12.8,11.0,"Résultats réguliers ; l'écrit doit gagner en précision. Baisse sensible, à reprendre rapidement avec le professeur."
+2nde 4,2N4-013,EPS,M. Lambert,12.8,12.9,Résultats réguliers ; l'écrit doit gagner en précision. Investissement régulier en séance.
+2nde 4,2N4-013,SES,M. Dehaene,13.7,11.7,"Résultats réguliers ; l'écrit doit gagner en précision. Baisse sensible, à reprendre rapidement avec le professeur."
+2nde 4,2N4-014,Français,Mme Lefèvre,14.6,14.4,Résultats solides et participation active en classe.
+2nde 4,2N4-014,Mathématiques,M. Haddad,14.1,14.3,"Le travail est perturbé, sans doute à cause de l'environnement à la maison."
+2nde 4,2N4-014,Histoire-géographie,Mme Vallet,14.0,12.8,"Participation correcte, les efforts personnels sont à poursuivre. Résultats en recul par rapport au trimestre précédent."
+2nde 4,2N4-014,Anglais LV1,M. Okafor,12.1,9.7,"Des efforts sont visibles, mais les résultats restent insuffisants. Résultats en recul par rapport au trimestre précédent."
+2nde 4,2N4-014,Espagnol LV2,Mme Ruiz,14.5,13.2,"Participation correcte, les efforts personnels sont à poursuivre. Baisse sensible, à reprendre rapidement avec le professeur."
+2nde 4,2N4-014,Physique-chimie,M. Caron,14.5,13.3,Résultats réguliers ; l'écrit doit gagner en précision. Résultats en recul par rapport au trimestre précédent.
+2nde 4,2N4-014,SVT,Mme Perrot,12.8,11.2,"Participation correcte, les efforts personnels sont à poursuivre. Baisse sensible, à reprendre rapidement avec le professeur."
+2nde 4,2N4-014,EPS,M. Lambert,13.0,11.6,"Participation correcte, les efforts personnels sont à poursuivre. Baisse sensible, à reprendre rapidement avec le professeur."
+2nde 4,2N4-014,SES,M. Dehaene,13.6,13.9,"Trimestre correct, travail globalement régulier."
+2nde 4,2N4-015,Français,Mme Lefèvre,14.3,14.5,Résultats solides et participation active en classe.
+2nde 4,2N4-015,Mathématiques,M. Haddad,16.4,16.2,"Très bon trimestre, travail rigoureux et autonome. Le cahier est tenu avec soin."
+2nde 4,2N4-015,Histoire-géographie,Mme Vallet,16.0,16.1,"Travail soigné et régulier, à poursuivre. Le vocabulaire est bien réinvesti à l'oral."
+2nde 4,2N4-015,Anglais LV1,M. Okafor,14.7,14.7,"Très bon trimestre, travail rigoureux et autonome. Les exercices à la maison sont rendus régulièrement."
+2nde 4,2N4-015,Espagnol LV2,Mme Ruiz,14.5,14.9,"Travail soigné et régulier, à poursuivre."
+2nde 4,2N4-015,Physique-chimie,M. Caron,13.8,13.7,"Trimestre correct, travail globalement régulier. Les exercices à la maison sont rendus régulièrement."
+2nde 4,2N4-015,SVT,Mme Perrot,14.0,13.8,"Trimestre correct, travail globalement régulier. Les exercices à la maison sont rendus régulièrement."
+2nde 4,2N4-015,EPS,M. Lambert,14.9,15.2,"Très bon trimestre, travail rigoureux et autonome."
+2nde 4,2N4-015,SES,M. Dehaene,13.3,12.9,"Trimestre correct, travail globalement régulier. Participation orale régulière."
+2nde 4,2N4-016,Français,Mme Lefèvre,15.5,15.5,"Très bon trimestre, travail rigoureux et autonome."
+2nde 4,2N4-016,Mathématiques,M. Haddad,17.1,16.8,"Très bon trimestre, travail rigoureux et autonome."
+2nde 4,2N4-016,Histoire-géographie,Mme Vallet,16.9,17.4,"Très bon trimestre, travail rigoureux et autonome."
+2nde 4,2N4-016,Anglais LV1,M. Okafor,17.0,16.8,"Très bon trimestre, travail rigoureux et autonome."
+2nde 4,2N4-016,Espagnol LV2,Mme Ruiz,16.2,16.3,Résultats solides et participation active en classe.
+2nde 4,2N4-016,Physique-chimie,M. Caron,16.8,17.2,"Très bon trimestre, travail rigoureux et autonome."
+2nde 4,2N4-016,SVT,Mme Perrot,15.8,15.4,Résultats solides et participation active en classe.
+2nde 4,2N4-016,EPS,M. Lambert,17.5,17.6,"Très bon trimestre, travail rigoureux et autonome. Investissement régulier en séance."
+2nde 4,2N4-016,SES,M. Dehaene,15.6,15.6,Résultats solides et participation active en classe. Le vocabulaire est bien réinvesti à l'oral.
+2nde 4,2N4-017,Français,Mme Lefèvre,17.2,17.0,"Très bon trimestre, travail rigoureux et autonome."
+2nde 4,2N4-017,Mathématiques,M. Haddad,17.3,17.5,Résultats solides et participation active en classe. Participation orale régulière.
+2nde 4,2N4-017,Histoire-géographie,Mme Vallet,16.5,16.2,"Très bon trimestre, travail rigoureux et autonome. Le cahier est tenu avec soin."
+2nde 4,2N4-017,Anglais LV1,M. Okafor,17.9,18.0,Résultats solides et participation active en classe.
+2nde 4,2N4-017,Espagnol LV2,Mme Ruiz,16.1,16.2,Résultats solides et participation active en classe. Participation orale régulière.
+2nde 4,2N4-017,Physique-chimie,M. Caron,17.7,17.6,Résultats solides et participation active en classe.
+2nde 4,2N4-017,SVT,Mme Perrot,16.0,15.9,"Travail soigné et régulier, à poursuivre. Les exercices à la maison sont rendus régulièrement."
+2nde 4,2N4-017,EPS,M. Lambert,15.8,15.6,"Très bon trimestre, travail rigoureux et autonome."
+2nde 4,2N4-017,SES,M. Dehaene,17.3,17.2,"Très bon trimestre, travail rigoureux et autonome."
+2nde 4,2N4-018,Français,Mme Lefèvre,15.6,15.2,"Très bon trimestre, travail rigoureux et autonome."
+2nde 4,2N4-018,Mathématiques,M. Haddad,16.4,16.1,"Travail soigné et régulier, à poursuivre."
+2nde 4,2N4-018,Histoire-géographie,Mme Vallet,14.8,15.0,"Très bon trimestre, travail rigoureux et autonome."
+2nde 4,2N4-018,Anglais LV1,M. Okafor,15.4,15.5,"Travail soigné et régulier, à poursuivre."
+2nde 4,2N4-018,Espagnol LV2,Mme Ruiz,15.8,15.7,"Très bon trimestre, travail rigoureux et autonome."
+2nde 4,2N4-018,Physique-chimie,M. Caron,16.0,16.0,"Très bon trimestre, travail rigoureux et autonome. Les exercices à la maison sont rendus régulièrement."
+2nde 4,2N4-018,SVT,Mme Perrot,15.2,15.2,"Travail soigné et régulier, à poursuivre. Les exercices à la maison sont rendus régulièrement."
+2nde 4,2N4-018,EPS,M. Lambert,15.1,15.1,"Très bon trimestre, travail rigoureux et autonome. Investissement régulier en séance."
+2nde 4,2N4-018,SES,M. Dehaene,15.2,15.4,"Très bon trimestre, travail rigoureux et autonome."
+2nde 4,2N4-019,Français,Mme Lefèvre,9.9,9.1,Difficultés persistantes sur les notions de base ; un accompagnement est conseillé. Le cahier est tenu avec soin.
+2nde 4,2N4-019,Mathématiques,M. Haddad,12.8,12.4,"Trimestre correct, travail globalement régulier."
+2nde 4,2N4-019,Histoire-géographie,Mme Vallet,12.2,11.4,"Participation correcte, les efforts personnels sont à poursuivre."
+2nde 4,2N4-019,Anglais LV1,M. Okafor,12.8,12.3,"Participation correcte, les efforts personnels sont à poursuivre."
+2nde 4,2N4-019,Espagnol LV2,Mme Ruiz,13.6,12.9,Résultats réguliers ; l'écrit doit gagner en précision.
+2nde 4,2N4-019,Physique-chimie,M. Caron,13.6,13.5,Résultats réguliers ; l'écrit doit gagner en précision.
+2nde 4,2N4-019,SVT,Mme Perrot,11.1,11.4,Résultats réguliers ; l'écrit doit gagner en précision.
+2nde 4,2N4-019,EPS,M. Lambert,12.0,12.1,"Participation correcte, les efforts personnels sont à poursuivre."
+2nde 4,2N4-019,SES,M. Dehaene,12.1,11.4,"Participation correcte, les efforts personnels sont à poursuivre. Participation orale régulière."
+2nde 4,2N4-020,Français,Mme Lefèvre,9.9,10.3,"Participation correcte, les efforts personnels sont à poursuivre."
+2nde 4,2N4-020,Mathématiques,M. Haddad,12.2,12.1,"Trimestre correct, travail globalement régulier. Trois devoirs n'ont pas été rendus."
+2nde 4,2N4-020,Histoire-géographie,Mme Vallet,10.8,10.6,"Trimestre correct, travail globalement régulier."
+2nde 4,2N4-020,Anglais LV1,M. Okafor,13.4,13.0,Résultats réguliers ; l'écrit doit gagner en précision.
+2nde 4,2N4-020,Espagnol LV2,Mme Ruiz,13.4,13.3,"Participation correcte, les efforts personnels sont à poursuivre."
+2nde 4,2N4-020,Physique-chimie,M. Caron,12.0,11.4,"Trimestre correct, travail globalement régulier."
+2nde 4,2N4-020,SVT,Mme Perrot,9.0,8.5,Difficultés persistantes sur les notions de base ; un accompagnement est conseillé.
+2nde 4,2N4-020,EPS,M. Lambert,12.3,12.9,"Participation correcte, les efforts personnels sont à poursuivre. Investissement régulier en séance."
+2nde 4,2N4-020,SES,M. Dehaene,10.7,11.1,"Trimestre correct, travail globalement régulier."
+2nde 4,2N4-021,Français,Mme Lefèvre,12.2,11.9,"Participation correcte, les efforts personnels sont à poursuivre."
+2nde 4,2N4-021,Mathématiques,M. Haddad,9.4,8.7,"Des efforts sont visibles, mais les résultats restent insuffisants. Le cahier est tenu avec soin."
+2nde 4,2N4-021,Histoire-géographie,Mme Vallet,10.6,11.3,Résultats réguliers ; l'écrit doit gagner en précision. Le cahier est tenu avec soin.
+2nde 4,2N4-021,Anglais LV1,M. Okafor,13.0,13.6,"Trimestre correct, travail globalement régulier."
+2nde 4,2N4-021,Espagnol LV2,Mme Ruiz,10.8,11.5,Résultats réguliers ; l'écrit doit gagner en précision. Un devoir n'a pas été rendu.
+2nde 4,2N4-021,Physique-chimie,M. Caron,10.4,10.6,"Élève paresseux, qui ne fait pas d'effort en physique."
+2nde 4,2N4-021,SVT,Mme Perrot,11.1,11.0,"Trimestre correct, travail globalement régulier."
+2nde 4,2N4-021,EPS,M. Lambert,12.1,12.1,"Trimestre correct, travail globalement régulier."
+2nde 4,2N4-021,SES,M. Dehaene,10.9,11.7,Résultats réguliers ; l'écrit doit gagner en précision.
+2nde 4,2N4-022,Français,Mme Lefèvre,10.1,9.7,Difficultés persistantes sur les notions de base ; un accompagnement est conseillé. Trois devoirs n'ont pas été rendus.
+2nde 4,2N4-022,Mathématiques,M. Haddad,10.9,11.2,"Trimestre correct, travail globalement régulier."
+2nde 4,2N4-022,Histoire-géographie,Mme Vallet,11.8,12.0,"Participation correcte, les efforts personnels sont à poursuivre. Le cahier est tenu avec soin."
+2nde 4,2N4-022,Anglais LV1,M. Okafor,9.1,9.7,"Résultats fragiles, le travail personnel doit devenir plus régulier."
+2nde 4,2N4-022,Espagnol LV2,Mme Ruiz,8.6,8.1,"Des efforts sont visibles, mais les résultats restent insuffisants. Un devoir n'a pas été rendu."
+2nde 4,2N4-022,Physique-chimie,M. Caron,11.2,11.6,"Participation correcte, les efforts personnels sont à poursuivre. Participation orale régulière."
+2nde 4,2N4-022,SVT,Mme Perrot,10.4,10.8,Résultats réguliers ; l'écrit doit gagner en précision.
+2nde 4,2N4-022,EPS,M. Lambert,10.8,10.9,"Participation correcte, les efforts personnels sont à poursuivre."
+2nde 4,2N4-022,SES,M. Dehaene,10.1,10.1,Résultats réguliers ; l'écrit doit gagner en précision.
+2nde 4,2N4-023,Français,Mme Lefèvre,10.9,10.1,"Participation correcte, les efforts personnels sont à poursuivre."
+2nde 4,2N4-023,Mathématiques,M. Haddad,13.6,13.7,Résultats réguliers ; l'écrit doit gagner en précision. Le cahier est tenu avec soin.
+2nde 4,2N4-023,Histoire-géographie,Mme Vallet,12.8,12.9,"Participation correcte, les efforts personnels sont à poursuivre."
+2nde 4,2N4-023,Anglais LV1,M. Okafor,11.0,11.4,Résultats réguliers ; l'écrit doit gagner en précision.
+2nde 4,2N4-023,Espagnol LV2,Mme Ruiz,12.8,12.5,"Participation correcte, les efforts personnels sont à poursuivre."
+2nde 4,2N4-023,Physique-chimie,M. Caron,13.9,13.4,"Trimestre correct, travail globalement régulier. Les exercices à la maison sont rendus régulièrement."
+2nde 4,2N4-023,SVT,Mme Perrot,13.0,12.6,Résultats réguliers ; l'écrit doit gagner en précision. Les exercices à la maison sont rendus régulièrement.
+2nde 4,2N4-023,EPS,M. Lambert,13.5,13.6,"Participation correcte, les efforts personnels sont à poursuivre."
+2nde 4,2N4-023,SES,M. Dehaene,14.6,14.2,"Travail soigné et régulier, à poursuivre. Participation orale régulière."
+2nde 4,2N4-024,Français,Mme Lefèvre,11.7,11.5,"Participation correcte, les efforts personnels sont à poursuivre. Participation orale régulière."
+2nde 4,2N4-024,Mathématiques,M. Haddad,12.2,12.4,"Trimestre correct, travail globalement régulier."
+2nde 4,2N4-024,Histoire-géographie,Mme Vallet,11.4,11.7,"Participation correcte, les efforts personnels sont à poursuivre."
+2nde 4,2N4-024,Anglais LV1,M. Okafor,11.2,11.4,"Trimestre correct, travail globalement régulier. Trois devoirs n'ont pas été rendus."
+2nde 4,2N4-024,Espagnol LV2,Mme Ruiz,14.6,14.6,"Travail soigné et régulier, à poursuivre. Le cahier est tenu avec soin."
+2nde 4,2N4-024,Physique-chimie,M. Caron,13.6,13.6,"Participation correcte, les efforts personnels sont à poursuivre."
+2nde 4,2N4-024,SVT,Mme Perrot,15.4,14.6,Résultats solides et participation active en classe. Le cahier est tenu avec soin.
+2nde 4,2N4-024,EPS,M. Lambert,14.9,15.0,"Très bon trimestre, travail rigoureux et autonome."
+2nde 4,2N4-024,SES,M. Dehaene,13.4,12.6,Résultats réguliers ; l'écrit doit gagner en précision.
+2nde 4,2N4-025,Français,Mme Lefèvre,10.9,11.1,"Trimestre correct, travail globalement régulier. Le vocabulaire est bien réinvesti à l'oral."
+2nde 4,2N4-025,Mathématiques,M. Haddad,10.2,10.5,"Participation correcte, les efforts personnels sont à poursuivre."
+2nde 4,2N4-025,Histoire-géographie,Mme Vallet,11.5,10.8,"Trimestre correct, travail globalement régulier."
+2nde 4,2N4-025,Anglais LV1,M. Okafor,10.8,11.4,"Participation correcte, les efforts personnels sont à poursuivre."
+2nde 4,2N4-025,Espagnol LV2,Mme Ruiz,13.1,13.3,"Participation correcte, les efforts personnels sont à poursuivre."
+2nde 4,2N4-025,Physique-chimie,M. Caron,11.1,10.8,"Trimestre correct, travail globalement régulier. Participation orale régulière."
+2nde 4,2N4-025,SVT,Mme Perrot,12.5,13.3,"Trimestre correct, travail globalement régulier."
+2nde 4,2N4-025,EPS,M. Lambert,11.5,12.3,"Participation correcte, les efforts personnels sont à poursuivre. Tenue de sport oubliée à deux reprises."
+2nde 4,2N4-025,SES,M. Dehaene,10.2,10.8,"Trimestre correct, travail globalement régulier. Les exercices à la maison sont rendus régulièrement."
+2nde 4,2N4-026,Français,Mme Lefèvre,12.3,12.3,Résultats réguliers ; l'écrit doit gagner en précision. Participation orale régulière.
+2nde 4,2N4-026,Mathématiques,M. Haddad,11.9,12.7,Résultats réguliers ; l'écrit doit gagner en précision.
+2nde 4,2N4-026,Histoire-géographie,Mme Vallet,10.1,9.4,Difficultés persistantes sur les notions de base ; un accompagnement est conseillé.
+2nde 4,2N4-026,Anglais LV1,M. Okafor,12.2,12.1,Résultats réguliers ; l'écrit doit gagner en précision.
+2nde 4,2N4-026,Espagnol LV2,Mme Ruiz,10.5,11.0,"Participation correcte, les efforts personnels sont à poursuivre."
+2nde 4,2N4-026,Physique-chimie,M. Caron,11.2,10.9,Résultats réguliers ; l'écrit doit gagner en précision. Les exercices à la maison sont rendus régulièrement.
+2nde 4,2N4-026,SVT,Mme Perrot,10.5,10.9,Résultats réguliers ; l'écrit doit gagner en précision.
+2nde 4,2N4-026,EPS,M. Lambert,13.3,14.0,"Travail soigné et régulier, à poursuivre. Investissement régulier en séance."
+2nde 4,2N4-026,SES,M. Dehaene,11.1,10.9,"Trimestre correct, travail globalement régulier."
+2nde 4,2N4-027,Français,Mme Lefèvre,13.6,13.7,Résultats réguliers ; l'écrit doit gagner en précision.
+2nde 4,2N4-027,Mathématiques,M. Haddad,13.9,13.9,"Participation correcte, les efforts personnels sont à poursuivre."
+2nde 4,2N4-027,Histoire-géographie,Mme Vallet,12.5,11.9,"Trimestre correct, travail globalement régulier."
+2nde 4,2N4-027,Anglais LV1,M. Okafor,13.3,12.6,"Trimestre correct, travail globalement régulier."
+2nde 4,2N4-027,Espagnol LV2,Mme Ruiz,14.2,14.3,"Très bon trimestre, travail rigoureux et autonome. Les exercices à la maison sont rendus régulièrement."
+2nde 4,2N4-027,Physique-chimie,M. Caron,12.4,12.6,Résultats réguliers ; l'écrit doit gagner en précision.
+2nde 4,2N4-027,SVT,Mme Perrot,12.9,13.4,"Trimestre correct, travail globalement régulier. Participation orale régulière."
+2nde 4,2N4-027,EPS,M. Lambert,12.2,12.8,Résultats réguliers ; l'écrit doit gagner en précision. Investissement régulier en séance.
+2nde 4,2N4-027,SES,M. Dehaene,14.0,13.2,Résultats réguliers ; l'écrit doit gagner en précision. Un devoir n'a pas été rendu.
+2nde 4,2N4-028,Français,Mme Lefèvre,13.4,14.0,Résultats solides et participation active en classe. Le vocabulaire est bien réinvesti à l'oral.
+2nde 4,2N4-028,Mathématiques,M. Haddad,10.9,10.8,Résultats réguliers ; l'écrit doit gagner en précision. Le cahier est tenu avec soin.
+2nde 4,2N4-028,Histoire-géographie,Mme Vallet,12.7,12.6,"Participation correcte, les efforts personnels sont à poursuivre."
+2nde 4,2N4-028,Anglais LV1,M. Okafor,12.0,12.5,Résultats réguliers ; l'écrit doit gagner en précision.
+2nde 4,2N4-028,Espagnol LV2,Mme Ruiz,12.8,13.0,Résultats réguliers ; l'écrit doit gagner en précision.
+2nde 4,2N4-028,Physique-chimie,M. Caron,14.0,14.2,"Travail soigné et régulier, à poursuivre. Les exercices à la maison sont rendus régulièrement."
+2nde 4,2N4-028,SVT,Mme Perrot,12.7,12.4,"Trimestre correct, travail globalement régulier."
+2nde 4,2N4-028,EPS,M. Lambert,13.4,13.6,"Participation correcte, les efforts personnels sont à poursuivre. Tenue de sport oubliée à deux reprises."
+2nde 4,2N4-028,SES,M. Dehaene,11.6,11.9,"Participation correcte, les efforts personnels sont à poursuivre. Participation orale régulière."

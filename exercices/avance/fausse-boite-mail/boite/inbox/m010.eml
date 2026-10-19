@@ -1,0 +1,31 @@
+Message-ID: <m010@boite-fictive.example>
+Date: Fri, 25 Sep 2026 10:44:00 +0200
+From: Hugo Lambotte <hugo.lambotte@mail.example>
+To: Service clients Norvel <service.clients@norvel-fournitures.example>
+Subject: Candidature =?utf-8?q?spontan=C3=A9e?= - magasinier
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="=====separateur-m010====="
+
+--=====separateur-m010=====
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Bonjour,
+
+Je me permets de proposer ma candidature pour un poste de magasinier.
+Cinq ans d'exp=C3=A9rience en entrep=C3=B4t, permis cariste. Mon CV est en pi=
+=C3=A8ce jointe.
+
+Hugo Lambotte
+
+--=====separateur-m010=====
+Content-Type: text/plain
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="CV_Hugo_Lambotte.txt"
+MIME-Version: 1.0
+
+SHVnbyBMYW1ib3R0ZQpNYWdhc2luaWVyIGNhcmlzdGUKMjAyMS0yMDI2IDogcHLDqXBhcmF0ZXVy
+IGRlIGNvbW1hbmRlcywgZW50cmVww7R0IGxvZ2lzdGlxdWUKMjAxOS0yMDIxIDogbWFudXRlbnRp
+b25uYWlyZQpQZXJtaXMgY2FyaXN0ZSBjYXTDqWdvcmllcyAxLCAzLCA1Cg==
+
+--=====separateur-m010=====--

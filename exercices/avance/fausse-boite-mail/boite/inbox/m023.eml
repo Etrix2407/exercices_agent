@@ -1,0 +1,31 @@
+Message-ID: <m023@boite-fictive.example>
+Date: Mon, 28 Sep 2026 08:55:00 +0200
+From: Olivier Fontaine <olivier.fontaine@brasserie-artisanale.example>
+To: Service clients Norvel <service.clients@norvel-fournitures.example>
+Subject: Bon de commande octobre
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="=====separateur-m023====="
+
+--=====separateur-m023=====
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+
+Bonjour,
+
+Notre bon de commande d'octobre est en pièce jointe (fichier CSV, une ligne
+par référence). Livraison à la brasserie de Huy.
+
+Olivier Fontaine
+
+--=====separateur-m023=====
+Content-Type: text/csv
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="bon_commande_octobre.csv"
+MIME-Version: 1.0
+
+cmVmZXJlbmNlO2Rlc2lnbmF0aW9uO3F1YW50aXRlClBSRC0xMTg7Q2Fmw6kgZW4gZ3JhaW5zIDEg
+a2c7MTUKUFJELTExOTtHb2JlbGV0cyBjYXJ0b24gMjAgY2wgKGxvdCBkZSAxMDAwKTs0ClBSRC0x
+MTY7RXNzdWllLW1haW5zIHBhcGllciAoY2FydG9uIGRlIDIwKTs2ClBSRC0xMDc7U3VybGlnbmV1
+cnMgYXNzb3J0aXMgKGxvdCBkZSA0KTsxMAo=
+
+--=====separateur-m023=====--

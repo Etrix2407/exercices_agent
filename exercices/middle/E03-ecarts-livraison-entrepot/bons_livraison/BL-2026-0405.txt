@@ -1,0 +1,8 @@
+RAPIDO FRET - Bordereau de livraison
+Réf. bordereau : BL-2026-0405
+Réceptionné le : 2026-10-12 09:15
+Distributeur   : Alvarin Distribution SA
+Ref. commande  : CMD 2026 0405
+Articles livrés :
+  * REF-2215A | Palette bois EUR 1200 x 800 | qté : 36 unité(s)
+Remarques : RAS

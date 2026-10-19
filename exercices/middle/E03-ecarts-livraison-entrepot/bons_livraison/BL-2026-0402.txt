@@ -1,0 +1,9 @@
+RAPIDO FRET - Bordereau de livraison
+Réf. bordereau : BL-2026-0402
+Réceptionné le : 2026-10-10 11:20
+Distributeur   : Brevet & Cie
+Ref. commande  : CMD 2026 0402
+Articles livrés :
+  * REF 4417 B | Lampe LED 9 W culot E27, lot de 10 | qté : 12 unité(s)
+  * REF-4420B | Câble HDMI 2 m | qté : 24 unité(s)
+Remarques : RAS

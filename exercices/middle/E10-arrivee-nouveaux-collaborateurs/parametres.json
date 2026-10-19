@@ -1,0 +1,32 @@
+{
+  "date_execution": "2026-10-14",
+  "groupe": "Groupe Vandamme Ingénierie (fictif)",
+  "delais_jours_ouvres_avant_arrivee": {
+    "rh": 10,
+    "informatique": 5,
+    "services_generaux": 3,
+    "manager": 5
+  },
+  "programme_premiere_semaine": [
+    {
+      "jour": "Lundi",
+      "activite": "Accueil à 9 h 00 à l'accueil du site, remise du badge, présentation de l'équipe"
+    },
+    {
+      "jour": "Mardi",
+      "activite": "Visite du site et formation sécurité, présentation des outils informatiques"
+    },
+    {
+      "jour": "Mercredi",
+      "activite": "Travail avec le parrain sur les processus de l'équipe"
+    },
+    {
+      "jour": "Jeudi",
+      "activite": "Point d'étape avec le manager"
+    },
+    {
+      "jour": "Vendredi",
+      "activite": "Bilan de la première semaine avec le manager"
+    }
+  ]
+}

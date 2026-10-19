@@ -1,0 +1,7 @@
+Type de pièce : Carte d'identité
+Nom : Karim Benali
+Date d'émission : 20/01/2021
+Numéro de document : 000-0000000-00
+Date d'expiration : 20/01/2031
+
+Document fictif produit pour l'exercice.

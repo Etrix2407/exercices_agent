@@ -1,0 +1,1160 @@
+[
+  {
+    "numero": "ML-2026-1001",
+    "date_commande": "2026-10-11",
+    "statut": "en préparation",
+    "client": {
+      "nom": "Damien Joris",
+      "email": "damien.joris@client.test"
+    },
+    "articles": [
+      {
+        "reference": "PE-COT-GR",
+        "libelle": "Peignoir coton taille M gris",
+        "quantite": 1,
+        "prix_unitaire_eur": 68.0
+      }
+    ],
+    "total_eur": 68.0,
+    "date_livraison": null,
+    "transporteur": null,
+    "numero_suivi": null
+  },
+  {
+    "numero": "ML-2026-1002",
+    "date_commande": "2026-10-06",
+    "statut": "expédiée",
+    "client": {
+      "nom": "Lucie Vermeulen",
+      "email": "lucie.vermeulen@client.test"
+    },
+    "articles": [
+      {
+        "reference": "SB-70140-BL",
+        "libelle": "Serviette de bain coton 70x140 bleu",
+        "quantite": 2,
+        "prix_unitaire_eur": 24.9
+      }
+    ],
+    "total_eur": 49.8,
+    "date_livraison": null,
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261002BE"
+  },
+  {
+    "numero": "ML-2026-1003",
+    "date_commande": "2026-10-10",
+    "statut": "expédiée",
+    "client": {
+      "nom": "Pieter Smets",
+      "email": "pieter.smets@client.test"
+    },
+    "articles": [
+      {
+        "reference": "CO-4545-MO",
+        "libelle": "Coussin décoratif 45x45 moutarde",
+        "quantite": 1,
+        "prix_unitaire_eur": 22.0
+      },
+      {
+        "reference": "TO-6060-BR",
+        "libelle": "Taie d'oreiller brodée 60x60 blanc",
+        "quantite": 1,
+        "prix_unitaire_eur": 19.5
+      }
+    ],
+    "total_eur": 41.5,
+    "date_livraison": null,
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261003BE"
+  },
+  {
+    "numero": "ML-2026-1004",
+    "date_commande": "2026-10-03",
+    "statut": "expédiée",
+    "client": {
+      "nom": "Claire Dumont",
+      "email": "claire.dumont@client.test"
+    },
+    "articles": [
+      {
+        "reference": "CO-4545-MO",
+        "libelle": "Coussin décoratif 45x45 moutarde",
+        "quantite": 1,
+        "prix_unitaire_eur": 22.0
+      },
+      {
+        "reference": "TO-6060-BR",
+        "libelle": "Taie d'oreiller brodée 60x60 blanc",
+        "quantite": 2,
+        "prix_unitaire_eur": 19.5
+      }
+    ],
+    "total_eur": 61.0,
+    "date_livraison": null,
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261004BE"
+  },
+  {
+    "numero": "ML-2026-1005",
+    "date_commande": "2026-10-03",
+    "statut": "livrée",
+    "client": {
+      "nom": "Alice Georges",
+      "email": "alice.georges@client.test"
+    },
+    "articles": [
+      {
+        "reference": "DH-160200-LN",
+        "libelle": "Drap housse percale 160x200 lin naturel",
+        "quantite": 1,
+        "prix_unitaire_eur": 59.0
+      }
+    ],
+    "total_eur": 59.0,
+    "date_livraison": "2026-10-07",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261005BE"
+  },
+  {
+    "numero": "ML-2026-1006",
+    "date_commande": "2026-10-07",
+    "statut": "expédiée",
+    "client": {
+      "nom": "Hugo Janssens",
+      "email": "hugo.janssens@client.test"
+    },
+    "articles": [
+      {
+        "reference": "NA-150250-LN",
+        "libelle": "Nappe lin 150x250 naturel",
+        "quantite": 1,
+        "prix_unitaire_eur": 64.0
+      }
+    ],
+    "total_eur": 64.0,
+    "date_livraison": null,
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261006BE"
+  },
+  {
+    "numero": "ML-2026-1007",
+    "date_commande": "2026-09-22",
+    "statut": "livrée",
+    "client": {
+      "nom": "Laurent Noël",
+      "email": "laurent.noel@client.test"
+    },
+    "articles": [
+      {
+        "reference": "PL-130170-VE",
+        "libelle": "Plaid laine 130x170 vert",
+        "quantite": 1,
+        "prix_unitaire_eur": 79.0
+      }
+    ],
+    "total_eur": 79.0,
+    "date_livraison": "2026-09-25",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261007BE"
+  },
+  {
+    "numero": "ML-2026-1008",
+    "date_commande": "2026-10-12",
+    "statut": "en préparation",
+    "client": {
+      "nom": "Éléonore Georges",
+      "email": "eleonore.georges@client.test"
+    },
+    "articles": [
+      {
+        "reference": "DH-160200-LN",
+        "libelle": "Drap housse percale 160x200 lin naturel",
+        "quantite": 1,
+        "prix_unitaire_eur": 59.0
+      },
+      {
+        "reference": "SB-70140-BL",
+        "libelle": "Serviette de bain coton 70x140 bleu",
+        "quantite": 1,
+        "prix_unitaire_eur": 24.9
+      }
+    ],
+    "total_eur": 83.9,
+    "date_livraison": null,
+    "transporteur": null,
+    "numero_suivi": null
+  },
+  {
+    "numero": "ML-2026-1009",
+    "date_commande": "2026-09-29",
+    "statut": "livrée",
+    "client": {
+      "nom": "Amélie Roux",
+      "email": "amelie.roux@client.test"
+    },
+    "articles": [
+      {
+        "reference": "PL-130170-VE",
+        "libelle": "Plaid laine 130x170 vert",
+        "quantite": 1,
+        "prix_unitaire_eur": 79.0
+      }
+    ],
+    "total_eur": 79.0,
+    "date_livraison": "2026-10-02",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261009BE"
+  },
+  {
+    "numero": "ML-2026-1010",
+    "date_commande": "2026-10-09",
+    "statut": "expédiée",
+    "client": {
+      "nom": "Damien Orban",
+      "email": "damien.orban@client.test"
+    },
+    "articles": [
+      {
+        "reference": "TO-6060-BR",
+        "libelle": "Taie d'oreiller brodée 60x60 blanc",
+        "quantite": 1,
+        "prix_unitaire_eur": 19.5
+      },
+      {
+        "reference": "PL-130170-VE",
+        "libelle": "Plaid laine 130x170 vert",
+        "quantite": 1,
+        "prix_unitaire_eur": 79.0
+      }
+    ],
+    "total_eur": 98.5,
+    "date_livraison": null,
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261010BE"
+  },
+  {
+    "numero": "ML-2026-1011",
+    "date_commande": "2026-09-24",
+    "statut": "livrée",
+    "client": {
+      "nom": "Patrick Pirard",
+      "email": "patrick.pirard@client.test"
+    },
+    "articles": [
+      {
+        "reference": "VA-CERA-30",
+        "libelle": "Vase céramique 30 cm blanc",
+        "quantite": 1,
+        "prix_unitaire_eur": 45.0
+      }
+    ],
+    "total_eur": 45.0,
+    "date_livraison": "2026-09-28",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261011BE"
+  },
+  {
+    "numero": "ML-2026-1012",
+    "date_commande": "2026-10-05",
+    "statut": "expédiée",
+    "client": {
+      "nom": "Thibault Wauters",
+      "email": "thibault.wauters@client.test"
+    },
+    "articles": [
+      {
+        "reference": "HC-240220-GR",
+        "libelle": "Housse de couette lin 240x220 gris",
+        "quantite": 1,
+        "prix_unitaire_eur": 129.0
+      }
+    ],
+    "total_eur": 129.0,
+    "date_livraison": null,
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261012BE"
+  },
+  {
+    "numero": "ML-2026-1013",
+    "date_commande": "2026-09-14",
+    "statut": "livrée",
+    "client": {
+      "nom": "Céline Delvaux",
+      "email": "celine.delvaux@client.test"
+    },
+    "articles": [
+      {
+        "reference": "DH-160200-LN",
+        "libelle": "Drap housse percale 160x200 lin naturel",
+        "quantite": 1,
+        "prix_unitaire_eur": 59.0
+      }
+    ],
+    "total_eur": 59.0,
+    "date_livraison": "2026-09-18",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261013BE"
+  },
+  {
+    "numero": "ML-2026-1014",
+    "date_commande": "2026-10-08",
+    "statut": "en préparation",
+    "client": {
+      "nom": "Laurent Mabille",
+      "email": "laurent.mabille@client.test"
+    },
+    "articles": [
+      {
+        "reference": "PL-130170-VE",
+        "libelle": "Plaid laine 130x170 vert",
+        "quantite": 1,
+        "prix_unitaire_eur": 79.0
+      },
+      {
+        "reference": "HC-240220-GR",
+        "libelle": "Housse de couette lin 240x220 gris",
+        "quantite": 1,
+        "prix_unitaire_eur": 129.0
+      }
+    ],
+    "total_eur": 208.0,
+    "date_livraison": null,
+    "transporteur": null,
+    "numero_suivi": null
+  },
+  {
+    "numero": "ML-2026-1015",
+    "date_commande": "2026-09-22",
+    "statut": "livrée",
+    "client": {
+      "nom": "Marion Dessy",
+      "email": "marion.dessy@client.test"
+    },
+    "articles": [
+      {
+        "reference": "DH-160200-LN",
+        "libelle": "Drap housse percale 160x200 lin naturel",
+        "quantite": 2,
+        "prix_unitaire_eur": 59.0
+      }
+    ],
+    "total_eur": 118.0,
+    "date_livraison": "2026-09-26",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261015BE"
+  },
+  {
+    "numero": "ML-2026-1016",
+    "date_commande": "2026-10-11",
+    "statut": "expédiée",
+    "client": {
+      "nom": "Bastien Kaisin",
+      "email": "bastien.kaisin@client.test"
+    },
+    "articles": [
+      {
+        "reference": "VA-CERA-30",
+        "libelle": "Vase céramique 30 cm blanc",
+        "quantite": 1,
+        "prix_unitaire_eur": 45.0
+      }
+    ],
+    "total_eur": 45.0,
+    "date_livraison": null,
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261016BE"
+  },
+  {
+    "numero": "ML-2026-1017",
+    "date_commande": "2026-09-04",
+    "statut": "livrée",
+    "client": {
+      "nom": "Karine Noël",
+      "email": "karine.noel@client.test"
+    },
+    "articles": [
+      {
+        "reference": "VA-CERA-30",
+        "libelle": "Vase céramique 30 cm blanc",
+        "quantite": 1,
+        "prix_unitaire_eur": 45.0
+      },
+      {
+        "reference": "HC-240220-GR",
+        "libelle": "Housse de couette lin 240x220 gris",
+        "quantite": 1,
+        "prix_unitaire_eur": 129.0
+      }
+    ],
+    "total_eur": 174.0,
+    "date_livraison": "2026-09-09",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261017BE"
+  },
+  {
+    "numero": "ML-2026-1018",
+    "date_commande": "2026-09-24",
+    "statut": "livrée",
+    "client": {
+      "nom": "Océane Lambrecht",
+      "email": "oceane.lambrecht@client.test"
+    },
+    "articles": [
+      {
+        "reference": "PE-COT-GR",
+        "libelle": "Peignoir coton taille M gris",
+        "quantite": 1,
+        "prix_unitaire_eur": 68.0
+      }
+    ],
+    "total_eur": 68.0,
+    "date_livraison": "2026-09-28",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261018BE"
+  },
+  {
+    "numero": "ML-2026-1019",
+    "date_commande": "2026-09-14",
+    "statut": "livrée",
+    "client": {
+      "nom": "Patrick Noël",
+      "email": "patrick.noel@client.test"
+    },
+    "articles": [
+      {
+        "reference": "SB-70140-VE",
+        "libelle": "Serviette de bain coton 70x140 vert",
+        "quantite": 1,
+        "prix_unitaire_eur": 24.9
+      }
+    ],
+    "total_eur": 24.9,
+    "date_livraison": "2026-09-18",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261019BE"
+  },
+  {
+    "numero": "ML-2026-1020",
+    "date_commande": "2026-07-30",
+    "statut": "livrée",
+    "client": {
+      "nom": "Pauline Martens",
+      "email": "pauline.martens@client.test"
+    },
+    "articles": [
+      {
+        "reference": "TC-LOT3-BC",
+        "libelle": "Torchons coton lot de 3",
+        "quantite": 2,
+        "prix_unitaire_eur": 17.9
+      }
+    ],
+    "total_eur": 35.8,
+    "date_livraison": "2026-08-03",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261020BE"
+  },
+  {
+    "numero": "ML-2026-1021",
+    "date_commande": "2026-09-24",
+    "statut": "livrée",
+    "client": {
+      "nom": "Odile Evrard",
+      "email": "odile.evrard@client.test"
+    },
+    "articles": [
+      {
+        "reference": "PL-130170-VE",
+        "libelle": "Plaid laine 130x170 vert",
+        "quantite": 1,
+        "prix_unitaire_eur": 79.0
+      },
+      {
+        "reference": "CO-4545-MO",
+        "libelle": "Coussin décoratif 45x45 moutarde",
+        "quantite": 1,
+        "prix_unitaire_eur": 22.0
+      }
+    ],
+    "total_eur": 101.0,
+    "date_livraison": "2026-09-27",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261021BE"
+  },
+  {
+    "numero": "ML-2026-1022",
+    "date_commande": "2026-10-13",
+    "statut": "expédiée",
+    "client": {
+      "nom": "Isabelle Leclercq",
+      "email": "isabelle.leclercq@client.test"
+    },
+    "articles": [
+      {
+        "reference": "PE-COT-GR",
+        "libelle": "Peignoir coton taille M gris",
+        "quantite": 1,
+        "prix_unitaire_eur": 68.0
+      }
+    ],
+    "total_eur": 68.0,
+    "date_livraison": null,
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261022BE"
+  },
+  {
+    "numero": "ML-2026-1023",
+    "date_commande": "2026-10-10",
+    "statut": "expédiée",
+    "client": {
+      "nom": "Bastien Georges",
+      "email": "bastien.georges@client.test"
+    },
+    "articles": [
+      {
+        "reference": "VA-CERA-30",
+        "libelle": "Vase céramique 30 cm blanc",
+        "quantite": 1,
+        "prix_unitaire_eur": 45.0
+      }
+    ],
+    "total_eur": 45.0,
+    "date_livraison": null,
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261023BE"
+  },
+  {
+    "numero": "ML-2026-1024",
+    "date_commande": "2026-10-11",
+    "statut": "en préparation",
+    "client": {
+      "nom": "Jérôme Hénin",
+      "email": "jerome.henin@client.test"
+    },
+    "articles": [
+      {
+        "reference": "PE-COT-GR",
+        "libelle": "Peignoir coton taille M gris",
+        "quantite": 1,
+        "prix_unitaire_eur": 68.0
+      }
+    ],
+    "total_eur": 68.0,
+    "date_livraison": null,
+    "transporteur": null,
+    "numero_suivi": null
+  },
+  {
+    "numero": "ML-2026-1025",
+    "date_commande": "2026-09-30",
+    "statut": "livrée",
+    "client": {
+      "nom": "Simon Hermans",
+      "email": "simon.hermans@client.test"
+    },
+    "articles": [
+      {
+        "reference": "SB-70140-BL",
+        "libelle": "Serviette de bain coton 70x140 bleu",
+        "quantite": 1,
+        "prix_unitaire_eur": 24.9
+      },
+      {
+        "reference": "TC-LOT3-BC",
+        "libelle": "Torchons coton lot de 3",
+        "quantite": 1,
+        "prix_unitaire_eur": 17.9
+      }
+    ],
+    "total_eur": 42.8,
+    "date_livraison": "2026-10-03",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261025BE"
+  },
+  {
+    "numero": "ML-2026-1026",
+    "date_commande": "2026-09-22",
+    "statut": "livrée",
+    "client": {
+      "nom": "Gaëlle Mabille",
+      "email": "gaelle.mabille@client.test"
+    },
+    "articles": [
+      {
+        "reference": "TC-LOT3-BC",
+        "libelle": "Torchons coton lot de 3",
+        "quantite": 1,
+        "prix_unitaire_eur": 17.9
+      },
+      {
+        "reference": "VA-CERA-30",
+        "libelle": "Vase céramique 30 cm blanc",
+        "quantite": 1,
+        "prix_unitaire_eur": 45.0
+      }
+    ],
+    "total_eur": 62.9,
+    "date_livraison": "2026-09-27",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261026BE"
+  },
+  {
+    "numero": "ML-2026-1027",
+    "date_commande": "2026-10-10",
+    "statut": "en préparation",
+    "client": {
+      "nom": "Alice Ivens",
+      "email": "alice.ivens@client.test"
+    },
+    "articles": [
+      {
+        "reference": "SB-70140-BL",
+        "libelle": "Serviette de bain coton 70x140 bleu",
+        "quantite": 1,
+        "prix_unitaire_eur": 24.9
+      },
+      {
+        "reference": "PL-130170-VE",
+        "libelle": "Plaid laine 130x170 vert",
+        "quantite": 1,
+        "prix_unitaire_eur": 79.0
+      }
+    ],
+    "total_eur": 103.9,
+    "date_livraison": null,
+    "transporteur": null,
+    "numero_suivi": null
+  },
+  {
+    "numero": "ML-2026-1028",
+    "date_commande": "2026-10-01",
+    "statut": "livrée",
+    "client": {
+      "nom": "Nora Van Dam",
+      "email": "nora.vandam@client.test"
+    },
+    "articles": [
+      {
+        "reference": "SB-70140-VE",
+        "libelle": "Serviette de bain coton 70x140 vert",
+        "quantite": 1,
+        "prix_unitaire_eur": 24.9
+      }
+    ],
+    "total_eur": 24.9,
+    "date_livraison": "2026-10-06",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261028BE"
+  },
+  {
+    "numero": "ML-2026-1029",
+    "date_commande": "2026-10-12",
+    "statut": "en préparation",
+    "client": {
+      "nom": "Julien Bral",
+      "email": "julien.bral@client.test"
+    },
+    "articles": [
+      {
+        "reference": "CO-4545-MO",
+        "libelle": "Coussin décoratif 45x45 moutarde",
+        "quantite": 2,
+        "prix_unitaire_eur": 22.0
+      }
+    ],
+    "total_eur": 44.0,
+    "date_livraison": null,
+    "transporteur": null,
+    "numero_suivi": null
+  },
+  {
+    "numero": "ML-2026-1030",
+    "date_commande": "2026-10-05",
+    "statut": "livrée",
+    "client": {
+      "nom": "Alice Hénin",
+      "email": "alice.henin@client.test"
+    },
+    "articles": [
+      {
+        "reference": "SB-70140-VE",
+        "libelle": "Serviette de bain coton 70x140 vert",
+        "quantite": 1,
+        "prix_unitaire_eur": 24.9
+      },
+      {
+        "reference": "DH-160200-LN",
+        "libelle": "Drap housse percale 160x200 lin naturel",
+        "quantite": 1,
+        "prix_unitaire_eur": 59.0
+      }
+    ],
+    "total_eur": 83.9,
+    "date_livraison": "2026-10-08",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261030BE"
+  },
+  {
+    "numero": "ML-2026-1031",
+    "date_commande": "2026-09-01",
+    "statut": "en préparation",
+    "client": {
+      "nom": "Anaïs Coppens",
+      "email": "anais.coppens@client.test"
+    },
+    "articles": [
+      {
+        "reference": "HC-240220-GR",
+        "libelle": "Housse de couette lin 240x220 gris",
+        "quantite": 1,
+        "prix_unitaire_eur": 129.0
+      }
+    ],
+    "total_eur": 129.0,
+    "date_livraison": null,
+    "transporteur": null,
+    "numero_suivi": null
+  },
+  {
+    "numero": "ML-2026-1032",
+    "date_commande": "2026-10-04",
+    "statut": "livrée",
+    "client": {
+      "nom": "Bastien Hénin",
+      "email": "bastien.henin@client.test"
+    },
+    "articles": [
+      {
+        "reference": "HC-240220-GR",
+        "libelle": "Housse de couette lin 240x220 gris",
+        "quantite": 1,
+        "prix_unitaire_eur": 129.0
+      },
+      {
+        "reference": "SB-70140-BL",
+        "libelle": "Serviette de bain coton 70x140 bleu",
+        "quantite": 1,
+        "prix_unitaire_eur": 24.9
+      }
+    ],
+    "total_eur": 153.9,
+    "date_livraison": "2026-10-08",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261032BE"
+  },
+  {
+    "numero": "ML-2026-1033",
+    "date_commande": "2026-10-09",
+    "statut": "en préparation",
+    "client": {
+      "nom": "Damien Hénin",
+      "email": "damien.henin@client.test"
+    },
+    "articles": [
+      {
+        "reference": "SB-70140-VE",
+        "libelle": "Serviette de bain coton 70x140 vert",
+        "quantite": 1,
+        "prix_unitaire_eur": 24.9
+      },
+      {
+        "reference": "TC-LOT3-BC",
+        "libelle": "Torchons coton lot de 3",
+        "quantite": 1,
+        "prix_unitaire_eur": 17.9
+      }
+    ],
+    "total_eur": 42.8,
+    "date_livraison": null,
+    "transporteur": null,
+    "numero_suivi": null
+  },
+  {
+    "numero": "ML-2026-1034",
+    "date_commande": "2026-09-21",
+    "statut": "livrée",
+    "client": {
+      "nom": "Damien Leclercq",
+      "email": "damien.leclercq@client.test"
+    },
+    "articles": [
+      {
+        "reference": "DH-160200-LN",
+        "libelle": "Drap housse percale 160x200 lin naturel",
+        "quantite": 1,
+        "prix_unitaire_eur": 59.0
+      },
+      {
+        "reference": "TC-LOT3-BC",
+        "libelle": "Torchons coton lot de 3",
+        "quantite": 1,
+        "prix_unitaire_eur": 17.9
+      }
+    ],
+    "total_eur": 76.9,
+    "date_livraison": "2026-09-26",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261034BE"
+  },
+  {
+    "numero": "ML-2026-1035",
+    "date_commande": "2026-10-10",
+    "statut": "expédiée",
+    "client": {
+      "nom": "Isabelle Bernard",
+      "email": "isabelle.bernard@client.test"
+    },
+    "articles": [
+      {
+        "reference": "PE-COT-GR",
+        "libelle": "Peignoir coton taille M gris",
+        "quantite": 1,
+        "prix_unitaire_eur": 68.0
+      }
+    ],
+    "total_eur": 68.0,
+    "date_livraison": null,
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261035BE"
+  },
+  {
+    "numero": "ML-2026-1036",
+    "date_commande": "2026-10-01",
+    "statut": "livrée",
+    "client": {
+      "nom": "Romain Desmet",
+      "email": "romain.desmet@client.test"
+    },
+    "articles": [
+      {
+        "reference": "NA-150250-LN",
+        "libelle": "Nappe lin 150x250 naturel",
+        "quantite": 1,
+        "prix_unitaire_eur": 64.0
+      }
+    ],
+    "total_eur": 64.0,
+    "date_livraison": "2026-10-07",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261036BE"
+  },
+  {
+    "numero": "ML-2026-1037",
+    "date_commande": "2026-10-05",
+    "statut": "en préparation",
+    "client": {
+      "nom": "Jérôme Kaisin",
+      "email": "jerome.kaisin@client.test"
+    },
+    "articles": [
+      {
+        "reference": "PE-COT-GR",
+        "libelle": "Peignoir coton taille M gris",
+        "quantite": 1,
+        "prix_unitaire_eur": 68.0
+      }
+    ],
+    "total_eur": 68.0,
+    "date_livraison": null,
+    "transporteur": null,
+    "numero_suivi": null
+  },
+  {
+    "numero": "ML-2026-1038",
+    "date_commande": "2026-09-18",
+    "statut": "livrée",
+    "client": {
+      "nom": "Estelle Vandenbroucke",
+      "email": "estelle.vandenbroucke@client.test"
+    },
+    "articles": [
+      {
+        "reference": "TO-6060-BR",
+        "libelle": "Taie d'oreiller brodée 60x60 blanc",
+        "quantite": 3,
+        "prix_unitaire_eur": 19.5
+      }
+    ],
+    "total_eur": 58.5,
+    "date_livraison": "2026-09-25",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261038BE"
+  },
+  {
+    "numero": "ML-2026-1039",
+    "date_commande": "2026-09-06",
+    "statut": "livrée",
+    "client": {
+      "nom": "Patrick Orban",
+      "email": "patrick.orban@client.test"
+    },
+    "articles": [
+      {
+        "reference": "DH-160200-LN",
+        "libelle": "Drap housse percale 160x200 lin naturel",
+        "quantite": 1,
+        "prix_unitaire_eur": 59.0
+      },
+      {
+        "reference": "PE-COT-GR",
+        "libelle": "Peignoir coton taille M gris",
+        "quantite": 1,
+        "prix_unitaire_eur": 68.0
+      }
+    ],
+    "total_eur": 127.0,
+    "date_livraison": "2026-09-11",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261039BE"
+  },
+  {
+    "numero": "ML-2026-1040",
+    "date_commande": "2026-09-28",
+    "statut": "livrée",
+    "client": {
+      "nom": "Isabelle Pirard",
+      "email": "isabelle.pirard@client.test"
+    },
+    "articles": [
+      {
+        "reference": "PL-130170-VE",
+        "libelle": "Plaid laine 130x170 vert",
+        "quantite": 1,
+        "prix_unitaire_eur": 79.0
+      }
+    ],
+    "total_eur": 79.0,
+    "date_livraison": "2026-10-03",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261040BE"
+  },
+  {
+    "numero": "ML-2026-1041",
+    "date_commande": "2026-09-16",
+    "statut": "livrée",
+    "client": {
+      "nom": "Mehdi Benzarti",
+      "email": "mehdi.benzarti@client.test"
+    },
+    "articles": [
+      {
+        "reference": "PE-COT-GR",
+        "libelle": "Peignoir coton taille M gris",
+        "quantite": 1,
+        "prix_unitaire_eur": 68.0
+      }
+    ],
+    "total_eur": 68.0,
+    "date_livraison": "2026-09-22",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261041BE"
+  },
+  {
+    "numero": "ML-2026-1042",
+    "date_commande": "2026-10-07",
+    "statut": "livrée",
+    "client": {
+      "nom": "Damien Collard",
+      "email": "damien.collard@client.test"
+    },
+    "articles": [
+      {
+        "reference": "PL-130170-VE",
+        "libelle": "Plaid laine 130x170 vert",
+        "quantite": 1,
+        "prix_unitaire_eur": 79.0
+      },
+      {
+        "reference": "SB-70140-VE",
+        "libelle": "Serviette de bain coton 70x140 vert",
+        "quantite": 1,
+        "prix_unitaire_eur": 24.9
+      }
+    ],
+    "total_eur": 103.9,
+    "date_livraison": "2026-10-10",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261042BE"
+  },
+  {
+    "numero": "ML-2026-1043",
+    "date_commande": "2026-10-13",
+    "statut": "expédiée",
+    "client": {
+      "nom": "Laurent Hénin",
+      "email": "laurent.henin@client.test"
+    },
+    "articles": [
+      {
+        "reference": "NA-150250-LN",
+        "libelle": "Nappe lin 150x250 naturel",
+        "quantite": 1,
+        "prix_unitaire_eur": 64.0
+      }
+    ],
+    "total_eur": 64.0,
+    "date_livraison": null,
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261043BE"
+  },
+  {
+    "numero": "ML-2026-1044",
+    "date_commande": "2026-10-02",
+    "statut": "livrée",
+    "client": {
+      "nom": "Chloé Gérard",
+      "email": "chloe.gerard@client.test"
+    },
+    "articles": [
+      {
+        "reference": "VA-CERA-30",
+        "libelle": "Vase céramique 30 cm blanc",
+        "quantite": 1,
+        "prix_unitaire_eur": 45.0
+      }
+    ],
+    "total_eur": 45.0,
+    "date_livraison": "2026-10-08",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261044BE"
+  },
+  {
+    "numero": "ML-2026-1045",
+    "date_commande": "2026-10-04",
+    "statut": "livrée",
+    "client": {
+      "nom": "Karine Georges",
+      "email": "karine.georges@client.test"
+    },
+    "articles": [
+      {
+        "reference": "SB-70140-VE",
+        "libelle": "Serviette de bain coton 70x140 vert",
+        "quantite": 1,
+        "prix_unitaire_eur": 24.9
+      }
+    ],
+    "total_eur": 24.9,
+    "date_livraison": "2026-10-09",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261045BE"
+  },
+  {
+    "numero": "ML-2026-1046",
+    "date_commande": "2026-09-08",
+    "statut": "livrée",
+    "client": {
+      "nom": "Laurent Delvaux",
+      "email": "laurent.delvaux@client.test"
+    },
+    "articles": [
+      {
+        "reference": "VA-CERA-30",
+        "libelle": "Vase céramique 30 cm blanc",
+        "quantite": 1,
+        "prix_unitaire_eur": 45.0
+      }
+    ],
+    "total_eur": 45.0,
+    "date_livraison": "2026-09-13",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261046BE"
+  },
+  {
+    "numero": "ML-2026-1047",
+    "date_commande": "2026-09-28",
+    "statut": "livrée",
+    "client": {
+      "nom": "Lucas Petit",
+      "email": "lucas.petit@client.test"
+    },
+    "articles": [
+      {
+        "reference": "CO-4545-MO",
+        "libelle": "Coussin décoratif 45x45 moutarde",
+        "quantite": 2,
+        "prix_unitaire_eur": 22.0
+      },
+      {
+        "reference": "TO-6060-BR",
+        "libelle": "Taie d'oreiller brodée 60x60 blanc",
+        "quantite": 1,
+        "prix_unitaire_eur": 19.5
+      }
+    ],
+    "total_eur": 63.5,
+    "date_livraison": "2026-10-02",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261047BE"
+  },
+  {
+    "numero": "ML-2026-1048",
+    "date_commande": "2026-09-11",
+    "statut": "livrée",
+    "client": {
+      "nom": "Patrick Delvaux",
+      "email": "patrick.delvaux@client.test"
+    },
+    "articles": [
+      {
+        "reference": "TC-LOT3-BC",
+        "libelle": "Torchons coton lot de 3",
+        "quantite": 1,
+        "prix_unitaire_eur": 17.9
+      }
+    ],
+    "total_eur": 17.9,
+    "date_livraison": "2026-09-14",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261048BE"
+  },
+  {
+    "numero": "ML-2026-1049",
+    "date_commande": "2026-09-15",
+    "statut": "livrée",
+    "client": {
+      "nom": "Gaëlle Leclercq",
+      "email": "gaelle.leclercq@client.test"
+    },
+    "articles": [
+      {
+        "reference": "PE-COT-GR",
+        "libelle": "Peignoir coton taille M gris",
+        "quantite": 1,
+        "prix_unitaire_eur": 68.0
+      },
+      {
+        "reference": "SB-70140-BL",
+        "libelle": "Serviette de bain coton 70x140 bleu",
+        "quantite": 1,
+        "prix_unitaire_eur": 24.9
+      }
+    ],
+    "total_eur": 92.9,
+    "date_livraison": "2026-09-19",
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261049BE"
+  },
+  {
+    "numero": "ML-2026-1050",
+    "date_commande": "2026-10-06",
+    "statut": "expédiée",
+    "client": {
+      "nom": "Inès Fontaine",
+      "email": "ines.fontaine@client.test"
+    },
+    "articles": [
+      {
+        "reference": "TC-LOT3-BC",
+        "libelle": "Torchons coton lot de 3",
+        "quantite": 1,
+        "prix_unitaire_eur": 17.9
+      }
+    ],
+    "total_eur": 17.9,
+    "date_livraison": null,
+    "transporteur": "ExpressTest (fictif)",
+    "numero_suivi": "ETX261050BE"
+  }
+]

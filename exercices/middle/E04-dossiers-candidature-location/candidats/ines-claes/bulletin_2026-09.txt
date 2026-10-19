@@ -1,0 +1,8 @@
+Type de pièce : Bulletin de salaire
+Nom : Inès Claes
+Date d'émission : 30/09/2026
+Employeur : Atelier Verlinden SRL (fictif)
+Période : septembre 2026
+Salaire net à payer : 3 300,00 EUR
+
+Document fictif produit pour l'exercice.

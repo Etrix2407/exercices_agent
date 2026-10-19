@@ -1,0 +1,6 @@
+Type de pièce : Avis d'imposition
+Nom : Léa Vanderstraeten
+Date d'émission : 20/06/2026
+Exercice des revenus : 2025
+
+Document fictif produit pour l'exercice.

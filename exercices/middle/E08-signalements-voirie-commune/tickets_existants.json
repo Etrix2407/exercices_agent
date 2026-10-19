@@ -1,0 +1,66 @@
+[
+  {
+    "id": "TK-2026-0355",
+    "service": "espaces_verts",
+    "adresse": "Chemin des Vignes",
+    "description": "Branche morte au-dessus du trottoir",
+    "date_ouverture": "2026-08-14",
+    "statut": "clos"
+  },
+  {
+    "id": "TK-2026-0371",
+    "service": "espaces_verts",
+    "adresse": "Allée des Peupliers",
+    "description": "Arbre penché au-dessus du jardin public",
+    "date_ouverture": "2026-09-15",
+    "statut": "ouvert"
+  },
+  {
+    "id": "TK-2026-0387",
+    "service": "voirie",
+    "adresse": "12 Rue du Moulin",
+    "description": "Nid-de-poule au milieu de la chaussée",
+    "date_ouverture": "2026-09-22",
+    "statut": "ouvert"
+  },
+  {
+    "id": "TK-2026-0391",
+    "service": "eclairage",
+    "adresse": "4 Rue des Tilleuls",
+    "description": "Lampadaire éteint depuis une semaine",
+    "date_ouverture": "2026-09-28",
+    "statut": "en_cours"
+  },
+  {
+    "id": "TK-2026-0399",
+    "service": "proprete",
+    "adresse": "Rue Pasteur",
+    "description": "Tags sur le mur du garage municipal",
+    "date_ouverture": "2026-09-30",
+    "statut": "ouvert"
+  },
+  {
+    "id": "TK-2026-0402",
+    "service": "proprete",
+    "adresse": "Place Jean-Jaurès",
+    "description": "Dépôt de sacs et cartons au pied des containers",
+    "date_ouverture": "2026-10-01",
+    "statut": "ouvert"
+  },
+  {
+    "id": "TK-2026-0408",
+    "service": "voirie",
+    "adresse": "Avenue de la Gare",
+    "description": "Plaque d'égout affaissée",
+    "date_ouverture": "2026-10-03",
+    "statut": "ouvert"
+  },
+  {
+    "id": "TK-2026-0410",
+    "service": "eclairage",
+    "adresse": "Rue de la République, 27",
+    "description": "Éclairage en panne à l'entrée de l'immeuble",
+    "date_ouverture": "2026-10-05",
+    "statut": "ouvert"
+  }
+]

@@ -1,0 +1,8 @@
+Type de pièce : Relevé de revenus d'indépendant
+Nom : Olivier Mertens
+Date d'émission : 31/07/2026
+Activité : Conseil informatique individuel (fictif)
+Période : juillet 2026
+Revenu net mensuel retenu : 3 010,00 EUR
+
+Document fictif produit pour l'exercice.

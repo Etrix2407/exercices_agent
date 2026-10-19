@@ -1,0 +1,24 @@
+metier,code_acces,type,libelle,service
+TOUS,CPT-AD,compte,Compte annuaire et identifiant réseau,informatique
+TOUS,MSG,messagerie,Boîte de messagerie professionnelle,informatique
+TOUS,MAT-PST,materiel,Ordinateur portable standard 14 pouces,informatique
+TOUS,BAD-STD,badge,Badge d'accès au site,services_generaux
+DEV,APP-GIT,application,Dépôt de code source,informatique
+DEV,APP-TKT,application,Outil de suivi des tickets,informatique
+DEV,APP-WIKI,application,Wiki technique,informatique
+DEV,GRP-DEV,groupe,Groupe dev-plateforme,informatique
+ING,APP-SIM,application,Logiciel de calcul de structure,informatique
+ING,APP-WIKI,application,Wiki technique,informatique
+ING,GRP-CALC,groupe,Groupe calcul-partage,informatique
+ING,MAT-DBL,materiel,Écran double pour poste fixe,informatique
+TEC,APP-ESS,application,Logiciel de gestion des essais,informatique
+TEC,MAT-TAB,materiel,Tablette de saisie terrain,informatique
+TEC,GRP-LAB,groupe,Groupe labo-essais,informatique
+TEC,BAD-LAB,badge,Badge zone laboratoire,services_generaux
+DES,APP-CAO,application,Logiciel de CAO,informatique
+DES,GRP-PLANS,groupe,Groupe plans-partages,informatique
+DES,MAT-TGR,materiel,Tablette graphique,informatique
+ADM,APP-ERP,application,"Progiciel de gestion (ERP), module achats",informatique
+ADM,GRP-ADM,groupe,Groupe administratif,informatique
+CDP,APP-PLAN,application,Outil de planning projet,informatique
+CDP,GRP-PROJ,groupe,Groupe pilotage-projets,informatique

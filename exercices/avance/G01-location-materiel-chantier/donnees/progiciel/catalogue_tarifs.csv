@@ -1,0 +1,12 @@
+code,libelle,type_ligne,unite,tarif_ht_eur,controle_reglementaire
+MPE,Mini-pelle,location,jour,180.00,non
+NCI,Nacelle ciseaux,location,jour,150.00,oui
+NAR,Nacelle articulée,location,jour,210.00,oui
+ECH,Échafaudage,location,jour,60.00,non
+GEL,Groupe électrogène,location,jour,120.00,non
+BUN,Bungalow de chantier,location,jour,95.00,non
+CHE,Chariot élévateur,location,jour,190.00,oui
+CPR,Compresseur,location,jour,85.00,non
+TRA,Transport aller et retour,prestation,forfait par contrat,120.00,
+CAR,Plein de carburant non fait au retour,prestation,forfait,85.00,
+NET,Nettoyage lourd,prestation,forfait,150.00,

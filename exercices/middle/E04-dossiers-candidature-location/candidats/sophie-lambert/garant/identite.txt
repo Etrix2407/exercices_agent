@@ -1,0 +1,7 @@
+Type de pièce : Carte d'identité
+Nom : Philippe Lambert
+Date d'émission : 30/06/2019
+Numéro de document : 000-0000000-00
+Date d'expiration : 30/06/2029
+
+Document fictif produit pour l'exercice.

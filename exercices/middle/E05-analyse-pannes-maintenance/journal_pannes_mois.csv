@@ -1,0 +1,121 @@
+identifiant,date,heure,ligne,machine,symptome,action,duree_arret_min,technicien
+INT-001,2026-03-01,05:47,Ligne 4,M10 Presse 4,manque d'air comprimé sur la machine,contrôle du compresseur et de la pression de réseau,30,Karim Lahlou
+INT-002,2026-03-01,12:16,Ligne 4,M10 Presse 4,manque d'air comprimé sur la machine,contrôle du compresseur et de la pression de réseau,42,Anne Pirlot
+INT-003,2026-03-02,05:50,Ligne 1,M03 Ébarbeuse 1,le vérin ne rentre plus,nettoyage du vérin et réglage des détecteurs,48,Julien Maes
+INT-004,2026-03-02,07:30,Ligne 1,M01 Presse 1,vérin qui n'exécute pas la course,remplacement du distributeur pneumatique,49,Anne Pirlot
+INT-005,2026-03-02,09:23,Ligne 2,M04 Presse 2,circuit de refroidissement encrassé,remplacement de la pompe d'eau,43,Sara Dehaene
+INT-006,2026-03-02,21:14,Ligne 1,M02 Four de fusion 1,température du four trop élevée,contrôle du réfractaire et de la régulation,109,Julien Maes
+INT-007,2026-03-03,07:07,Ligne 2,M05 Four de fusion 2,porte de protection non verrouillée,réglage de la barrière immatérielle,29,Sara Dehaene
+INT-008,2026-03-03,07:10,Ligne 1,M01 Presse 1,pression basse sur le circuit hydraulique,remplacement du clapet de décharge,91,Sara Dehaene
+INT-009,2026-03-03,07:46,Ligne 2,M06 Robot de manutention 2,pompe de graissage vide,remplacement de la pompe de graissage,50,Sara Dehaene
+INT-010,2026-03-03,07:53,Ligne 4,M11 Robot de manutention 4,niveau d'huile bas dans le réducteur,vidange et remplacement du filtre à huile,27,Sara Dehaene
+INT-011,2026-03-03,16:41,Ligne 2,M04 Presse 2,évacuation des déchets bloquée,nettoyage de la zone de travail,41,Anne Pirlot
+INT-012,2026-03-03,23:31,Ligne 1,M02 Four de fusion 1,arrêt d'urgence déclenché sans raison,contrôle du bouton d'arrêt et de la chaîne de sécurité,14,Anne Pirlot
+INT-013,2026-03-04,02:24,Ligne 2,M04 Presse 2,capteur de position défectueux,réglage de la distance de détection,36,Karim Lahlou
+INT-014,2026-03-04,02:56,Ligne 1,M03 Ébarbeuse 1,niveau d'huile bas dans le réducteur,appoint d'huile et contrôle du niveau,43,Sara Dehaene
+INT-015,2026-03-04,09:27,Ligne 2,M04 Presse 2,bourrage de pièces dans le bac,nettoyage de la goulotte d'évacuation,10,Karim Lahlou
+INT-016,2026-03-04,11:56,Ligne 1,M01 Presse 1,automate en défaut de communication,redémarrage de l'automate et lecture du journal de défauts,23,Sara Dehaene
+INT-017,2026-03-05,14:11,Ligne 4,M10 Presse 4,bruit anormal de la pompe hydraulique,contrôle de la pompe et de la tuyauterie d'aspiration,88,Karim Lahlou
+INT-018,2026-03-05,23:06,Ligne 3,M07 Presse 3,flexible hydraulique percé,remplacement du joint de vérin,94,Julien Maes
+INT-019,2026-03-06,18:16,Ligne 3,M07 Presse 3,fuite d'air sur l'électrovanne,remplacement de l'électrovanne,29,Anne Pirlot
+INT-020,2026-03-07,03:06,Ligne 3,M08 Four de fusion 3,écran de commande affiche le code erreur 47,remplacement du module d'entrées,42,Anne Pirlot
+INT-021,2026-03-07,13:50,Ligne 2,M04 Presse 2,courroie cassée,réglage de la tension de courroie,89,Anne Pirlot
+INT-022,2026-03-07,16:23,Ligne 1,M01 Presse 1,débit d'eau faible au refroidisseur,remplacement de la pompe d'eau,70,Anne Pirlot
+INT-023,2026-03-07,18:56,Ligne 1,M02 Four de fusion 1,lecture de température du four qui fluctue,contrôle du thermocouple et de son câblage,71,Anne Pirlot
+INT-024,2026-03-07,22:44,Ligne 3,M09 Ébarbeuse 3,pièce coincée dans la goulotte,nettoyage de la goulotte d'évacuation,22,Sara Dehaene
+INT-025,2026-03-08,06:12,Ligne 1,M03 Ébarbeuse 1,échauffement au palier,contrôle de l'alignement de l'axe,62,Anne Pirlot
+INT-026,2026-03-08,08:21,Ligne 3,M07 Presse 3,pompe hydraulique qui cavite,remplacement du filtre d'aspiration,57,Sara Dehaene
+INT-027,2026-03-08,09:45,Ligne 1,M01 Presse 1,courroie qui patine,réglage de la tension de courroie,39,Sara Dehaene
+INT-028,2026-03-08,14:37,Ligne 2,M04 Presse 2,détecteur de fin de course qui ne répond plus,remplacement du capteur de position,49,Sara Dehaene
+INT-029,2026-03-09,01:05,Ligne 4,M11 Robot de manutention 4,manque de graisse sur le palier,remplacement de la pompe de graissage,32,Julien Maes
+INT-030,2026-03-09,09:16,Ligne 4,M11 Robot de manutention 4,vis desserrée sur le support,resserrage au couple et freinage filet,33,Sara Dehaene
+INT-031,2026-03-09,13:31,Ligne 2,M05 Four de fusion 2,"défaut API, automate à l'arrêt",remplacement du module d'entrées,41,Anne Pirlot
+INT-032,2026-03-09,16:55,Ligne 2,M06 Robot de manutention 2,réducteur qui chauffe faute de lubrification,appoint d'huile et contrôle du niveau,54,Sara Dehaene
+INT-033,2026-03-09,17:08,Ligne 2,M04 Presse 2,la pompe ne monte pas en pression,remplacement du clapet de décharge,119,Anne Pirlot
+INT-034,2026-03-09,17:55,Ligne 4,M11 Robot de manutention 4,coupure de la commande après arrêt,réarmement de la commande et contrôle de l'alimentation,54,Karim Lahlou
+INT-035,2026-03-09,21:31,Ligne 2,M04 Presse 2,bruit anormal de la pompe hydraulique,remplacement du filtre d'aspiration,100,Sara Dehaene
+INT-036,2026-03-10,06:03,Ligne 2,M06 Robot de manutention 2,vérin qui n'exécute pas la course,remplacement du distributeur pneumatique,40,Julien Maes
+INT-037,2026-03-10,14:20,Ligne 4,M10 Presse 4,copeaux accumulés dans la goulotte,nettoyage de la zone de travail,44,Julien Maes
+INT-038,2026-03-10,21:25,Ligne 4,M12 Centrifugeuse 4,débit d'eau faible au refroidisseur,détartrage du circuit de refroidissement,59,Julien Maes
+INT-039,2026-03-11,00:37,Ligne 1,M02 Four de fusion 1,défaut variateur de fréquence,remise à zéro du variateur et contrôle des paramètres,62,Sara Dehaene
+INT-040,2026-03-11,03:49,Ligne 3,M08 Four de fusion 3,palier à remplacer,remplacement du roulement,129,Anne Pirlot
+INT-041,2026-03-11,10:48,Ligne 3,M08 Four de fusion 3,déclenchement du disjoncteur moteur,remplacement du disjoncteur moteur,68,Anne Pirlot
+INT-042,2026-03-11,12:44,Ligne 3,M07 Presse 3,évacuation des déchets bloquée,nettoyage de la zone de travail,27,Anne Pirlot
+INT-043,2026-03-12,05:19,Ligne 1,M03 Ébarbeuse 1,courroie de transmission usée,remplacement de la courroie,65,Julien Maes
+INT-044,2026-03-12,06:42,Ligne 4,M10 Presse 4,le vérin ne rentre plus,remplacement du distributeur pneumatique,49,Sara Dehaene
+INT-045,2026-03-12,08:21,Ligne 2,M05 Four de fusion 2,automate en défaut de communication,remplacement du module d'entrées,55,Julien Maes
+INT-046,2026-03-12,13:21,Ligne 4,M10 Presse 4,pompe hydraulique qui cavite,remplacement du filtre d'aspiration,60,Karim Lahlou
+INT-047,2026-03-12,17:56,Ligne 1,M01 Presse 1,évacuation des déchets bloquée,nettoyage de la zone de travail,30,Sara Dehaene
+INT-048,2026-03-13,01:54,Ligne 1,M03 Ébarbeuse 1,manque d'air comprimé sur la machine,purge du filtre régulateur,27,Anne Pirlot
+INT-049,2026-03-13,08:29,Ligne 4,M10 Presse 4,vérin qui n'exécute pas la course,nettoyage du vérin et réglage des détecteurs,35,Karim Lahlou
+INT-050,2026-03-13,15:04,Ligne 1,M03 Ébarbeuse 1,sifflement d'air sur la ligne pneumatique,remplacement de l'électrovanne,14,Sara Dehaene
+INT-051,2026-03-14,01:13,Ligne 4,M12 Centrifugeuse 4,palier à remplacer,contrôle de l'alignement de l'axe,143,Julien Maes
+INT-052,2026-03-14,03:34,Ligne 2,M04 Presse 2,contacteur qui colle,remplacement du contacteur,44,Karim Lahlou
+INT-053,2026-03-14,19:04,Ligne 3,M08 Four de fusion 3,lecture de température du four qui fluctue,étalonnage de la sonde de température,68,Anne Pirlot
+INT-054,2026-03-14,19:32,Ligne 3,M09 Ébarbeuse 3,vis desserrée sur le support,remplacement du boulon de fixation,38,Sara Dehaene
+INT-055,2026-03-15,00:05,Ligne 4,M10 Presse 4,automate en défaut de communication,redémarrage de l'automate et lecture du journal de défauts,45,Sara Dehaene
+INT-056,2026-03-15,07:55,Ligne 3,M07 Presse 3,pression d'air insuffisante,contrôle du compresseur et de la pression de réseau,50,Julien Maes
+INT-057,2026-03-15,10:11,Ligne 4,M10 Presse 4,"défaut API, automate à l'arrêt",remplacement du module d'entrées,75,Anne Pirlot
+INT-058,2026-03-15,14:19,Ligne 4,M10 Presse 4,manque de graisse sur le palier,remplacement de la pompe de graissage,34,Julien Maes
+INT-059,2026-03-15,17:45,Ligne 1,M03 Ébarbeuse 1,courroie qui patine,remplacement de la courroie,115,Karim Lahlou
+INT-060,2026-03-16,00:22,Ligne 3,M07 Presse 3,barrière immatérielle qui coupe la machine,réglage de la barrière immatérielle,23,Sara Dehaene
+INT-061,2026-03-16,00:47,Ligne 1,M02 Four de fusion 1,contacteur qui colle,nettoyage des contacts et contrôle de la bobine,22,Julien Maes
+INT-062,2026-03-16,21:07,Ligne 2,M04 Presse 2,défaut variateur de fréquence,remise à zéro du variateur et contrôle des paramètres,54,Karim Lahlou
+INT-063,2026-03-17,03:55,Ligne 2,M04 Presse 2,manque de graisse sur le palier,remplacement de la pompe de graissage,47,Sara Dehaene
+INT-064,2026-03-17,08:08,Ligne 2,M04 Presse 2,pompe hydraulique qui cavite,remplacement du filtre d'aspiration,71,Karim Lahlou
+INT-065,2026-03-17,15:05,Ligne 1,M03 Ébarbeuse 1,huile au sol et réducteur chaud,nettoyage de l'huile au sol et contrôle du joint,34,Sara Dehaene
+INT-066,2026-03-17,15:50,Ligne 2,M06 Robot de manutention 2,capteur inductif sans signal,remplacement du capteur de position,57,Julien Maes
+INT-067,2026-03-17,16:10,Ligne 4,M10 Presse 4,perte de pression vérin,purge du circuit et contrôle du niveau,40,Sara Dehaene
+INT-068,2026-03-17,19:01,Ligne 3,M07 Presse 3,fuite d'huile sur le groupe hydraulique,remplacement du flexible hydraulique,105,Anne Pirlot
+INT-069,2026-03-17,20:28,Ligne 4,M11 Robot de manutention 4,manque d'air comprimé sur la machine,purge du filtre régulateur,42,Anne Pirlot
+INT-070,2026-03-17,22:17,Ligne 2,M06 Robot de manutention 2,automate en défaut de communication,remplacement du module d'entrées,50,Sara Dehaene
+INT-071,2026-03-18,02:10,Ligne 2,M04 Presse 2,moteur électrique qui chauffe et s'arrête,remplacement du variateur,53,Anne Pirlot
+INT-072,2026-03-18,08:47,Ligne 4,M11 Robot de manutention 4,la commande ne répond plus après l'arrêt,contrôle du relais de sécurité,43,Sara Dehaene
+INT-073,2026-03-18,09:53,Ligne 1,M02 Four de fusion 1,four qui dépasse la consigne de température,nettoyage des évents de refroidissement,104,Julien Maes
+INT-074,2026-03-18,23:15,Ligne 4,M10 Presse 4,vérin pneumatique bloqué en position,nettoyage du vérin et réglage des détecteurs,42,Karim Lahlou
+INT-075,2026-03-19,00:48,Ligne 4,M12 Centrifugeuse 4,défaut variateur de fréquence,remplacement du variateur,61,Julien Maes
+INT-076,2026-03-19,00:59,Ligne 1,M01 Presse 1,courroie qui patine,réglage de la tension de courroie,80,Sara Dehaene
+INT-077,2026-03-19,11:30,Ligne 4,M10 Presse 4,courroie cassée,réglage de la tension de courroie,84,Karim Lahlou
+INT-078,2026-03-19,13:02,Ligne 3,M07 Presse 3,fuite hydraulique sur le vérin,remplacement du flexible hydraulique,73,Sara Dehaene
+INT-079,2026-03-20,06:45,Ligne 2,M05 Four de fusion 2,relais de puissance défectueux,remplacement du contacteur,36,Karim Lahlou
+INT-080,2026-03-20,10:05,Ligne 4,M10 Presse 4,copeaux accumulés dans la goulotte,vidage du bac de récupération,29,Sara Dehaene
+INT-081,2026-03-20,10:42,Ligne 2,M04 Presse 2,copeaux accumulés dans la goulotte,vidage du bac de récupération,47,Karim Lahlou
+INT-082,2026-03-20,17:49,Ligne 3,M07 Presse 3,pompe de graissage vide,remplacement de la pompe de graissage,42,Karim Lahlou
+INT-083,2026-03-20,19:47,Ligne 2,M04 Presse 2,support qui prend du jeu après serrage,resserrage au couple et freinage filet,34,Sara Dehaene
+INT-084,2026-03-21,03:01,Ligne 3,M07 Presse 3,flexible hydraulique percé,resserrage du raccord et contrôle d'étanchéité,75,Sara Dehaene
+INT-085,2026-03-21,19:51,Ligne 1,M01 Presse 1,fuite d'air sur l'électrovanne,remplacement de l'électrovanne,19,Julien Maes
+INT-086,2026-03-22,07:25,Ligne 1,M01 Presse 1,bruit anormal de la pompe hydraulique,remplacement du filtre d'aspiration,45,Julien Maes
+INT-087,2026-03-22,12:21,Ligne 4,M10 Presse 4,arrêt d'urgence déclenché sans raison,réglage de la barrière immatérielle,20,Sara Dehaene
+INT-088,2026-03-22,20:23,Ligne 3,M07 Presse 3,courroie qui patine,réglage de la tension de courroie,45,Sara Dehaene
+INT-089,2026-03-22,23:57,Ligne 3,M07 Presse 3,copeaux accumulés dans la goulotte,vidage du bac de récupération,40,Julien Maes
+INT-090,2026-03-23,04:40,Ligne 3,M07 Presse 3,pression basse sur le circuit hydraulique,réglage de la pression de tarage,31,Karim Lahlou
+INT-091,2026-03-23,04:45,Ligne 3,M08 Four de fusion 3,moteur électrique qui chauffe et s'arrête,remise à zéro du variateur et contrôle des paramètres,51,Anne Pirlot
+INT-092,2026-03-23,12:17,Ligne 3,M07 Presse 3,capteur inductif sans signal,réglage de la distance de détection,43,Julien Maes
+INT-093,2026-03-23,13:00,Ligne 1,M01 Presse 1,contacteur qui colle,nettoyage des contacts et contrôle de la bobine,28,Julien Maes
+INT-094,2026-03-23,13:21,Ligne 2,M04 Presse 2,détecteur de fin de course qui ne répond plus,remplacement du capteur de position,31,Karim Lahlou
+INT-095,2026-03-23,20:03,Ligne 1,M03 Ébarbeuse 1,huile au sol sous ébarbeuse 1,remplacement du flexible hydraulique,29,Karim Lahlou
+INT-096,2026-03-24,17:48,Ligne 1,M03 Ébarbeuse 1,échauffement au palier,remplacement du roulement,69,Sara Dehaene
+INT-097,2026-03-24,18:48,Ligne 2,M06 Robot de manutention 2,écran de commande affiche le code erreur 47,remplacement du module d'entrées,26,Sara Dehaene
+INT-098,2026-03-25,00:15,Ligne 1,M01 Presse 1,bourrage de pièces dans le bac,dégagement manuel de la pièce bloquée,29,Sara Dehaene
+INT-099,2026-03-25,04:40,Ligne 3,M09 Ébarbeuse 3,perte d'huile hydraulique au raccord,remplacement du flexible hydraulique,81,Anne Pirlot
+INT-100,2026-03-25,06:16,Ligne 3,M09 Ébarbeuse 3,vérin qui n'exécute pas la course,remplacement du distributeur pneumatique,58,Karim Lahlou
+INT-101,2026-03-25,16:31,Ligne 2,M06 Robot de manutention 2,défaut variateur de fréquence,remise à zéro du variateur et contrôle des paramètres,42,Anne Pirlot
+INT-102,2026-03-26,01:46,Ligne 1,M02 Four de fusion 1,température du four trop élevée,contrôle du réfractaire et de la régulation,128,Julien Maes
+INT-103,2026-03-27,01:14,Ligne 3,M09 Ébarbeuse 3,courroie de transmission usée,réglage de la tension de courroie,81,Karim Lahlou
+INT-104,2026-03-27,02:17,Ligne 2,M06 Robot de manutention 2,palier à remplacer,remplacement du roulement,141,Anne Pirlot
+INT-105,2026-03-27,07:14,Ligne 3,M07 Presse 3,vis desserrée sur le support,resserrage au couple et freinage filet,22,Karim Lahlou
+INT-106,2026-03-27,17:28,Ligne 4,M10 Presse 4,capteur de position défectueux,réglage de la distance de détection,43,Karim Lahlou
+INT-107,2026-03-28,02:17,Ligne 2,M04 Presse 2,protecteur ouvert détecté,remplacement de la charnière du carter,26,Karim Lahlou
+INT-108,2026-03-28,21:38,Ligne 3,M07 Presse 3,fuite d'air sur l'électrovanne,remplacement de l'électrovanne,21,Anne Pirlot
+INT-109,2026-03-28,23:03,Ligne 4,M12 Centrifugeuse 4,débit d'eau faible au refroidisseur,détartrage du circuit de refroidissement,33,Anne Pirlot
+INT-110,2026-03-29,03:49,Ligne 1,M01 Presse 1,le vérin ne rentre plus,remplacement du distributeur pneumatique,31,Anne Pirlot
+INT-111,2026-03-29,13:47,Ligne 1,M01 Presse 1,protecteur ouvert détecté,remplacement de la charnière du carter,10,Julien Maes
+INT-112,2026-03-29,20:29,Ligne 3,M07 Presse 3,vérin bloqué sous pression basse,remplacement de la valve de commande du vérin,33,Sara Dehaene
+INT-113,2026-03-30,03:29,Ligne 2,M04 Presse 2,pression hydraulique insuffisante au démarrage,remplacement du clapet de décharge,115,Karim Lahlou
+INT-114,2026-03-30,04:39,Ligne 4,M11 Robot de manutention 4,pression d'air basse au compresseur de ligne,purge du filtre régulateur,40,Julien Maes
+INT-115,2026-03-30,08:13,Ligne 3,M08 Four de fusion 3,débit d'eau faible au refroidisseur,remplacement de la pompe d'eau,45,Karim Lahlou
+INT-116,2026-03-30,20:44,Ligne 3,M09 Ébarbeuse 3,courroie cassée,remplacement de la courroie,117,Karim Lahlou
+INT-117,2026-03-31,04:16,Ligne 1,M01 Presse 1,copeaux accumulés dans la goulotte,nettoyage de la zone de travail,50,Sara Dehaene
+INT-118,2026-03-31,06:40,Ligne 1,M03 Ébarbeuse 1,carter de protection mal fermé,remplacement de la charnière du carter,12,Sara Dehaene
+INT-119,2026-03-31,08:22,Ligne 1,M02 Four de fusion 1,relais de puissance défectueux,nettoyage des contacts et contrôle de la bobine,45,Julien Maes
+INT-120,2026-03-31,11:40,Ligne 4,M10 Presse 4,fuite pneumatique au distributeur,remplacement de l'électrovanne,23,Sara Dehaene

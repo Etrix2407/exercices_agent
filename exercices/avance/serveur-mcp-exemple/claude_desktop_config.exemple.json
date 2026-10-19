@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "entreprise-sqlite": {
+      "command": "C:\\dev\\exercices\\avance\\.venv\\Scripts\\python.exe",
+      "args": [
+        "C:\\dev\\exercices\\avance\\serveur-mcp-exemple\\serveur.py"
+      ],
+      "env": {
+        "ENTREPRISE_DB": "C:\\dev\\exercices\\avance\\sqlite\\entreprise.db"
+      }
+    }
+  }
+}

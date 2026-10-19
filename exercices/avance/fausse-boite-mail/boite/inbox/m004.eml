@@ -1,0 +1,16 @@
+Message-ID: <m004@boite-fictive.example>
+Date: Thu, 24 Sep 2026 11:30:00 +0200
+From: =?utf-8?q?Comptabilit=C3=A9?= Norvel <compta@norvel-fournitures.example>
+To: Service clients Norvel <service.clients@norvel-fournitures.example>
+Subject: Factures en retard =?utf-8?q?=C3=A0?= relancer
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+MIME-Version: 1.0
+
+Bonjour,
+
+Merci de préparer les relances pour toutes les factures en retard de plus
+de 60 jours. La liste à jour est dans la base (statut en_retard).
+Ne rien envoyer aux grands comptes sans validation de ma part.
+
+Pascale, comptabilité

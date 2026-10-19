@@ -1,0 +1,41 @@
+id_demande,date_depot,canal,identifiant_patient,nom_fictif,niss_fictif,specialite_demandee,motif,courrier_adressage
+DEM-20261013-001,2026-10-09,site,PAT-001,Henri Tassin,00.00.00-001.00,,"Essoufflement à l'effort depuis trois semaines, chevilles gonflées le soir. Traitement diurétique à réévaluer.",non
+DEM-20261013-002,2026-10-09,courriel_medecin,PAT-002,Olivier Renard,00.00.00-002.00,Cardiologie,"Suivi d'une valve cardiaque opérée, contrôle échographique programmé.",oui
+DEM-20261013-003,2026-10-09,courrier_numerise,PAT-003,Wendy Mercier,00.00.00-003.00,,"Palpitations irrégulières signalées par le médecin traitant, enregistrement de type holter demandé.",oui
+DEM-20261013-004,2026-10-09,site,PAT-004,Delphine Vanhove,00.00.00-004.00,Cardiologie,"Douleur thoracique survenue au repos ce matin, irradiant vers le bras gauche.",oui
+DEM-20261013-005,2026-10-09,courrier_numerise,PAT-005,Karim Hanssens,00.00.00-005.00,,"Toux persistante depuis deux mois, radiographie thoracique à discuter. Pas de fièvre.",oui
+DEM-20261013-006,2026-10-09,site,PAT-006,Céline Parmentier,00.00.00-006.00,Pneumologie,"Contrôle annuel d'un asthme stable, renouvellement de la prise en charge.",non
+DEM-20261013-007,2026-10-09,courriel_medecin,PAT-007,Jérôme Lacroix,00.00.00-007.00,,"Reflux gastrique nocturne résistant à un traitement de dix jours, symptômes non précisés.",oui
+DEM-20261013-008,2026-10-09,site,PAT-008,Quentin Leruth,00.00.00-008.00,Gastro-entérologie,"Sang dans les selles signalé à deux reprises la semaine dernière, pas de malaise.",non
+DEM-20261013-009,2026-10-09,courrier_numerise,PAT-009,Yves Maquet,00.00.00-009.00,,Coloscopie de contrôle après retrait d'un polype il y a trois ans.,oui
+DEM-20261013-010,2026-10-12,site,PAT-010,Fanny Joris,00.00.00-010.00,Dermatologie,Grain de beauté qui a changé de couleur et saigne légèrement.,non
+DEM-20261013-011,2026-10-12,site,PAT-011,Matthieu Quinet,00.00.00-011.00,,"Eczéma du coude récurrent, demande de consultation de routine.",non
+DEM-20261013-012,2026-10-12,courriel_medecin,PAT-012,Élodie Dassonville,00.00.00-012.00,Dermatologie,"Psoriasis en poussée sur le cuir chevelu, traitement local inefficace.",oui
+DEM-20261013-013,2026-10-12,courrier_numerise,PAT-010,Fanny Joris,00.00.00-010.00,,Grain de beauté qui a changé de couleur et saigne légèrement.,non
+DEM-20261013-014,2026-10-12,site,PAT-014,Simon Brisbois,00.00.00-014.00,Ophtalmologie,"Baisse brutale de la vision d'un oeil ce matin, sans douleur.",non
+DEM-20261013-015,2026-10-12,courriel_medecin,PAT-015,Alain Hermant,00.00.00-015.00,,"Contrôle de la pression oculaire sous traitement, bilan annuel.",non
+DEM-20261013-016,2026-10-12,site,PAT-016,Hélène Ferrant,00.00.00-016.00,ORL,"Otite à répétition chez un enfant de six ans, trois épisodes en quatre mois.",non
+DEM-20261013-017,2026-10-12,courrier_numerise,PAT-017,Oscar Coppens,00.00.00-017.00,,"Baisse d'audition d'une oreille connue et stable, bilan audiométrique de contrôle demandé.",oui
+DEM-20261013-018,2026-10-12,courriel_medecin,PAT-018,Gaëlle Duchêne,00.00.00-018.00,Neurologie,"Crises de migraine avec aura, deux épisodes par mois, traitement préventif à évaluer.",oui
+DEM-20261013-019,2026-10-12,site,PAT-019,Nadia Ravet,00.00.00-019.00,,Faiblesse soudaine d'un bras et trouble de la parole depuis une heure.,oui
+DEM-20261013-020,2026-10-12,site,PAT-020,Valérie Stassart,00.00.00-020.00,Neurologie,"Tremblement des mains qui s'aggrave, examen de contrôle demandé.",non
+DEM-20261013-021,2026-10-12,courrier_numerise,PAT-021,Corentin Plantier,00.00.00-021.00,,"Suivi d'une épilepsie stabilisée, renouvellement de l'ordonnance de suivi.",oui
+DEM-20261013-022,2026-10-12,courriel_medecin,PAT-022,Jade Sauveur,00.00.00-022.00,Rhumatologie,Douleurs articulaires des mains avec raideur matinale prolongée.,oui
+DEM-20261013-023,2026-10-12,site,PAT-023,Bastien Wantiez,00.00.00-023.00,,"Lombalgie chronique, bilan demandé par le kinésithérapeute.",non
+DEM-20261013-024,2026-10-12,courrier_numerise,PAT-024,Inès Gillard,00.00.00-024.00,Endocrinologie,"Hypothyroïdie équilibrée sous lévothyroxine, contrôle annuel avec résultats de prise de sang.",oui
+DEM-20261013-025,2026-10-12,courriel_medecin,PAT-025,Pauline Delmotte,00.00.00-025.00,,"Diabète de type 2 déséquilibré, glycémies élevées depuis deux semaines.",oui
+DEM-20261013-026,2026-10-13,site,PAT-026,Xavier Tassin,00.00.00-026.00,Néphrologie,"Protéinurie découverte lors d'un contrôle, avis demandé.",non
+DEM-20261013-027,2026-10-13,courrier_numerise,PAT-027,Eddy Renard,00.00.00-027.00,Urologie,"Envies urinaires fréquentes la nuit, bilan prostatique à discuter.",oui
+DEM-20261013-028,2026-10-13,site,PAT-028,Louise Mercier,00.00.00-028.00,,"Contrôle après calcul rénal, échographie de contrôle à programmer.",non
+DEM-20261013-029,2026-10-13,courriel_medecin,PAT-029,Léa Vanhove,00.00.00-029.00,Gynécologie,Saignements inhabituels entre deux règles depuis un mois.,non
+DEM-20261013-030,2026-10-13,site,PAT-030,Brigitte Hanssens,00.00.00-030.00,,Demande de contrôle de routine après accouchement.,non
+DEM-20261013-031,2026-10-13,courrier_numerise,PAT-031,Rachel Parmentier,00.00.00-031.00,Gynécologie,"Suivi d'une grossesse à risque, échographie du troisième trimestre.",oui
+DEM-20261013-032,2026-10-13,courriel_medecin,PAT-032,Zoé Lacroix,00.00.00-032.00,Pédiatrie,Retard staturo-pondéral observé chez un nourrisson de huit mois.,non
+DEM-20261013-033,2026-10-13,site,PAT-032,Zoé Lacroix,00.00.00-032.00,,Retard staturo-pondéral observé chez un nourrisson de huit mois.,non
+DEM-20261013-034,2026-10-13,courrier_numerise,PAT-034,Nina Maquet,00.00.00-034.00,Psychiatrie adulte,"Trouble anxieux avec attaques de panique, suivi à reprendre après une interruption.",oui
+DEM-20261013-035,2026-10-13,site,PAT-035,Florian Joris,00.00.00-035.00,,"Pensées sombres persistantes depuis plusieurs semaines, la personne dit ne plus pouvoir travailler.",non
+DEM-20261013-036,2026-10-13,courriel_medecin,PAT-036,Marc Quinet,00.00.00-036.00,Orthopédie,"Rupture du ligament croisé suspectée après une chute, IRM à planifier.",oui
+DEM-20261013-037,2026-10-13,site,PAT-037,Tiffany Dassonville,00.00.00-037.00,,"Douleur persistante de l'épaule après une chute il y a deux mois, radiographie demandée.",non
+DEM-20261013-038,2026-10-13,courrier_numerise,PAT-036,Marc Quinet,00.00.00-036.00,,"Rupture du ligament croisé suspectée après une chute, IRM à planifier.",oui
+DEM-20261013-039,2026-10-13,courriel_medecin,PAT-039,Ivan Brisbois,00.00.00-039.00,Oncologie,"Bilan de réévaluation après chimiothérapie, fatigue importante et perte de poids notée.",oui
+DEM-20261013-040,2026-10-13,site,PAT-040,Anaïs Hermant,00.00.00-040.00,,"Suspicion de récidive d'un cancer du sein traité, le médecin demande un avis rapide.",non

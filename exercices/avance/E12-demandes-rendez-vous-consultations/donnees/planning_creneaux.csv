@@ -1,0 +1,123 @@
+id_creneau,specialite,date,heure,duree_minutes,statut
+CR-01-001,Cardiologie,2026-10-14,10:30,20,libre
+CR-09-001,Endocrinologie,2026-10-14,10:30,30,libre
+CR-21-001,Médecine interne,2026-10-14,11:00,20,libre
+CR-16-001,Chirurgie digestive,2026-10-14,14:00,20,libre
+CR-19-001,Hématologie,2026-10-14,14:30,30,libre
+CR-02-001,Pneumologie,2026-10-14,15:00,20,libre
+CR-14-001,Psychiatrie adulte,2026-10-15,09:00,20,libre
+CR-10-001,Néphrologie,2026-10-15,10:00,20,libre
+CR-06-001,ORL,2026-10-15,10:00,30,libre
+CR-05-001,Ophtalmologie,2026-10-15,10:00,30,libre
+CR-22-001,Gériatrie,2026-10-15,10:30,20,libre
+CR-06-002,ORL,2026-10-15,11:00,20,libre
+CR-14-002,Psychiatrie adulte,2026-10-15,14:00,30,libre
+CR-04-001,Dermatologie,2026-10-15,14:30,20,libre
+CR-17-001,Chirurgie vasculaire,2026-10-15,15:00,30,libre
+CR-17-002,Chirurgie vasculaire,2026-10-15,15:30,20,libre
+CR-08-001,Rhumatologie,2026-10-16,08:30,30,libre
+CR-17-003,Chirurgie vasculaire,2026-10-16,09:30,20,libre
+CR-17-004,Chirurgie vasculaire,2026-10-16,10:00,20,libre
+CR-19-002,Hématologie,2026-10-16,10:00,30,libre
+CR-06-003,ORL,2026-10-16,10:00,30,libre
+CR-15-001,Orthopédie,2026-10-16,10:00,20,libre
+CR-10-002,Néphrologie,2026-10-16,14:30,20,libre
+CR-10-003,Néphrologie,2026-10-16,15:00,30,libre
+CR-05-002,Ophtalmologie,2026-10-16,15:00,30,libre
+CR-17-005,Chirurgie vasculaire,2026-10-16,15:30,20,libre
+CR-15-002,Orthopédie,2026-10-19,08:30,30,libre
+CR-19-003,Hématologie,2026-10-19,09:00,20,libre
+CR-13-001,Pédiatrie,2026-10-19,09:00,30,libre
+CR-08-002,Rhumatologie,2026-10-19,09:30,30,libre
+CR-11-001,Urologie,2026-10-19,10:00,20,libre
+CR-10-004,Néphrologie,2026-10-19,11:00,20,libre
+CR-20-001,Nutrition clinique,2026-10-19,15:00,30,libre
+CR-01-002,Cardiologie,2026-10-20,09:00,20,libre
+CR-03-001,Gastro-entérologie,2026-10-20,10:00,20,libre
+CR-22-002,Gériatrie,2026-10-20,10:00,20,libre
+CR-21-002,Médecine interne,2026-10-20,10:30,20,libre
+CR-20-002,Nutrition clinique,2026-10-20,10:30,30,libre
+CR-19-004,Hématologie,2026-10-20,11:00,30,libre
+CR-12-001,Gynécologie,2026-10-20,15:30,30,libre
+CR-16-002,Chirurgie digestive,2026-10-21,14:00,20,libre
+CR-03-002,Gastro-entérologie,2026-10-21,14:00,30,libre
+CR-08-003,Rhumatologie,2026-10-21,14:00,20,libre
+CR-09-002,Endocrinologie,2026-10-21,14:30,20,libre
+CR-21-003,Médecine interne,2026-10-21,14:30,20,libre
+CR-06-004,ORL,2026-10-21,15:00,30,libre
+CR-05-003,Ophtalmologie,2026-10-22,09:00,20,libre
+CR-20-003,Nutrition clinique,2026-10-22,10:30,20,libre
+CR-20-004,Nutrition clinique,2026-10-22,11:00,20,libre
+CR-12-002,Gynécologie,2026-10-22,15:00,20,libre
+CR-11-002,Urologie,2026-10-23,08:30,20,libre
+CR-22-003,Gériatrie,2026-10-23,09:00,30,libre
+CR-05-004,Ophtalmologie,2026-10-23,09:00,30,libre
+CR-15-003,Orthopédie,2026-10-23,09:00,30,libre
+CR-11-003,Urologie,2026-10-23,09:00,20,libre
+CR-06-005,ORL,2026-10-23,09:30,30,libre
+CR-01-003,Cardiologie,2026-10-23,10:00,20,libre
+CR-14-003,Psychiatrie adulte,2026-10-23,10:00,20,libre
+CR-06-006,ORL,2026-10-23,11:00,20,libre
+CR-11-004,Urologie,2026-10-23,15:30,20,libre
+CR-03-003,Gastro-entérologie,2026-10-26,08:30,20,libre
+CR-20-005,Nutrition clinique,2026-10-26,09:00,30,libre
+CR-18-001,Oncologie,2026-10-26,14:00,20,libre
+CR-16-003,Chirurgie digestive,2026-10-26,14:30,30,libre
+CR-12-003,Gynécologie,2026-10-26,14:30,30,libre
+CR-15-004,Orthopédie,2026-10-26,14:30,30,libre
+CR-06-007,ORL,2026-10-26,15:00,30,libre
+CR-07-001,Neurologie,2026-10-26,15:30,30,libre
+CR-05-005,Ophtalmologie,2026-10-27,09:00,30,libre
+CR-10-005,Néphrologie,2026-10-27,10:00,30,libre
+CR-16-004,Chirurgie digestive,2026-10-27,14:00,20,libre
+CR-09-003,Endocrinologie,2026-10-27,14:00,20,libre
+CR-20-006,Nutrition clinique,2026-10-27,15:30,30,libre
+CR-05-006,Ophtalmologie,2026-10-27,15:30,20,libre
+CR-17-006,Chirurgie vasculaire,2026-10-28,08:30,30,libre
+CR-11-005,Urologie,2026-10-28,08:30,20,libre
+CR-03-004,Gastro-entérologie,2026-10-28,09:00,30,libre
+CR-19-005,Hématologie,2026-10-28,09:00,30,libre
+CR-14-004,Psychiatrie adulte,2026-10-28,09:00,30,libre
+CR-18-002,Oncologie,2026-10-28,10:00,30,libre
+CR-03-005,Gastro-entérologie,2026-10-28,10:30,30,libre
+CR-22-004,Gériatrie,2026-10-29,08:30,20,libre
+CR-22-005,Gériatrie,2026-10-29,10:00,20,libre
+CR-11-006,Urologie,2026-10-29,14:30,30,libre
+CR-22-006,Gériatrie,2026-10-29,15:00,30,libre
+CR-05-007,Ophtalmologie,2026-10-29,15:30,30,libre
+CR-06-008,ORL,2026-10-30,10:30,20,libre
+CR-05-008,Ophtalmologie,2026-10-30,10:30,20,libre
+CR-08-004,Rhumatologie,2026-10-30,14:00,20,libre
+CR-22-007,Gériatrie,2026-11-02,09:30,30,libre
+CR-13-002,Pédiatrie,2026-11-02,10:00,30,libre
+CR-13-003,Pédiatrie,2026-11-02,11:00,30,libre
+CR-22-008,Gériatrie,2026-11-02,15:30,20,libre
+CR-07-002,Neurologie,2026-11-02,15:30,30,libre
+CR-06-009,ORL,2026-11-03,14:00,20,libre
+CR-15-005,Orthopédie,2026-11-03,15:00,20,libre
+CR-03-006,Gastro-entérologie,2026-11-03,15:30,30,libre
+CR-10-006,Néphrologie,2026-11-04,08:30,30,libre
+CR-17-007,Chirurgie vasculaire,2026-11-04,15:00,30,libre
+CR-10-007,Néphrologie,2026-11-05,08:30,20,libre
+CR-09-004,Endocrinologie,2026-11-05,09:00,30,libre
+CR-17-008,Chirurgie vasculaire,2026-11-05,09:30,30,libre
+CR-09-005,Endocrinologie,2026-11-05,09:30,20,libre
+CR-19-006,Hématologie,2026-11-05,10:30,20,libre
+CR-08-005,Rhumatologie,2026-11-05,14:30,30,libre
+CR-11-007,Urologie,2026-11-05,14:30,20,libre
+CR-02-002,Pneumologie,2026-11-05,15:30,30,libre
+CR-17-009,Chirurgie vasculaire,2026-11-06,08:30,20,libre
+CR-21-004,Médecine interne,2026-11-06,08:30,20,libre
+CR-15-006,Orthopédie,2026-11-06,08:30,30,libre
+CR-01-004,Cardiologie,2026-11-06,09:00,20,libre
+CR-22-009,Gériatrie,2026-11-06,09:30,30,libre
+CR-19-007,Hématologie,2026-11-06,10:00,30,libre
+CR-21-005,Médecine interne,2026-11-06,14:00,30,libre
+CR-16-005,Chirurgie digestive,2026-11-06,14:30,20,libre
+CR-07-003,Neurologie,2026-11-06,15:00,20,libre
+CR-10-008,Néphrologie,2026-11-09,09:00,20,libre
+CR-01-005,Cardiologie,2026-11-09,14:00,20,libre
+CR-11-008,Urologie,2026-11-09,15:00,20,libre
+CR-08-006,Rhumatologie,2026-11-10,09:00,30,libre
+CR-10-009,Néphrologie,2026-11-10,11:00,30,libre
+CR-19-008,Hématologie,2026-11-10,15:30,20,libre

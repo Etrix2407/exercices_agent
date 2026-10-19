@@ -1,0 +1,235 @@
+classe,matricule,matiere,enseignant,moyenne_trimestre_precedent,moyenne_trimestre,appreciation
+1re 2,1R2-001,Français,Mme Garnier,10.7,13.8,"Participation correcte, les efforts personnels sont à poursuivre. Nette progression depuis le début de l'année. Un devoir n'a pas été rendu."
+1re 2,1R2-001,Mathématiques,M. Simon,10.2,13.7,"Participation correcte, les efforts personnels sont à poursuivre. Progrès sensible, en particulier à l'écrit. Les exercices à la maison sont rendus régulièrement."
+1re 2,1R2-001,Histoire-géographie,M. Roux,9.9,13.4,"Trimestre correct, travail globalement régulier. Progrès sensible, en particulier à l'écrit."
+1re 2,1R2-001,Anglais LV1,Mme Delcourt,8.8,12.1,"Travail très sérieux, certainement issu d'un milieu favorisé."
+1re 2,1R2-001,Espagnol LV2,M. Alonso,10.0,14.3,Résultats solides et participation active en classe. Nette progression depuis le début de l'année.
+1re 2,1R2-001,Physique-chimie,Mme Brunet,10.1,14.3,"Travail soigné et régulier, à poursuivre. Nette progression depuis le début de l'année."
+1re 2,1R2-001,SVT,M. Weber,9.7,12.7,"Résultats réguliers ; l'écrit doit gagner en précision. Progrès sensible, en particulier à l'écrit."
+1re 2,1R2-001,EPS,Mme Kiefer,10.0,12.1,"Participation correcte, les efforts personnels sont à poursuivre. Nette progression depuis le début de l'année. Investissement régulier en séance."
+1re 2,1R2-001,SES,M. Pirard,9.1,13.5,Résultats réguliers ; l'écrit doit gagner en précision. Nette progression depuis le début de l'année. Trois devoirs n'ont pas été rendus.
+1re 2,1R2-002,Français,Mme Garnier,8.5,12.2,"Trimestre correct, travail globalement régulier. Nette progression depuis le début de l'année."
+1re 2,1R2-002,Mathématiques,M. Simon,8.5,11.3,"Résultats réguliers ; l'écrit doit gagner en précision. Progrès sensible, en particulier à l'écrit."
+1re 2,1R2-002,Histoire-géographie,M. Roux,8.1,10.9,"Trimestre correct, travail globalement régulier. Progrès sensible, en particulier à l'écrit."
+1re 2,1R2-002,Anglais LV1,Mme Delcourt,8.0,12.0,"Trimestre correct, travail globalement régulier. Progrès sensible, en particulier à l'écrit."
+1re 2,1R2-002,Espagnol LV2,M. Alonso,8.8,11.1,"Participation correcte, les efforts personnels sont à poursuivre. Nette progression depuis le début de l'année."
+1re 2,1R2-002,Physique-chimie,Mme Brunet,8.4,12.5,"Résultats réguliers ; l'écrit doit gagner en précision. Progrès sensible, en particulier à l'écrit. Un devoir n'a pas été rendu."
+1re 2,1R2-002,SVT,M. Weber,8.9,12.5,"Trimestre correct, travail globalement régulier. Progrès sensible, en particulier à l'écrit."
+1re 2,1R2-002,EPS,Mme Kiefer,7.6,11.3,"Trimestre correct, travail globalement régulier. Nette progression depuis le début de l'année."
+1re 2,1R2-002,SES,M. Pirard,8.3,10.7,"Participation correcte, les efforts personnels sont à poursuivre. Nette progression depuis le début de l'année."
+1re 2,1R2-003,Français,Mme Garnier,9.1,11.5,"Participation correcte, les efforts personnels sont à poursuivre. Nette progression depuis le début de l'année."
+1re 2,1R2-003,Mathématiques,M. Simon,9.0,12.7,Résultats réguliers ; l'écrit doit gagner en précision. Nette progression depuis le début de l'année.
+1re 2,1R2-003,Histoire-géographie,M. Roux,6.8,10.8,Résultats réguliers ; l'écrit doit gagner en précision. Nette progression depuis le début de l'année.
+1re 2,1R2-003,Anglais LV1,Mme Delcourt,8.5,12.8,"Participation correcte, les efforts personnels sont à poursuivre. Nette progression depuis le début de l'année."
+1re 2,1R2-003,Espagnol LV2,M. Alonso,8.2,11.7,"Résultats réguliers ; l'écrit doit gagner en précision. Progrès sensible, en particulier à l'écrit. Participation orale régulière."
+1re 2,1R2-003,Physique-chimie,Mme Brunet,8.9,12.6,Résultats réguliers ; l'écrit doit gagner en précision. Nette progression depuis le début de l'année.
+1re 2,1R2-003,SVT,M. Weber,8.2,11.0,"Trimestre correct, travail globalement régulier. Progrès sensible, en particulier à l'écrit. Le cahier est tenu avec soin."
+1re 2,1R2-003,EPS,Mme Kiefer,8.6,11.2,"Participation correcte, les efforts personnels sont à poursuivre. Progrès sensible, en particulier à l'écrit."
+1re 2,1R2-003,SES,M. Pirard,8.0,10.3,"Résultats réguliers ; l'écrit doit gagner en précision. Progrès sensible, en particulier à l'écrit."
+1re 2,1R2-004,Français,Mme Garnier,14.0,12.1,"Résultats réguliers ; l'écrit doit gagner en précision. Baisse sensible, à reprendre rapidement avec le professeur. Trois devoirs n'ont pas été rendus."
+1re 2,1R2-004,Mathématiques,M. Simon,13.8,11.6,Résultats réguliers ; l'écrit doit gagner en précision. Résultats en recul par rapport au trimestre précédent.
+1re 2,1R2-004,Histoire-géographie,M. Roux,14.2,12.0,"Trimestre correct, travail globalement régulier. Résultats en recul par rapport au trimestre précédent."
+1re 2,1R2-004,Anglais LV1,Mme Delcourt,13.5,13.6,"Participation correcte, les efforts personnels sont à poursuivre."
+1re 2,1R2-004,Espagnol LV2,M. Alonso,12.8,11.3,"Participation correcte, les efforts personnels sont à poursuivre. Baisse sensible, à reprendre rapidement avec le professeur. Un devoir n'a pas été rendu."
+1re 2,1R2-004,Physique-chimie,Mme Brunet,13.9,13.9,"Trimestre correct, travail globalement régulier."
+1re 2,1R2-004,SVT,M. Weber,13.4,11.2,"Trimestre correct, travail globalement régulier. Baisse sensible, à reprendre rapidement avec le professeur."
+1re 2,1R2-004,EPS,Mme Kiefer,13.0,11.0,"Participation correcte, les efforts personnels sont à poursuivre. Résultats en recul par rapport au trimestre précédent. Tenue de sport oubliée à deux reprises."
+1re 2,1R2-004,SES,M. Pirard,14.7,14.6,Résultats solides et participation active en classe.
+1re 2,1R2-005,Français,Mme Garnier,13.1,13.4,Résultats réguliers ; l'écrit doit gagner en précision.
+1re 2,1R2-005,Mathématiques,M. Simon,14.7,12.6,"Résultats réguliers ; l'écrit doit gagner en précision. Baisse sensible, à reprendre rapidement avec le professeur."
+1re 2,1R2-005,Histoire-géographie,M. Roux,15.0,13.2,"Résultats réguliers ; l'écrit doit gagner en précision. Baisse sensible, à reprendre rapidement avec le professeur."
+1re 2,1R2-005,Anglais LV1,Mme Delcourt,14.5,12.5,"Participation correcte, les efforts personnels sont à poursuivre. Résultats en recul par rapport au trimestre précédent."
+1re 2,1R2-005,Espagnol LV2,M. Alonso,14.9,14.8,Résultats solides et participation active en classe.
+1re 2,1R2-005,Physique-chimie,Mme Brunet,14.0,12.3,"Participation correcte, les efforts personnels sont à poursuivre. Baisse sensible, à reprendre rapidement avec le professeur."
+1re 2,1R2-005,SVT,M. Weber,15.5,13.7,"Participation correcte, les efforts personnels sont à poursuivre. Baisse sensible, à reprendre rapidement avec le professeur. Le cahier est tenu avec soin."
+1re 2,1R2-005,EPS,Mme Kiefer,15.1,15.3,"Très bon trimestre, travail rigoureux et autonome."
+1re 2,1R2-005,SES,M. Pirard,14.2,11.9,"Résultats réguliers ; l'écrit doit gagner en précision. Baisse sensible, à reprendre rapidement avec le professeur. Les exercices à la maison sont rendus régulièrement."
+1re 2,1R2-006,Français,Mme Garnier,9.2,9.9,Difficultés persistantes sur les notions de base ; un accompagnement est conseillé. Participation orale régulière.
+1re 2,1R2-006,Mathématiques,M. Simon,12.3,11.8,Résultats réguliers ; l'écrit doit gagner en précision. Un devoir n'a pas été rendu.
+1re 2,1R2-006,Histoire-géographie,M. Roux,9.1,9.0,"Résultats fragiles, le travail personnel doit devenir plus régulier."
+1re 2,1R2-006,Anglais LV1,Mme Delcourt,12.6,13.4,Résultats réguliers ; l'écrit doit gagner en précision.
+1re 2,1R2-006,Espagnol LV2,M. Alonso,9.5,9.4,"Résultats fragiles, le travail personnel doit devenir plus régulier."
+1re 2,1R2-006,Physique-chimie,Mme Brunet,12.6,13.4,"Trimestre correct, travail globalement régulier."
+1re 2,1R2-006,SVT,M. Weber,11.4,12.1,"Trimestre correct, travail globalement régulier. Trois devoirs n'ont pas été rendus."
+1re 2,1R2-006,EPS,Mme Kiefer,11.0,11.6,"Trimestre correct, travail globalement régulier."
+1re 2,1R2-006,SES,M. Pirard,10.7,10.4,"Participation correcte, les efforts personnels sont à poursuivre."
+1re 2,1R2-007,Français,Mme Garnier,9.7,10.3,"Participation correcte, les efforts personnels sont à poursuivre. Participation orale régulière."
+1re 2,1R2-007,Mathématiques,M. Simon,8.3,7.7,"Des efforts sont visibles, mais les résultats restent insuffisants. Un devoir n'a pas été rendu."
+1re 2,1R2-007,Histoire-géographie,M. Roux,11.9,12.3,Résultats réguliers ; l'écrit doit gagner en précision.
+1re 2,1R2-007,Anglais LV1,Mme Delcourt,10.4,10.8,Résultats réguliers ; l'écrit doit gagner en précision.
+1re 2,1R2-007,Espagnol LV2,M. Alonso,10.9,10.3,"Trimestre correct, travail globalement régulier."
+1re 2,1R2-007,Physique-chimie,Mme Brunet,10.9,11.7,"Trimestre correct, travail globalement régulier."
+1re 2,1R2-007,SVT,M. Weber,9.0,8.4,"Des efforts sont visibles, mais les résultats restent insuffisants."
+1re 2,1R2-007,EPS,Mme Kiefer,11.9,11.9,Résultats réguliers ; l'écrit doit gagner en précision.
+1re 2,1R2-007,SES,M. Pirard,11.4,10.6,Résultats réguliers ; l'écrit doit gagner en précision.
+1re 2,1R2-008,Français,Mme Garnier,13.2,13.5,"Participation correcte, les efforts personnels sont à poursuivre."
+1re 2,1R2-008,Mathématiques,M. Simon,12.4,10.8,"Trimestre correct, travail globalement régulier. Baisse sensible, à reprendre rapidement avec le professeur."
+1re 2,1R2-008,Histoire-géographie,M. Roux,12.3,12.0,"Trimestre correct, travail globalement régulier."
+1re 2,1R2-008,Anglais LV1,Mme Delcourt,11.7,9.3,"Des efforts sont visibles, mais les résultats restent insuffisants. Baisse sensible, à reprendre rapidement avec le professeur."
+1re 2,1R2-008,Espagnol LV2,M. Alonso,12.0,9.6,"Des efforts sont visibles, mais les résultats restent insuffisants. Résultats en recul par rapport au trimestre précédent."
+1re 2,1R2-008,Physique-chimie,Mme Brunet,12.3,10.5,"Trimestre correct, travail globalement régulier. Résultats en recul par rapport au trimestre précédent."
+1re 2,1R2-008,SVT,M. Weber,14.6,13.3,"Trimestre correct, travail globalement régulier. Baisse sensible, à reprendre rapidement avec le professeur. Trois devoirs n'ont pas été rendus."
+1re 2,1R2-008,EPS,Mme Kiefer,14.3,14.4,Résultats solides et participation active en classe.
+1re 2,1R2-008,SES,M. Pirard,13.0,11.0,"Participation correcte, les efforts personnels sont à poursuivre. Baisse sensible, à reprendre rapidement avec le professeur."
+1re 2,1R2-009,Français,Mme Garnier,12.6,12.3,"Participation correcte, les efforts personnels sont à poursuivre. Le cahier est tenu avec soin."
+1re 2,1R2-009,Mathématiques,M. Simon,12.4,11.1,"Résultats réguliers ; l'écrit doit gagner en précision. Baisse sensible, à reprendre rapidement avec le professeur. Un devoir n'a pas été rendu."
+1re 2,1R2-009,Histoire-géographie,M. Roux,13.4,13.4,"Participation correcte, les efforts personnels sont à poursuivre."
+1re 2,1R2-009,Anglais LV1,Mme Delcourt,13.5,11.7,Résultats réguliers ; l'écrit doit gagner en précision. Résultats en recul par rapport au trimestre précédent.
+1re 2,1R2-009,Espagnol LV2,M. Alonso,14.8,12.8,"Trimestre correct, travail globalement régulier. Baisse sensible, à reprendre rapidement avec le professeur."
+1re 2,1R2-009,Physique-chimie,Mme Brunet,14.1,12.5,Résultats réguliers ; l'écrit doit gagner en précision. Résultats en recul par rapport au trimestre précédent. Les exercices à la maison sont rendus régulièrement.
+1re 2,1R2-009,SVT,M. Weber,13.7,14.0,"Travail soigné et régulier, à poursuivre. Le cahier est tenu avec soin."
+1re 2,1R2-009,EPS,Mme Kiefer,13.1,13.4,"Participation correcte, les efforts personnels sont à poursuivre."
+1re 2,1R2-009,SES,M. Pirard,12.7,11.3,Résultats réguliers ; l'écrit doit gagner en précision. Résultats en recul par rapport au trimestre précédent.
+1re 2,1R2-010,Français,Mme Garnier,13.7,13.5,Résultats réguliers ; l'écrit doit gagner en précision.
+1re 2,1R2-010,Mathématiques,M. Simon,13.6,11.2,"Participation correcte, les efforts personnels sont à poursuivre. Baisse sensible, à reprendre rapidement avec le professeur. Trois devoirs n'ont pas été rendus."
+1re 2,1R2-010,Histoire-géographie,M. Roux,13.4,13.1,"Trimestre correct, travail globalement régulier. Les exercices à la maison sont rendus régulièrement."
+1re 2,1R2-010,Anglais LV1,Mme Delcourt,12.7,10.5,"Trimestre correct, travail globalement régulier. Baisse sensible, à reprendre rapidement avec le professeur. Le cahier est tenu avec soin."
+1re 2,1R2-010,Espagnol LV2,M. Alonso,12.2,12.5,Son comportement reflète un caractère difficile.
+1re 2,1R2-010,Physique-chimie,Mme Brunet,12.5,10.4,"Résultats réguliers ; l'écrit doit gagner en précision. Baisse sensible, à reprendre rapidement avec le professeur. Le cahier est tenu avec soin."
+1re 2,1R2-010,SVT,M. Weber,12.8,12.7,"Trimestre correct, travail globalement régulier."
+1re 2,1R2-010,EPS,Mme Kiefer,13.2,11.7,"Résultats réguliers ; l'écrit doit gagner en précision. Baisse sensible, à reprendre rapidement avec le professeur."
+1re 2,1R2-010,SES,M. Pirard,12.3,12.7,"Trimestre correct, travail globalement régulier."
+1re 2,1R2-011,Français,Mme Garnier,14.6,14.9,Résultats solides et participation active en classe.
+1re 2,1R2-011,Mathématiques,M. Simon,15.8,16.2,"Très bon trimestre, travail rigoureux et autonome."
+1re 2,1R2-011,Histoire-géographie,M. Roux,16.3,16.8,"Très bon trimestre, travail rigoureux et autonome."
+1re 2,1R2-011,Anglais LV1,Mme Delcourt,17.2,16.7,"Très bon trimestre, travail rigoureux et autonome. Le cahier est tenu avec soin."
+1re 2,1R2-011,Espagnol LV2,M. Alonso,15.8,16.0,"Travail soigné et régulier, à poursuivre."
+1re 2,1R2-011,Physique-chimie,Mme Brunet,15.3,15.6,Résultats solides et participation active en classe.
+1re 2,1R2-011,SVT,M. Weber,16.5,16.7,"Travail soigné et régulier, à poursuivre. Participation orale régulière."
+1re 2,1R2-011,EPS,Mme Kiefer,15.8,15.4,"Travail soigné et régulier, à poursuivre. Investissement régulier en séance."
+1re 2,1R2-011,SES,M. Pirard,15.8,15.8,"Très bon trimestre, travail rigoureux et autonome."
+1re 2,1R2-012,Français,Mme Garnier,14.8,14.8,"Travail soigné et régulier, à poursuivre."
+1re 2,1R2-012,Mathématiques,M. Simon,14.0,13.7,"Trimestre correct, travail globalement régulier."
+1re 2,1R2-012,Histoire-géographie,M. Roux,13.9,14.3,Résultats solides et participation active en classe. Participation orale régulière.
+1re 2,1R2-012,Anglais LV1,Mme Delcourt,13.8,13.4,"Trimestre correct, travail globalement régulier. Le vocabulaire est bien réinvesti à l'oral."
+1re 2,1R2-012,Espagnol LV2,M. Alonso,15.5,15.8,Résultats solides et participation active en classe.
+1re 2,1R2-012,Physique-chimie,Mme Brunet,14.8,14.4,"Travail soigné et régulier, à poursuivre."
+1re 2,1R2-012,SVT,M. Weber,13.9,13.5,"Trimestre correct, travail globalement régulier."
+1re 2,1R2-012,EPS,Mme Kiefer,14.5,14.4,Résultats solides et participation active en classe. Investissement régulier en séance.
+1re 2,1R2-012,SES,M. Pirard,13.6,13.4,Résultats réguliers ; l'écrit doit gagner en précision.
+1re 2,1R2-013,Français,Mme Garnier,13.8,13.4,Résultats réguliers ; l'écrit doit gagner en précision.
+1re 2,1R2-013,Mathématiques,M. Simon,15.4,15.0,"Très bon trimestre, travail rigoureux et autonome. Participation orale régulière."
+1re 2,1R2-013,Histoire-géographie,M. Roux,14.9,15.2,"Très bon trimestre, travail rigoureux et autonome."
+1re 2,1R2-013,Anglais LV1,Mme Delcourt,15.7,15.4,Résultats solides et participation active en classe.
+1re 2,1R2-013,Espagnol LV2,M. Alonso,14.7,14.4,"Très bon trimestre, travail rigoureux et autonome."
+1re 2,1R2-013,Physique-chimie,Mme Brunet,13.4,13.3,Résultats réguliers ; l'écrit doit gagner en précision. Le cahier est tenu avec soin.
+1re 2,1R2-013,SVT,M. Weber,13.8,14.0,"Très bon trimestre, travail rigoureux et autonome. Les exercices à la maison sont rendus régulièrement."
+1re 2,1R2-013,EPS,Mme Kiefer,14.1,14.5,Résultats solides et participation active en classe.
+1re 2,1R2-013,SES,M. Pirard,15.1,14.7,Résultats solides et participation active en classe.
+1re 2,1R2-014,Français,Mme Garnier,15.9,16.0,"Travail soigné et régulier, à poursuivre."
+1re 2,1R2-014,Mathématiques,M. Simon,14.6,14.6,"Travail soigné et régulier, à poursuivre."
+1re 2,1R2-014,Histoire-géographie,M. Roux,15.4,15.8,Résultats solides et participation active en classe.
+1re 2,1R2-014,Anglais LV1,Mme Delcourt,15.6,15.6,Résultats solides et participation active en classe.
+1re 2,1R2-014,Espagnol LV2,M. Alonso,14.8,14.4,Résultats solides et participation active en classe. Les exercices à la maison sont rendus régulièrement.
+1re 2,1R2-014,Physique-chimie,Mme Brunet,14.8,14.7,Résultats solides et participation active en classe. Participation orale régulière.
+1re 2,1R2-014,SVT,M. Weber,15.3,15.2,Résultats solides et participation active en classe.
+1re 2,1R2-014,EPS,Mme Kiefer,14.4,14.5,"Très bon trimestre, travail rigoureux et autonome."
+1re 2,1R2-014,SES,M. Pirard,14.5,14.8,Résultats solides et participation active en classe. Le vocabulaire est bien réinvesti à l'oral.
+1re 2,1R2-015,Français,Mme Garnier,12.6,12.2,"Participation correcte, les efforts personnels sont à poursuivre."
+1re 2,1R2-015,Mathématiques,M. Simon,7.0,7.6,"Des efforts sont visibles, mais les résultats restent insuffisants. Participation orale régulière."
+1re 2,1R2-015,Histoire-géographie,M. Roux,12.7,13.2,"Participation correcte, les efforts personnels sont à poursuivre."
+1re 2,1R2-015,Anglais LV1,Mme Delcourt,12.0,11.8,"Participation correcte, les efforts personnels sont à poursuivre."
+1re 2,1R2-015,Espagnol LV2,M. Alonso,11.5,12.0,Résultats réguliers ; l'écrit doit gagner en précision.
+1re 2,1R2-015,Physique-chimie,Mme Brunet,11.2,11.8,"Trimestre correct, travail globalement régulier."
+1re 2,1R2-015,SVT,M. Weber,13.3,12.8,Absences probablement liées à des raisons de santé dans la famille.
+1re 2,1R2-015,EPS,Mme Kiefer,9.4,9.5,"Résultats fragiles, le travail personnel doit devenir plus régulier. Tenue de sport oubliée à deux reprises."
+1re 2,1R2-015,SES,M. Pirard,16.2,16.7,"Très bon trimestre, travail rigoureux et autonome. Le cahier est tenu avec soin."
+1re 2,1R2-016,Français,Mme Garnier,14.4,13.8,"Participation correcte, les efforts personnels sont à poursuivre."
+1re 2,1R2-016,Mathématiques,M. Simon,12.5,12.5,"Participation correcte, les efforts personnels sont à poursuivre."
+1re 2,1R2-016,Histoire-géographie,M. Roux,13.6,13.4,"Participation correcte, les efforts personnels sont à poursuivre. Le vocabulaire est bien réinvesti à l'oral."
+1re 2,1R2-016,Anglais LV1,Mme Delcourt,13.8,13.1,"Participation correcte, les efforts personnels sont à poursuivre."
+1re 2,1R2-016,Espagnol LV2,M. Alonso,10.4,10.7,"Participation correcte, les efforts personnels sont à poursuivre."
+1re 2,1R2-016,Physique-chimie,Mme Brunet,13.6,13.9,"Trimestre correct, travail globalement régulier."
+1re 2,1R2-016,SVT,M. Weber,13.2,13.3,"Trimestre correct, travail globalement régulier."
+1re 2,1R2-016,EPS,Mme Kiefer,12.7,12.4,"Participation correcte, les efforts personnels sont à poursuivre."
+1re 2,1R2-016,SES,M. Pirard,12.2,11.9,"Trimestre correct, travail globalement régulier. Trois devoirs n'ont pas été rendus."
+1re 2,1R2-017,Français,Mme Garnier,14.6,15.3,"Travail soigné et régulier, à poursuivre."
+1re 2,1R2-017,Mathématiques,M. Simon,12.9,12.3,Résultats réguliers ; l'écrit doit gagner en précision. Un devoir n'a pas été rendu.
+1re 2,1R2-017,Histoire-géographie,M. Roux,16.7,17.1,"Très bon trimestre, travail rigoureux et autonome."
+1re 2,1R2-017,Anglais LV1,Mme Delcourt,13.2,12.8,Résultats réguliers ; l'écrit doit gagner en précision. Trois devoirs n'ont pas été rendus.
+1re 2,1R2-017,Espagnol LV2,M. Alonso,15.1,15.9,"Travail soigné et régulier, à poursuivre. Le vocabulaire est bien réinvesti à l'oral."
+1re 2,1R2-017,Physique-chimie,Mme Brunet,13.7,13.2,Résultats réguliers ; l'écrit doit gagner en précision.
+1re 2,1R2-017,SVT,M. Weber,16.3,16.9,"Très bon trimestre, travail rigoureux et autonome."
+1re 2,1R2-017,EPS,Mme Kiefer,11.7,11.0,Résultats réguliers ; l'écrit doit gagner en précision.
+1re 2,1R2-017,SES,M. Pirard,13.7,14.0,Résultats solides et participation active en classe.
+1re 2,1R2-018,Français,Mme Garnier,12.5,12.2,"Participation correcte, les efforts personnels sont à poursuivre."
+1re 2,1R2-018,Mathématiques,M. Simon,8.2,8.9,"Des efforts sont visibles, mais les résultats restent insuffisants. Un devoir n'a pas été rendu."
+1re 2,1R2-018,Histoire-géographie,M. Roux,11.1,10.4,"Participation correcte, les efforts personnels sont à poursuivre."
+1re 2,1R2-018,Anglais LV1,Mme Delcourt,9.6,9.1,"Résultats fragiles, le travail personnel doit devenir plus régulier. Participation orale régulière."
+1re 2,1R2-018,Espagnol LV2,M. Alonso,9.2,9.0,"Résultats fragiles, le travail personnel doit devenir plus régulier."
+1re 2,1R2-018,Physique-chimie,Mme Brunet,11.1,11.5,Résultats réguliers ; l'écrit doit gagner en précision.
+1re 2,1R2-018,SVT,M. Weber,11.2,11.3,"Participation correcte, les efforts personnels sont à poursuivre."
+1re 2,1R2-018,EPS,Mme Kiefer,11.4,12.0,"Participation correcte, les efforts personnels sont à poursuivre. Tenue de sport oubliée à deux reprises."
+1re 2,1R2-018,SES,M. Pirard,9.9,9.2,Difficultés persistantes sur les notions de base ; un accompagnement est conseillé. Trois devoirs n'ont pas été rendus.
+1re 2,1R2-019,Français,Mme Garnier,10.2,10.4,"Trimestre correct, travail globalement régulier."
+1re 2,1R2-019,Mathématiques,M. Simon,11.2,12.0,Résultats réguliers ; l'écrit doit gagner en précision.
+1re 2,1R2-019,Histoire-géographie,M. Roux,11.8,11.8,Résultats réguliers ; l'écrit doit gagner en précision. Le cahier est tenu avec soin.
+1re 2,1R2-019,Anglais LV1,Mme Delcourt,11.7,11.1,Résultats réguliers ; l'écrit doit gagner en précision. Participation orale régulière.
+1re 2,1R2-019,Espagnol LV2,M. Alonso,13.7,14.2,"Travail soigné et régulier, à poursuivre. Participation orale régulière."
+1re 2,1R2-019,Physique-chimie,Mme Brunet,12.9,12.9,"Trimestre correct, travail globalement régulier."
+1re 2,1R2-019,SVT,M. Weber,10.6,11.2,"Participation correcte, les efforts personnels sont à poursuivre."
+1re 2,1R2-019,EPS,Mme Kiefer,10.6,10.2,"Participation correcte, les efforts personnels sont à poursuivre. Investissement régulier en séance."
+1re 2,1R2-019,SES,M. Pirard,12.4,12.6,Résultats réguliers ; l'écrit doit gagner en précision.
+1re 2,1R2-020,Français,Mme Garnier,12.3,12.3,"Trimestre correct, travail globalement régulier. Le cahier est tenu avec soin."
+1re 2,1R2-020,Mathématiques,M. Simon,9.2,9.8,"Résultats fragiles, le travail personnel doit devenir plus régulier."
+1re 2,1R2-020,Histoire-géographie,M. Roux,11.2,11.7,Résultats réguliers ; l'écrit doit gagner en précision. Le vocabulaire est bien réinvesti à l'oral.
+1re 2,1R2-020,Anglais LV1,Mme Delcourt,9.1,9.4,"Résultats fragiles, le travail personnel doit devenir plus régulier."
+1re 2,1R2-020,Espagnol LV2,M. Alonso,12.2,12.4,Résultats réguliers ; l'écrit doit gagner en précision. Le vocabulaire est bien réinvesti à l'oral.
+1re 2,1R2-020,Physique-chimie,Mme Brunet,11.2,10.6,"Trimestre correct, travail globalement régulier. Les exercices à la maison sont rendus régulièrement."
+1re 2,1R2-020,SVT,M. Weber,11.8,12.2,Résultats réguliers ; l'écrit doit gagner en précision.
+1re 2,1R2-020,EPS,Mme Kiefer,13.4,12.9,Résultats réguliers ; l'écrit doit gagner en précision.
+1re 2,1R2-020,SES,M. Pirard,10.6,11.4,"Trimestre correct, travail globalement régulier."
+1re 2,1R2-021,Français,Mme Garnier,11.0,10.7,"Participation correcte, les efforts personnels sont à poursuivre."
+1re 2,1R2-021,Mathématiques,M. Simon,12.2,12.3,"Participation correcte, les efforts personnels sont à poursuivre."
+1re 2,1R2-021,Histoire-géographie,M. Roux,11.7,11.5,Résultats réguliers ; l'écrit doit gagner en précision.
+1re 2,1R2-021,Anglais LV1,Mme Delcourt,12.7,12.6,Résultats réguliers ; l'écrit doit gagner en précision.
+1re 2,1R2-021,Espagnol LV2,M. Alonso,10.5,10.3,"Trimestre correct, travail globalement régulier."
+1re 2,1R2-021,Physique-chimie,Mme Brunet,11.2,11.2,Résultats réguliers ; l'écrit doit gagner en précision.
+1re 2,1R2-021,SVT,M. Weber,15.1,15.3,"Très bon trimestre, travail rigoureux et autonome. Le cahier est tenu avec soin."
+1re 2,1R2-021,EPS,Mme Kiefer,11.3,10.6,Résultats réguliers ; l'écrit doit gagner en précision. Tenue de sport oubliée à deux reprises.
+1re 2,1R2-021,SES,M. Pirard,11.8,11.4,"Participation correcte, les efforts personnels sont à poursuivre."
+1re 2,1R2-022,Français,Mme Garnier,13.2,13.1,"Participation correcte, les efforts personnels sont à poursuivre."
+1re 2,1R2-022,Mathématiques,M. Simon,13.6,14.3,"Travail soigné et régulier, à poursuivre."
+1re 2,1R2-022,Histoire-géographie,M. Roux,14.5,14.4,"Très bon trimestre, travail rigoureux et autonome. Le cahier est tenu avec soin."
+1re 2,1R2-022,Anglais LV1,Mme Delcourt,13.3,13.3,"Trimestre correct, travail globalement régulier. Le cahier est tenu avec soin."
+1re 2,1R2-022,Espagnol LV2,M. Alonso,11.2,11.2,"Trimestre correct, travail globalement régulier."
+1re 2,1R2-022,Physique-chimie,Mme Brunet,12.5,12.3,"Participation correcte, les efforts personnels sont à poursuivre. Participation orale régulière."
+1re 2,1R2-022,SVT,M. Weber,15.3,14.6,Résultats solides et participation active en classe.
+1re 2,1R2-022,EPS,Mme Kiefer,13.0,13.5,"Participation correcte, les efforts personnels sont à poursuivre."
+1re 2,1R2-022,SES,M. Pirard,13.1,12.4,"Participation correcte, les efforts personnels sont à poursuivre. Participation orale régulière."
+1re 2,1R2-023,Français,Mme Garnier,8.8,8.1,"Des efforts sont visibles, mais les résultats restent insuffisants. Un devoir n'a pas été rendu."
+1re 2,1R2-023,Mathématiques,M. Simon,13.1,13.7,"Participation correcte, les efforts personnels sont à poursuivre. Trois devoirs n'ont pas été rendus."
+1re 2,1R2-023,Histoire-géographie,M. Roux,10.3,10.7,"Trimestre correct, travail globalement régulier. Participation orale régulière."
+1re 2,1R2-023,Anglais LV1,Mme Delcourt,12.2,11.7,"Participation correcte, les efforts personnels sont à poursuivre."
+1re 2,1R2-023,Espagnol LV2,M. Alonso,10.6,10.2,"Participation correcte, les efforts personnels sont à poursuivre. Le cahier est tenu avec soin."
+1re 2,1R2-023,Physique-chimie,Mme Brunet,14.0,13.6,Résultats réguliers ; l'écrit doit gagner en précision.
+1re 2,1R2-023,SVT,M. Weber,11.8,11.3,"Trimestre correct, travail globalement régulier."
+1re 2,1R2-023,EPS,Mme Kiefer,14.4,14.6,"Travail soigné et régulier, à poursuivre."
+1re 2,1R2-023,SES,M. Pirard,12.2,12.2,"Participation correcte, les efforts personnels sont à poursuivre."
+1re 2,1R2-024,Français,Mme Garnier,11.0,10.3,"Trimestre correct, travail globalement régulier."
+1re 2,1R2-024,Mathématiques,M. Simon,8.9,9.7,"Des efforts sont visibles, mais les résultats restent insuffisants."
+1re 2,1R2-024,Histoire-géographie,M. Roux,10.7,10.9,Résultats réguliers ; l'écrit doit gagner en précision.
+1re 2,1R2-024,Anglais LV1,Mme Delcourt,11.5,12.1,"Participation correcte, les efforts personnels sont à poursuivre. Le cahier est tenu avec soin."
+1re 2,1R2-024,Espagnol LV2,M. Alonso,9.8,9.4,Difficultés persistantes sur les notions de base ; un accompagnement est conseillé. Le cahier est tenu avec soin.
+1re 2,1R2-024,Physique-chimie,Mme Brunet,9.7,10.0,Résultats réguliers ; l'écrit doit gagner en précision.
+1re 2,1R2-024,SVT,M. Weber,9.4,10.0,"Trimestre correct, travail globalement régulier."
+1re 2,1R2-024,EPS,Mme Kiefer,10.6,10.3,"Participation correcte, les efforts personnels sont à poursuivre."
+1re 2,1R2-024,SES,M. Pirard,11.4,10.8,Résultats réguliers ; l'écrit doit gagner en précision.
+1re 2,1R2-025,Français,Mme Garnier,8.9,8.3,Difficultés persistantes sur les notions de base ; un accompagnement est conseillé.
+1re 2,1R2-025,Mathématiques,M. Simon,10.7,10.3,Résultats réguliers ; l'écrit doit gagner en précision.
+1re 2,1R2-025,Histoire-géographie,M. Roux,12.8,13.3,"Participation correcte, les efforts personnels sont à poursuivre. Trois devoirs n'ont pas été rendus."
+1re 2,1R2-025,Anglais LV1,Mme Delcourt,10.1,10.5,Résultats réguliers ; l'écrit doit gagner en précision. Le vocabulaire est bien réinvesti à l'oral.
+1re 2,1R2-025,Espagnol LV2,M. Alonso,8.7,8.2,"Des efforts sont visibles, mais les résultats restent insuffisants."
+1re 2,1R2-025,Physique-chimie,Mme Brunet,11.1,11.4,"Participation correcte, les efforts personnels sont à poursuivre. Un devoir n'a pas été rendu."
+1re 2,1R2-025,SVT,M. Weber,12.6,12.3,"Participation correcte, les efforts personnels sont à poursuivre. Le cahier est tenu avec soin."
+1re 2,1R2-025,EPS,Mme Kiefer,8.9,8.2,"Des efforts sont visibles, mais les résultats restent insuffisants. Investissement régulier en séance."
+1re 2,1R2-025,SES,M. Pirard,11.4,11.2,"Trimestre correct, travail globalement régulier. Un devoir n'a pas été rendu."
+1re 2,1R2-026,Français,Mme Garnier,12.1,12.9,"Trimestre correct, travail globalement régulier. Le cahier est tenu avec soin."
+1re 2,1R2-026,Mathématiques,M. Simon,14.3,14.0,"Travail soigné et régulier, à poursuivre."
+1re 2,1R2-026,Histoire-géographie,M. Roux,11.3,10.6,Résultats réguliers ; l'écrit doit gagner en précision.
+1re 2,1R2-026,Anglais LV1,Mme Delcourt,12.2,12.1,Résultats réguliers ; l'écrit doit gagner en précision. Les exercices à la maison sont rendus régulièrement.
+1re 2,1R2-026,Espagnol LV2,M. Alonso,11.5,11.0,"Trimestre correct, travail globalement régulier."
+1re 2,1R2-026,Physique-chimie,Mme Brunet,12.1,12.5,"Trimestre correct, travail globalement régulier."
+1re 2,1R2-026,SVT,M. Weber,10.9,11.0,"Participation correcte, les efforts personnels sont à poursuivre. Trois devoirs n'ont pas été rendus."
+1re 2,1R2-026,EPS,Mme Kiefer,12.5,12.0,"Participation correcte, les efforts personnels sont à poursuivre."
+1re 2,1R2-026,SES,M. Pirard,12.1,12.6,"Trimestre correct, travail globalement régulier."

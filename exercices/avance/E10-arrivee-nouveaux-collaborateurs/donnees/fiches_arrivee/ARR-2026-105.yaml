@@ -1,0 +1,12 @@
+id: "ARR-2026-105"
+nom: "Pernot"
+prenom: "Océane"
+poste: "Responsable qualité"
+metier: "QUA"
+site: "PIE"
+date_arrivee: "2026-11-09"
+manager: "Denis Morvan"
+type_contrat: "CDI"
+acces_complementaires:
+  - "Base des non-conformités, lecture (demande du manager)"
+  - "Gestion documentaire qualité (demande du manager)"

@@ -1,0 +1,61 @@
+reference_machine,numero_serie,famille,agence_code,statut_declare,date_dernier_retour,controle_retour_fait,date_dernier_controle,prochaine_echeance_controle,contrat_en_cours,compteur_heures
+MPE-001,BRV770487,Mini-pelle,LYS,disponible,2026-03-19,oui,,,,606
+MPE-002,BRV126225,Mini-pelle,GRE,disponible,2026-05-22,oui,,,,3187
+MPE-003,BRV388389,Mini-pelle,MRS,disponible,2026-06-09,oui,,,,1153
+MPE-004,BRV334053,Mini-pelle,TLS,disponible,2026-08-10,oui,,,,721
+MPE-005,BRV872246,Mini-pelle,BDX,disponible,2026-08-05,oui,,,,569
+MPE-006,BRV809570,Mini-pelle,LYS,disponible,,,,,,3183
+MPE-007,BRV671858,Mini-pelle,GRE,disponible,2026-09-25,oui,,,,506
+MPE-008,BRV719176,Mini-pelle,MRS,disponible,,,,,,1878
+MPE-009,BRV133326,Mini-pelle,TLS,disponible,2026-09-16,oui,,,,272
+MPE-010,BRV198246,Mini-pelle,BDX,disponible,2026-10-02,oui,,,,1045
+MPE-011,BRV343962,Mini-pelle,LYS,loué,,,,,LOC-2026-0131,2219
+MPE-012,BRV731262,Mini-pelle,GRE,réservé,,,,,,258
+NCI-001,BRV688508,Nacelle ciseaux,MRS,disponible,2026-03-17,oui,2026-05-23,2026-11-23,,964
+NCI-002,BRV850800,Nacelle ciseaux,TLS,disponible,,,2026-05-29,2026-11-29,,2811
+NCI-003,BRV835392,Nacelle ciseaux,BDX,disponible,,,2026-06-05,2026-12-05,,2382
+NCI-004,BRV539898,Nacelle ciseaux,LYS,disponible,,,2026-06-11,2026-12-11,,1052
+NCI-005,BRV571029,Nacelle ciseaux,GRE,loué,,,2026-03-30,2026-09-30,LOC-2026-0128,2563
+NCI-006,BRV391704,Nacelle ciseaux,MRS,disponible,,,2026-06-23,2026-12-23,,3465
+NCI-007,BRV106814,Nacelle ciseaux,TLS,réservé,,,2026-06-29,2026-12-29,,3258
+NCI-008,BRV944962,Nacelle ciseaux,BDX,disponible,,,2026-05-05,2026-11-05,,803
+NCI-009,BRV832052,Nacelle ciseaux,LYS,disponible,,,2026-07-10,2027-01-10,,1881
+NCI-010,BRV456778,Nacelle ciseaux,GRE,disponible,2026-06-19,oui,2026-07-16,2027-01-16,,1288
+NAR-001,BRV263032,Nacelle articulée,MRS,disponible,2026-05-06,oui,2026-07-22,2027-01-22,,1031
+NAR-002,BRV900581,Nacelle articulée,TLS,disponible,2026-10-08,non,2026-07-02,2027-01-02,,1528
+NAR-003,BRV207175,Nacelle articulée,BDX,disponible,2026-09-12,oui,2026-08-03,2027-02-03,,529
+NAR-004,BRV498382,Nacelle articulée,LYS,disponible,,,2026-04-10,2026-10-10,,546
+NAR-005,BRV476417,Nacelle articulée,GRE,disponible,2026-08-14,oui,2026-08-15,2027-02-15,,3621
+NAR-006,BRV460663,Nacelle articulée,MRS,disponible,,,2026-08-21,2027-02-21,,2622
+ECH-001,BRV377370,Échafaudage,TLS,disponible,2026-05-28,oui,,,,
+ECH-002,BRV946335,Échafaudage,BDX,disponible,2026-06-26,oui,,,,
+ECH-003,BRV145561,Échafaudage,LYS,disponible,2026-07-15,oui,,,,
+ECH-004,BRV865179,Échafaudage,GRE,disponible,,,,,,
+ECH-005,BRV581741,Échafaudage,MRS,disponible,2026-09-29,oui,,,,
+ECH-006,BRV662275,Échafaudage,TLS,réservé,,,,,,
+ECH-007,BRV230889,Échafaudage,BDX,disponible,,,,,,
+ECH-008,BRV496922,Échafaudage,LYS,disponible,,,,,,
+GEL-001,BRV182627,Groupe électrogène,GRE,disponible,2026-04-13,oui,,,,2411
+GEL-002,BRV407419,Groupe électrogène,MRS,disponible,2026-09-21,oui,,,,3547
+GEL-003,BRV759176,Groupe électrogène,TLS,disponible,2026-06-07,oui,,,,2683
+GEL-004,BRV479201,Groupe électrogène,BDX,disponible,2026-07-10,oui,,,,2514
+GEL-005,BRV301629,Groupe électrogène,LYS,réservé,,,,,,3035
+GEL-006,BRV172933,Groupe électrogène,GRE,disponible,,,,,,337
+GEL-007,BRV793384,Groupe électrogène,MRS,disponible,,,,,,1083
+GEL-008,BRV910620,Groupe électrogène,TLS,disponible,,,,,,1335
+BUN-001,BRV183667,Bungalow de chantier,BDX,disponible,2026-05-04,oui,,,,
+BUN-002,BRV996865,Bungalow de chantier,LYS,disponible,2026-07-08,oui,,,,
+BUN-003,BRV344098,Bungalow de chantier,GRE,disponible,2026-10-05,non,,,,
+BUN-004,BRV205907,Bungalow de chantier,MRS,loué,,,,,LOC-2026-0132,
+BUN-005,BRV498591,Bungalow de chantier,TLS,disponible,,,,,,
+BUN-006,BRV391476,Bungalow de chantier,BDX,disponible,,,,,,
+CHE-001,BRV575435,Chariot élévateur,LYS,disponible,2026-06-01,oui,2026-08-27,2027-02-27,,2753
+CHE-002,BRV974628,Chariot élévateur,GRE,disponible,2026-09-01,oui,2026-09-05,2027-03-05,,1644
+CHE-003,BRV270555,Chariot élévateur,MRS,loué,,,2026-04-05,2026-10-05,LOC-2026-0129,1666
+CHE-004,BRV472528,Chariot élévateur,TLS,disponible,,,2026-09-17,2027-03-17,,1008
+CHE-005,BRV802729,Chariot élévateur,BDX,disponible,,,2026-09-23,2027-03-23,,1243
+CHE-006,BRV835911,Chariot élévateur,LYS,en maintenance,,,2026-09-29,2027-03-29,,3986
+CPR-001,BRV816751,Compresseur,GRE,disponible,,,,,,2804
+CPR-002,BRV174870,Compresseur,MRS,disponible,2026-07-31,oui,,,,2645
+CPR-003,BRV765822,Compresseur,TLS,réservé,,,,,,850
+CPR-004,BRV660086,Compresseur,BDX,en maintenance,,,,,,3136

@@ -1,0 +1,17 @@
+site,identifiant,zone,statut,ordre
+BRU,B-101,bureau,libre,1
+BRU,B-102,bureau,occupé,2
+BRU,B-103,bureau,libre,3
+BRU,B-104,bureau,occupé,4
+OST,B-301,bureau,libre,1
+OST,B-302,bureau,occupé,2
+OST,L-301,labo,libre,3
+COR,B-401,bureau,occupé,1
+COR,B-402,bureau,libre,2
+COR,L-401,labo,occupé,3
+COR,L-402,labo,occupé,4
+LAN,B-501,bureau,libre,1
+LAN,B-502,bureau,libre,2
+PIE,B-601,bureau,libre,1
+PIE,B-602,bureau,occupé,2
+PIE,B-603,bureau,libre,3

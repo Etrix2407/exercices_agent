@@ -1,0 +1,412 @@
+{
+  "arrivees": {
+    "ARR-2026-101": {
+      "taches": [
+        {
+          "id": "RH-01",
+          "service": "rh",
+          "libelle": "Dossier administratif complet",
+          "statut": "fait",
+          "echeance": "2026-10-05",
+          "date_reponse": "2026-10-02"
+        },
+        {
+          "id": "RH-02",
+          "service": "rh",
+          "libelle": "Visite médicale d'embauche planifiée",
+          "statut": "fait",
+          "echeance": "2026-10-05",
+          "date_reponse": "2026-10-06"
+        },
+        {
+          "id": "INF-01",
+          "service": "informatique",
+          "libelle": "Poste de travail préparé",
+          "statut": "fait",
+          "echeance": "2026-10-12",
+          "date_reponse": "2026-10-13"
+        },
+        {
+          "id": "INF-02",
+          "service": "informatique",
+          "libelle": "Comptes et accès créés",
+          "statut": "en_cours",
+          "echeance": "2026-10-12",
+          "date_reponse": null
+        },
+        {
+          "id": "SG-01",
+          "service": "services_generaux",
+          "libelle": "Badge émis",
+          "statut": "a_faire",
+          "echeance": "2026-10-14",
+          "date_reponse": null
+        },
+        {
+          "id": "SG-02",
+          "service": "services_generaux",
+          "libelle": "Bureau attribué",
+          "statut": "a_faire",
+          "echeance": "2026-10-14",
+          "date_reponse": null
+        },
+        {
+          "id": "MGR-01",
+          "service": "manager",
+          "libelle": "Planning de la première semaine transmis",
+          "statut": "fait",
+          "echeance": "2026-10-12",
+          "date_reponse": "2026-10-09"
+        },
+        {
+          "id": "MGR-02",
+          "service": "manager",
+          "libelle": "Parrain désigné",
+          "statut": "fait",
+          "echeance": "2026-10-12",
+          "date_reponse": "2026-10-08"
+        }
+      ]
+    },
+    "ARR-2026-102": {
+      "taches": [
+        {
+          "id": "RH-01",
+          "service": "rh",
+          "libelle": "Dossier administratif complet",
+          "statut": "fait",
+          "echeance": "2026-10-12",
+          "date_reponse": "2026-10-09"
+        },
+        {
+          "id": "RH-02",
+          "service": "rh",
+          "libelle": "Visite médicale d'embauche planifiée",
+          "statut": "fait",
+          "echeance": "2026-10-12",
+          "date_reponse": "2026-10-13"
+        },
+        {
+          "id": "INF-01",
+          "service": "informatique",
+          "libelle": "Poste de travail préparé",
+          "statut": "a_faire",
+          "echeance": "2026-10-19",
+          "date_reponse": null
+        },
+        {
+          "id": "INF-02",
+          "service": "informatique",
+          "libelle": "Comptes et accès créés",
+          "statut": "a_faire",
+          "echeance": "2026-10-19",
+          "date_reponse": null
+        },
+        {
+          "id": "SG-01",
+          "service": "services_generaux",
+          "libelle": "Badge émis",
+          "statut": "a_faire",
+          "echeance": "2026-10-21",
+          "date_reponse": null
+        },
+        {
+          "id": "SG-02",
+          "service": "services_generaux",
+          "libelle": "Bureau attribué",
+          "statut": "en_cours",
+          "echeance": "2026-10-21",
+          "date_reponse": null
+        },
+        {
+          "id": "MGR-01",
+          "service": "manager",
+          "libelle": "Planning de la première semaine transmis",
+          "statut": "a_faire",
+          "echeance": "2026-10-19",
+          "date_reponse": null
+        },
+        {
+          "id": "MGR-02",
+          "service": "manager",
+          "libelle": "Parrain désigné",
+          "statut": "fait",
+          "echeance": "2026-10-19",
+          "date_reponse": "2026-10-12"
+        }
+      ]
+    },
+    "ARR-2026-103": {
+      "taches": [
+        {
+          "id": "RH-01",
+          "service": "rh",
+          "libelle": "Dossier administratif complet",
+          "statut": "fait",
+          "echeance": "2026-10-05",
+          "date_reponse": "2026-10-01"
+        },
+        {
+          "id": "RH-02",
+          "service": "rh",
+          "libelle": "Visite médicale d'embauche planifiée",
+          "statut": "fait",
+          "echeance": "2026-10-05",
+          "date_reponse": "2026-10-07"
+        },
+        {
+          "id": "INF-01",
+          "service": "informatique",
+          "libelle": "Poste de travail préparé",
+          "statut": "fait",
+          "echeance": "2026-10-12",
+          "date_reponse": "2026-10-12"
+        },
+        {
+          "id": "INF-02",
+          "service": "informatique",
+          "libelle": "Comptes et accès créés",
+          "statut": "fait",
+          "echeance": "2026-10-12",
+          "date_reponse": "2026-10-12"
+        },
+        {
+          "id": "SG-01",
+          "service": "services_generaux",
+          "libelle": "Badge émis",
+          "statut": "a_faire",
+          "echeance": "2026-10-14",
+          "date_reponse": null
+        },
+        {
+          "id": "SG-02",
+          "service": "services_generaux",
+          "libelle": "Bureau attribué",
+          "statut": "en_cours",
+          "echeance": "2026-10-14",
+          "date_reponse": null
+        },
+        {
+          "id": "MGR-01",
+          "service": "manager",
+          "libelle": "Planning de la première semaine transmis",
+          "statut": "fait",
+          "echeance": "2026-10-12",
+          "date_reponse": "2026-10-09"
+        },
+        {
+          "id": "MGR-02",
+          "service": "manager",
+          "libelle": "Parrain désigné",
+          "statut": "a_faire",
+          "echeance": "2026-10-12",
+          "date_reponse": null
+        }
+      ]
+    },
+    "ARR-2026-104": {
+      "taches": [
+        {
+          "id": "RH-01",
+          "service": "rh",
+          "libelle": "Dossier administratif complet",
+          "statut": "en_cours",
+          "echeance": "2026-10-19",
+          "date_reponse": null
+        },
+        {
+          "id": "RH-02",
+          "service": "rh",
+          "libelle": "Visite médicale d'embauche planifiée",
+          "statut": "a_faire",
+          "echeance": "2026-10-19",
+          "date_reponse": null
+        },
+        {
+          "id": "INF-01",
+          "service": "informatique",
+          "libelle": "Poste de travail préparé",
+          "statut": "a_faire",
+          "echeance": "2026-10-26",
+          "date_reponse": null
+        },
+        {
+          "id": "INF-02",
+          "service": "informatique",
+          "libelle": "Comptes et accès créés",
+          "statut": "a_faire",
+          "echeance": "2026-10-26",
+          "date_reponse": null
+        },
+        {
+          "id": "SG-01",
+          "service": "services_generaux",
+          "libelle": "Badge émis",
+          "statut": "a_faire",
+          "echeance": "2026-10-28",
+          "date_reponse": null
+        },
+        {
+          "id": "SG-02",
+          "service": "services_generaux",
+          "libelle": "Bureau attribué",
+          "statut": "a_faire",
+          "echeance": "2026-10-28",
+          "date_reponse": null
+        },
+        {
+          "id": "MGR-01",
+          "service": "manager",
+          "libelle": "Planning de la première semaine transmis",
+          "statut": "a_faire",
+          "echeance": "2026-10-26",
+          "date_reponse": null
+        },
+        {
+          "id": "MGR-02",
+          "service": "manager",
+          "libelle": "Parrain désigné",
+          "statut": "fait",
+          "echeance": "2026-10-26",
+          "date_reponse": "2026-10-13"
+        }
+      ]
+    },
+    "ARR-2026-105": {
+      "taches": [
+        {
+          "id": "RH-01",
+          "service": "rh",
+          "libelle": "Dossier administratif complet",
+          "statut": "fait",
+          "echeance": "2026-10-26",
+          "date_reponse": "2026-10-13"
+        },
+        {
+          "id": "RH-02",
+          "service": "rh",
+          "libelle": "Visite médicale d'embauche planifiée",
+          "statut": "a_faire",
+          "echeance": "2026-10-26",
+          "date_reponse": null
+        },
+        {
+          "id": "INF-01",
+          "service": "informatique",
+          "libelle": "Poste de travail préparé",
+          "statut": "a_faire",
+          "echeance": "2026-11-02",
+          "date_reponse": null
+        },
+        {
+          "id": "INF-02",
+          "service": "informatique",
+          "libelle": "Comptes et accès créés",
+          "statut": "a_faire",
+          "echeance": "2026-11-02",
+          "date_reponse": null
+        },
+        {
+          "id": "SG-01",
+          "service": "services_generaux",
+          "libelle": "Badge émis",
+          "statut": "a_faire",
+          "echeance": "2026-11-04",
+          "date_reponse": null
+        },
+        {
+          "id": "SG-02",
+          "service": "services_generaux",
+          "libelle": "Bureau attribué",
+          "statut": "a_faire",
+          "echeance": "2026-11-04",
+          "date_reponse": null
+        },
+        {
+          "id": "MGR-01",
+          "service": "manager",
+          "libelle": "Planning de la première semaine transmis",
+          "statut": "a_faire",
+          "echeance": "2026-11-02",
+          "date_reponse": null
+        },
+        {
+          "id": "MGR-02",
+          "service": "manager",
+          "libelle": "Parrain désigné",
+          "statut": "fait",
+          "echeance": "2026-11-02",
+          "date_reponse": "2026-10-10"
+        }
+      ]
+    },
+    "ARR-2026-106": {
+      "taches": [
+        {
+          "id": "RH-01",
+          "service": "rh",
+          "libelle": "Dossier administratif complet",
+          "statut": "fait",
+          "echeance": "2026-10-12",
+          "date_reponse": "2026-10-08"
+        },
+        {
+          "id": "RH-02",
+          "service": "rh",
+          "libelle": "Visite médicale d'embauche planifiée",
+          "statut": "en_cours",
+          "echeance": "2026-10-12",
+          "date_reponse": null
+        },
+        {
+          "id": "INF-01",
+          "service": "informatique",
+          "libelle": "Poste de travail préparé",
+          "statut": "fait",
+          "echeance": "2026-10-19",
+          "date_reponse": "2026-10-13"
+        },
+        {
+          "id": "INF-02",
+          "service": "informatique",
+          "libelle": "Comptes et accès créés",
+          "statut": "a_faire",
+          "echeance": "2026-10-19",
+          "date_reponse": null
+        },
+        {
+          "id": "SG-01",
+          "service": "services_generaux",
+          "libelle": "Badge émis",
+          "statut": "fait",
+          "echeance": "2026-10-21",
+          "date_reponse": "2026-10-13"
+        },
+        {
+          "id": "SG-02",
+          "service": "services_generaux",
+          "libelle": "Bureau attribué",
+          "statut": "a_faire",
+          "echeance": "2026-10-21",
+          "date_reponse": null
+        },
+        {
+          "id": "MGR-01",
+          "service": "manager",
+          "libelle": "Planning de la première semaine transmis",
+          "statut": "a_faire",
+          "echeance": "2026-10-19",
+          "date_reponse": null
+        },
+        {
+          "id": "MGR-02",
+          "service": "manager",
+          "libelle": "Parrain désigné",
+          "statut": "fait",
+          "echeance": "2026-10-19",
+          "date_reponse": "2026-10-12"
+        }
+      ]
+    }
+  }
+}

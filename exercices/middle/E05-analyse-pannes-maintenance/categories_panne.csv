@@ -1,0 +1,10 @@
+code,libelle,description
+HYD,hydraulique,"Fuites, pression et pompe du circuit hydraulique, vérins hydrauliques, flexibles."
+PNE,pneumatique,"Air comprimé, distributeurs et vérins pneumatiques, électrovannes d'air."
+ELE,électrique,"Alimentation, protections, moteurs, variateurs et contacteurs de puissance."
+MEC,mécanique,"Organes de transmission et de fixation : courroies, roulements, vis, chaînes, engrenages."
+THE,thermique,Températures de process et de refroidissement des fours et des circuits.
+CAP,capteurs/automatisme,"Détecteurs, capteurs de position, automates, communication et signaux de commande."
+LUB,lubrification,"Graissage automatique, niveaux et qualité de l'huile des réducteurs et paliers."
+SEC,sécurité,"Arrêts d'urgence, protecteurs, barrières et verrouillages de sécurité."
+DIV,divers,"Interventions qui ne relèvent d'aucune autre catégorie : bourrages, évacuation, nettoyage."

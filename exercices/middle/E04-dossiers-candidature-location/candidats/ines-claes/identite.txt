@@ -1,0 +1,7 @@
+Type de pièce : Carte d'identité
+Nom : Inès Claes
+Date d'émission : 27/08/2021
+Numéro de document : 000-0000000-00
+Date d'expiration : 27/08/2031
+
+Document fictif produit pour l'exercice.

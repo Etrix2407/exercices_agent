@@ -1,0 +1,23 @@
+reference_machine,agence_code,famille,type_controle,date_derniere_verification,date_echeance,statut_au_2026-10-14,dernier_contrat,date_debut_dernier_contrat
+NCI-001,MRS,Nacelle ciseaux,vérification périodique semestrielle (nacelle),2026-05-23,2026-11-23,à jour,LOC-2026-0102,2026-03-10
+NCI-002,TLS,Nacelle ciseaux,vérification périodique semestrielle (nacelle),2026-05-29,2026-11-29,à jour,,
+NCI-003,BDX,Nacelle ciseaux,vérification périodique semestrielle (nacelle),2026-06-05,2026-12-05,à jour,,
+NCI-004,LYS,Nacelle ciseaux,vérification périodique semestrielle (nacelle),2026-06-11,2026-12-11,à jour,,
+NCI-005,GRE,Nacelle ciseaux,vérification périodique semestrielle (nacelle),2026-03-30,2026-09-30,échu,LOC-2026-0128,2026-10-01
+NCI-006,MRS,Nacelle ciseaux,vérification périodique semestrielle (nacelle),2026-06-23,2026-12-23,à jour,,
+NCI-007,TLS,Nacelle ciseaux,vérification périodique semestrielle (nacelle),2026-06-29,2026-12-29,à jour,LOC-2026-0134,2026-10-16
+NCI-008,BDX,Nacelle ciseaux,vérification périodique semestrielle (nacelle),2026-05-05,2026-11-05,à planifier (moins de 30 jours),,
+NCI-009,LYS,Nacelle ciseaux,vérification périodique semestrielle (nacelle),2026-07-10,2027-01-10,à jour,,
+NCI-010,GRE,Nacelle ciseaux,vérification périodique semestrielle (nacelle),2026-07-16,2027-01-16,à jour,LOC-2026-0095,2026-06-08
+NAR-001,MRS,Nacelle articulée,vérification périodique semestrielle (nacelle),2026-07-22,2027-01-22,à jour,LOC-2026-0106,2026-05-02
+NAR-002,TLS,Nacelle articulée,vérification périodique semestrielle (nacelle),2026-07-02,2027-01-02,à jour,LOC-2026-0127,2026-09-28
+NAR-003,BDX,Nacelle articulée,vérification périodique semestrielle (nacelle),2026-08-03,2027-02-03,à jour,LOC-2026-0121,2026-09-05
+NAR-004,LYS,Nacelle articulée,vérification périodique semestrielle (nacelle),2026-04-10,2026-10-10,échu,,
+NAR-005,GRE,Nacelle articulée,vérification périodique semestrielle (nacelle),2026-08-15,2027-02-15,à jour,LOC-2026-0115,2026-07-14
+NAR-006,MRS,Nacelle articulée,vérification périodique semestrielle (nacelle),2026-08-21,2027-02-21,à jour,,
+CHE-001,LYS,Chariot élévateur,vérification périodique semestrielle (appareil de levage),2026-08-27,2027-02-27,à jour,LOC-2026-0108,2026-05-18
+CHE-002,GRE,Chariot élévateur,vérification périodique semestrielle (appareil de levage),2026-09-05,2027-03-05,à jour,LOC-2026-0119,2026-08-18
+CHE-003,MRS,Chariot élévateur,vérification périodique semestrielle (appareil de levage),2026-04-05,2026-10-05,échu,LOC-2026-0129,2026-10-06
+CHE-004,TLS,Chariot élévateur,vérification périodique semestrielle (appareil de levage),2026-09-17,2027-03-17,à jour,,
+CHE-005,BDX,Chariot élévateur,vérification périodique semestrielle (appareil de levage),2026-09-23,2027-03-23,à jour,,
+CHE-006,LYS,Chariot élévateur,vérification périodique semestrielle (appareil de levage),2026-09-29,2027-03-29,à jour,,
