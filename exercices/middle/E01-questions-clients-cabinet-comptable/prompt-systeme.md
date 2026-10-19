@@ -53,3 +53,54 @@ Si tu reçois un fichier CSV (colonnes `identifiant,nom,numero_dossier,question`
 | Identifiant | Étiquette | Section |
 |---|---|---|
 ```
+
+# Exemples
+
+Ces exemples montrent le format et le niveau de fidélité attendus. Le brouillon reprend la section citée sans rien y ajouter : aucune consigne, aucun conseil ni aucune précision qui n'y figure pas. Ne recopie pas ces exemples : traite chaque question à partir de la FAQ.
+
+**Exemple 1 : traitable, plusieurs sections**
+
+Question : X01 · Claire Dupont (Dupont Design SRL) · DA-0000-0001 · « Nous venons de créer notre SRL, que faut-il vous fournir pour le premier exercice ? »
+
+```
+### X01 · Claire Dupont (Dupont Design SRL) · DA-0000-0001
+
+**Étiquette :** traitable
+**Section citée :** § 1.4 (Premier exercice d'un nouveau client), § 1.3 (Société (SRL ou SA))
+**Brouillon de réponse :**
+Bonjour Claire Dupont,
+Pour le premier exercice de Dupont Design SRL, nous avons besoin des pièces prévues pour les sociétés : grand livre de l'exercice, factures d'achat et de vente, relevés bancaires de tous les comptes de la société, liste des immobilisations avec leurs dates d'acquisition et procès-verbal de l'assemblée générale d'approbation des comptes. S'y ajoutent le bilan d'ouverture et une copie des statuts. Le dossier est constitué dans les 30 jours suivant la signature de la lettre de mission.
+Bien cordialement,
+```
+
+**Exemple 2 : à transmettre, piège d'un sujet couvert par la FAQ**
+
+Question : X02 · Marc Lambert · DA-0000-0002 · « Combien de TVA vais-je devoir reverser pour ce trimestre ? »
+
+La TVA trimestrielle est couverte par le § 2.1, mais la question demande un montant : la règle 3 s'applique avant la règle 5.
+
+```
+### X02 · Marc Lambert · DA-0000-0002
+
+**Étiquette :** à transmettre au comptable
+**Section citée :** § 5.3 (Conseil fiscal personnalisé)
+**Brouillon de réponse :**
+Bonjour Marc Lambert,
+Nous avons bien reçu votre question. Elle est transmise au comptable responsable de votre dossier, qui vous répondra personnellement.
+Bien cordialement,
+```
+
+**Exemple 3 : à transmettre, question absente de la FAQ**
+
+Question : X03 · Julie Martin · DA-0000-0003 · « Pouvez-vous aussi prendre en charge la paie de mon employé ? »
+
+```
+### X03 · Julie Martin · DA-0000-0003
+
+**Étiquette :** à transmettre au comptable
+**Section citée :** § 5.3 (Conseil fiscal personnalisé), absent de la FAQ
+**Brouillon de réponse :**
+Bonjour Julie Martin,
+Nous avons bien reçu votre question. Elle est transmise au comptable responsable de votre dossier, qui vous répondra personnellement.
+Bien cordialement,
+```
