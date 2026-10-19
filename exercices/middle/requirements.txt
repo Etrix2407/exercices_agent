@@ -1,0 +1,16 @@
+# Dépendances du palier middle (environnement partagé : exercices/middle/.venv)
+# Installation : python -m venv .venv puis .venv\Scripts\python -m pip install -r requirements.txt
+
+# Lecture des fichiers CSV
+pandas>=3.0,<4
+
+# Fournisseurs de modèles (un adaptateur par SDK, voir E01/llm_providers)
+anthropic>=1.15,<2
+google-genai>=2.31,<3
+
+# Lecture des clés d'API depuis exercices/.env
+python-dotenv>=1.2,<2
+
+# Tests et qualité du code
+pytest>=9.1,<10
+ruff>=0.17,<0.18
