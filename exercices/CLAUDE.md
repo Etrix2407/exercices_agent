@@ -7,7 +7,7 @@ Tu es un expert en Python et en développement d'applications évolutives. Tu é
 ## techno
 
 - python 3.12
-- chromaDB
+- pandas (lecture des fichiers CSV)
 
 ## Structure
  
