@@ -154,19 +154,34 @@ def test_exercise_settings_override_env_and_set_temperature() -> None:
     assert _agent_config("système", [], provider.temperature).temperature == 0.2
 
 
-def test_gemini_persistent_429_raises_quota_error() -> None:
+def test_gemini_key_read_from_standard_name() -> None:
+    from agent.llm_providers import get_provider
+
+    assert get_provider({"GEMINI_API_KEY": "g"}, provider="gemini").model
+
+
+def test_gemini_429_without_delay_waits_default_then_raises_quota_error(monkeypatch: pytest.MonkeyPatch) -> None:
     from google.genai import errors
 
     from agent.llm_providers.base import LLMQuotaError
 
+    waits: list[float] = []
+    monkeypatch.setattr("agent.llm_providers.gemini_provider.time.sleep", waits.append)
+
     class QuotaModels:
+        calls = 0
+
         def generate_content(self, **kwargs: Any) -> Any:
+            self.calls += 1
             raise errors.ClientError(429, {"error": {"code": 429, "message": "quota", "status": "RESOURCE_EXHAUSTED"}})
 
+    models = QuotaModels()
     provider = GeminiProvider(api_key="x")
-    provider._client = SimpleNamespace(models=QuotaModels())
-    with pytest.raises(LLMQuotaError):
+    provider._client = SimpleNamespace(models=models)
+    with pytest.raises(LLMQuotaError, match=r"quota épuisé pour le modèle\. "):
         provider.generate("système", "question")
+    # Capacité saturée sans délai annoncé : 3 attentes par défaut (30 s + 1 s), puis abandon au 4e appel.
+    assert models.calls == 4 and waits == [31, 31, 31]
 
 
 @pytest.mark.parametrize(("code", "message"), [(404, "This model is no longer available"), (400, "API key not valid")])

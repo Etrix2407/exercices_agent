@@ -7,9 +7,11 @@ from typing import Any
 
 import anyio
 import pytest
+from mcp import MCPError
+from mcp_types import CONNECTION_CLOSED
 
 from agent.llm_providers.base import ToolError
-from agent.mcp_bridge import HotelTools, KitClient, kit_session
+from agent.mcp_bridge import HotelTools, KitClient, KitConnectionError, kit_session
 from agent.tests.fakes import REQUEST, WEDDING_NEEDS, FakeKit
 
 
@@ -68,6 +70,14 @@ def test_write_draft_attaches_quote_only_for_proposal_and_only_once() -> None:
         handlers(tools)["write_draft"]({"fiche_json": sheet("precisions_requises")})
 
 
+def test_write_draft_with_error_status_writes_nothing() -> None:
+    kit = FakeKit()
+    tools = HotelTools(kit, REQUEST)
+    answer = handlers(tools)["write_draft"]({"fiche_json": {"statut": "erreur", "points_a_verifier": ["panne"]}})
+    assert answer == "Statut erreur noté, aucun brouillon écrit."
+    assert kit.saved == [] and tools.draft["brouillon"] == {} and tools.draft["fiche"]["statut"] == "erreur"
+
+
 def test_real_mcp_server_reads_email_and_quotes() -> None:
     """Démarre le vrai serveur MCP du kit (local, lecture seule ici)."""
 
@@ -83,12 +93,6 @@ def test_real_mcp_server_reads_email_and_quotes() -> None:
     email, quote = anyio.run(scenario)
     assert "décembre" in email
     assert quote["total_ttc"] == 1980.0
-
-
-def test_gemini_key_read_from_standard_name() -> None:
-    from agent.llm_providers import get_provider
-
-    assert get_provider({"GEMINI_API_KEY": "g"}, provider="gemini").model
 
 
 def test_hall_without_dates_or_malformed_is_refused() -> None:
@@ -115,3 +119,85 @@ def test_unresponsive_mcp_server_raises_tool_error(monkeypatch) -> None:
 
     with pytest.raises(ToolError, match="pas répondu"):
         anyio.run(scenario)
+
+
+class BrokenClient:
+    """Faux client MCP : la grille ne répond pas, les outils lèvent l'erreur choisie."""
+
+    def __init__(self, error: Exception) -> None:
+        self.error = error
+
+    async def read_resource(self, uri: str) -> Any:
+        await anyio.sleep(10)
+
+    async def call_tool(self, name: str, arguments: dict) -> Any:
+        raise self.error
+
+
+def in_worker(function, *args) -> Any:
+    async def scenario() -> Any:
+        return await anyio.to_thread.run_sync(function, *args)
+
+    return anyio.run(scenario)
+
+
+def test_read_grid_has_a_timeout(monkeypatch) -> None:
+    from agent import mcp_bridge
+
+    monkeypatch.setattr(mcp_bridge, "MCP_TIMEOUT_S", 0.2)
+    with pytest.raises(ToolError, match="grille"):
+        in_worker(KitClient(BrokenClient(RuntimeError())).read_grid)
+
+
+@pytest.mark.parametrize(
+    ("error", "expected"),
+    [
+        (MCPError(code=CONNECTION_CLOSED, message="Connection closed"), KitConnectionError),
+        (anyio.ClosedResourceError(), KitConnectionError),
+        (anyio.BrokenResourceError(), KitConnectionError),
+        (MCPError(code=-32602, message="paramètres invalides"), ToolError),
+    ],
+)
+def test_mcp_transport_errors_become_clear_errors(error: Exception, expected: type[Exception]) -> None:
+    with pytest.raises(expected, match="(?i)serveur MCP"):
+        in_worker(KitClient(BrokenClient(error)).call, "lire_demande", {"identifiant": "x"})
+
+
+def test_server_and_client_use_the_same_copied_kit(tmp_path, monkeypatch) -> None:
+    """KIT_BASE et KIT_BOITE vers une copie : le vrai serveur et l'agent voient les mêmes demandes et planning."""
+    import shutil
+    import sqlite3
+    from contextlib import closing
+
+    import planning
+    from agent.checks import planning_fingerprint
+    from agent.mcp_bridge import KIT_DIR, mailbox_dir
+
+    reference = planning_fingerprint()
+    free_suites = planning.disponibilites_chambres("2026-12-20", "2026-12-21")["libres_sur_toute_la_periode"]["suite"]
+    mailbox = tmp_path / "boite copie"
+    shutil.copytree(KIT_DIR / "boite", mailbox)
+    (mailbox / "inbox" / "demande_01_mariage.eml").unlink()
+    database = tmp_path / "hotel copie.db"
+    shutil.copyfile(KIT_DIR / "hotel.db", database)
+    with closing(sqlite3.connect(database)) as connection, connection:
+        connection.execute("INSERT INTO occupation_chambres VALUES ('2026-12-20', 'suite', 'test', 1)")
+    monkeypatch.setenv("KIT_BOITE", str(mailbox))
+    monkeypatch.setenv("KIT_BASE", str(database))
+    # kit_session réaligne planning.CHEMIN_BASE : monkeypatch le remet en place après le test.
+    monkeypatch.setattr(planning, "CHEMIN_BASE", planning.CHEMIN_BASE)
+
+    def compare(kit: KitClient) -> None:
+        listed = sorted(item["id"] for item in kit.call("lister_demandes", {})["demandes"])
+        assert listed == sorted(path.stem for path in (mailbox_dir() / "inbox").glob("*.eml"))
+        assert "demande_01_mariage" not in listed and len(listed) == 9
+        server = kit.call("disponibilites_chambres", {"arrivee": "2026-12-20", "depart": "2026-12-21"})
+        assert server == planning.disponibilites_chambres("2026-12-20", "2026-12-21")
+        assert server["libres_sur_toute_la_periode"]["suite"] == free_suites - 1
+
+    async def scenario() -> None:
+        async with kit_session() as client:
+            await anyio.to_thread.run_sync(compare, KitClient(client))
+
+    anyio.run(scenario)
+    assert planning_fingerprint() != reference

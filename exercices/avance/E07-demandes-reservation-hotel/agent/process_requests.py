@@ -2,7 +2,8 @@
 
 Démarre le serveur MCP du kit, puis lance une session d'agent par demande avec les outils read_email,
 read_planning, read_grille, calc_devis et write_draft. Contrôle ensuite chaque résultat en code
-(devis recalculé, dates alternatives revérifiées, planning inchangé) et écrit une synthèse.
+(checks.py : devis recalculé, dates alternatives revérifiées, planning inchangé) et écrit une synthèse
+(synthesis.py).
 L'agent ne réserve rien et n'envoie rien : il n'écrit que des fiches et des brouillons.
 
 Usage (depuis le dossier du kit E07) : python -m agent [--reset] [--only demande_01_mariage] [--output dossier]
@@ -11,15 +12,12 @@ Usage (depuis le dossier du kit E07) : python -m agent [--reset] [--only demande
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import logging
 import os
 import re
 import sqlite3
 from collections.abc import Callable
-from contextlib import closing
-from dataclasses import asdict, dataclass, field
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any
@@ -28,10 +26,18 @@ import anyio
 from dotenv import load_dotenv
 
 import init_donnees
-import planning
+from agent import checks
 from agent.llm_providers import LLMError, LLMProvider, get_provider
 from agent.llm_providers.base import LLMBatchError, ToolError
-from agent.mcp_bridge import HotelTools, KitCaller, KitClient, kit_session, quote_arguments, rooms_by_type
+from agent.mcp_bridge import HotelTools, KitCaller, KitClient, kit_session, mailbox_dir
+from agent.synthesis import (
+    RESULTS_NAME,
+    SYNTHESIS_NAME,
+    RequestResult,
+    load_previous_results,
+    merge_result,
+    write_outputs,
+)
 
 # Réglages du modèle propres à cet exercice (le .env est partagé par tous les exercices).
 # None : choix automatique selon les clés du .env / modèle et température par défaut.
@@ -46,13 +52,13 @@ BASE_DIR = Path(__file__).resolve().parent
 ENV_PATH = BASE_DIR.parents[2] / ".env"
 PROMPT_PATH = BASE_DIR / "prompt_sys_reservation.md"
 OUTPUT_DIR = BASE_DIR / "output"
-SYNTHESIS_NAME = "synthese.md"
-RESULTS_NAME = "resultats.json"
 TOOL_JOURNAL_NAME = "journal_outils.txt"
-# Nombre maximal d'appels au modèle par demande : au-delà, LLMError plutôt qu'une boucle sans fin.
+# Nombre maximal d'appels au modèle (tours) par demande : au-delà, LLMError plutôt qu'une boucle sans fin.
+# La même valeur est insérée dans le prompt ({max_tours}) : le modèle connaît la limite réelle.
 MAX_STEPS = 20
-QUOTA_NOTE = "non traitée : lot arrêté (quota épuisé ou configuration refusée), relancer avec --only"
-ALTERNATIVE_PATTERN = re.compile(r"(\d{4}-\d{2}-\d{2})\s*(?:→|->|au|à)\s*(\d{4}-\d{2}-\d{2})")
+QUOTA_NOTE = (
+    "non traitée : lot arrêté (quota épuisé, configuration refusée ou serveur MCP arrêté), relancer avec --only"
+)
 
 # (outils du kit, identifiant de la demande) -> outils de l'agent pour cette demande.
 ToolsFactory = Callable[[KitCaller, str], HotelTools]
@@ -60,144 +66,23 @@ ToolsFactory = Callable[[KitCaller, str], HotelTools]
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class RequestResult:
-    """Résultat d'une demande, repris dans la synthèse."""
+class BatchStoppedError(LLMBatchError):
+    """Erreur de lot relancée par process_request, avec le résultat de la demande en cours.
 
-    demande_id: str
-    statut: str
-    besoins: dict[str, Any] = field(default_factory=dict)
-    informations_manquantes: list[str] = field(default_factory=list)
-    dates_alternatives: list[str] = field(default_factory=list)
-    devis_total: float | None = None
-    brouillon: str = ""
-    points_a_verifier: list[str] = field(default_factory=list)
-    traite_le: str = ""
-    changements: list[str] = field(default_factory=list)
+    result vaut None si aucun write_draft n'avait réussi avant l'erreur.
+    """
 
-
-# Statuts qui ne remplacent jamais un résultat valide déjà enregistré pour la même demande.
-FAILED_STATUSES = ("erreur", "non_traitee")
-FAILURE_PREFIX = "dernier traitement en échec"
-
-
-def load_previous_results(output_dir: Path) -> dict[str, RequestResult]:
-    """Relit resultats.json : les demandes déjà analysées restent dans la synthèse d'un lancement à l'autre."""
-    path = output_dir / RESULTS_NAME
-    if not path.is_file():
-        return {}
-    try:
-        raw = json.loads(path.read_text(encoding="utf-8"))
-        known = set(RequestResult.__dataclass_fields__)
-        items = [RequestResult(**{key: value for key, value in entry.items() if key in known}) for entry in raw]
-    except (OSError, ValueError, TypeError, AttributeError) as error:
-        logger.warning("Résultats précédents illisibles (%s) : la synthèse repart de zéro.", error)
-        return {}
-    return {item.demande_id: item for item in items}
-
-
-def _display(value: Any) -> str:
-    """Valeur lisible pour la synthèse : chambres « 12 double, 2 suite », liste vide « aucune »…"""
-    if value is None or value == []:
-        return "aucune"
-    if isinstance(value, float):
-        return f"{value:.2f} EUR"
-    if isinstance(value, list):
-        return ", ".join(
-            f"{item.get('nombre')} {item.get('type')}" if isinstance(item, dict) and "type" in item else str(item)
-            for item in value
-        )
-    return str(value)
-
-
-def describe_changes(previous: RequestResult | None, current: RequestResult) -> list[str]:
-    """Liste ce qui a changé depuis la dernière analyse, avec la nouvelle valeur seulement (pas l'ancienne)."""
-    if previous is None:
-        return []
-    old_needs, new_needs = previous.besoins or {}, current.besoins or {}
-    compared = [
-        ("statut", previous.statut, current.statut),
-        ("arrivée", old_needs.get("date_arrivee"), new_needs.get("date_arrivee")),
-        ("départ", old_needs.get("date_depart"), new_needs.get("date_depart")),
-        ("effectif", old_needs.get("nb_personnes"), new_needs.get("nb_personnes")),
-        ("chambres", old_needs.get("chambres"), new_needs.get("chambres")),
-        ("devis", previous.devis_total, current.devis_total),
-        ("informations manquantes", previous.informations_manquantes, current.informations_manquantes),
-    ]
-    return [f"{label} : {_display(new)}" for label, old, new in compared if old != new]
-
-
-def merge_result(known: dict[str, RequestResult], result: RequestResult, processed_at: str) -> None:
-    """Ajoute ou met à jour une demande ; un échec ne remplace pas un résultat valide déjà enregistré."""
-    previous = known.get(result.demande_id)
-    if result.statut in FAILED_STATUSES and previous is not None and previous.statut not in FAILED_STATUSES:
-        reason = "; ".join(result.points_a_verifier) or result.statut
-        previous.points_a_verifier = [
-            point for point in previous.points_a_verifier if not point.startswith(FAILURE_PREFIX)
-        ] + [f"{FAILURE_PREFIX} ({processed_at}), résultat précédent conservé : {reason}"]
-        return
-    result.traite_le = processed_at
-    result.changements = describe_changes(previous, result)
-    known[result.demande_id] = result
+    def __init__(self, cause: LLMBatchError, result: RequestResult | None) -> None:
+        super().__init__(str(cause))
+        self.result = result
 
 
 def load_system_prompt(reference_date: date) -> str:
-    """Lit le prompt, retire le commentaire de tête et insère la date de référence."""
+    """Lit le prompt, retire le commentaire de tête et insère la date de référence et la limite de tours."""
     text = PROMPT_PATH.read_text(encoding="utf-8")
     text = re.sub(r"^\s*<!--.*?-->\s*", "", text, flags=re.DOTALL)
+    text = text.replace("{max_tours}", str(MAX_STEPS))
     return text.replace("{date_reference}", reference_date.strftime("%d/%m/%Y"))
-
-
-def planning_fingerprint() -> str:
-    """Empreinte du contenu du planning et des pré-réservations : prouve que rien n'a été réservé ni déplacé."""
-    digest = hashlib.sha256()
-    with closing(sqlite3.connect(f"file:{init_donnees.BASE}?mode=ro", uri=True)) as connection:
-        for table in ("occupation_chambres", "occupation_salles", "pre_reservations"):
-            for row in connection.execute(f"SELECT * FROM {table} ORDER BY 1, 2, 3"):
-                digest.update(repr((table, row)).encode("utf-8"))
-    return digest.hexdigest()
-
-
-def check_quote(needs: dict[str, Any], announced_total: float) -> str | None:
-    """Recalcule le devis à partir des besoins de la fiche et compare au total joint (contrôle manuel)."""
-    try:
-        expected = planning.calculer_devis(**quote_arguments(needs))["total_ttc"]
-    except (ToolError, ValueError, KeyError, TypeError) as error:
-        return f"devis non recalculable à partir de la fiche : {error}"
-    if abs(expected - announced_total) > 0.005:
-        return f"devis joint {announced_total:.2f} EUR ≠ recalcul {expected:.2f} EUR à partir de la fiche"
-    return None
-
-
-def check_alternatives(needs: dict[str, Any], alternatives: list[str]) -> list[str]:
-    """Revérifie dans le planning que chaque période alternative a assez de chambres libres."""
-    problems = []
-    try:
-        rooms = rooms_by_type(needs)
-    except ToolError as error:
-        return [f"chambres de la fiche illisibles : {error}"]
-    for alternative in alternatives:
-        match = ALTERNATIVE_PATTERN.search(alternative)
-        if not match:
-            problems.append(f"date alternative illisible : « {alternative} »")
-            continue
-        try:
-            free = planning.disponibilites_chambres(*match.groups())["libres_sur_toute_la_periode"]
-        except ValueError as error:
-            problems.append(f"date alternative hors planning : « {alternative} » ({error})")
-            continue
-        short = {room: count for room, count in rooms.items() if count > free.get(room, 0)}
-        if short:
-            problems.append(f"date alternative « {alternative} » sans assez de chambres libres : {short}")
-    return problems
-
-
-def check_alternative_quote(quote: dict[str, Any], alternatives: list[str]) -> str | None:
-    """Vérifie que le devis joint porte bien sur la première période alternative proposée."""
-    match = ALTERNATIVE_PATTERN.search(alternatives[0]) if alternatives else None
-    if match and (quote.get("arrivee"), quote.get("depart")) == match.groups():
-        return None
-    return f"devis joint ({quote.get('arrivee')} → {quote.get('depart')}) ≠ première date alternative proposée"
 
 
 def extract_json_object(text: str) -> dict[str, Any] | None:
@@ -221,8 +106,10 @@ def save_draft_from_answer(tools: HotelTools, final_text: str) -> str:
     sheet = extract_json_object(final_text)
     if sheet is None:
         return "write_draft non appelé et aucun JSON exploitable dans la réponse du modèle"
+    # Même handler que celui du modèle : l'appel est journalisé dans journal_outils.txt.
+    write_draft = {spec.name: spec.handler for spec in tools.specs()}["write_draft"]
     try:
-        tools.write_draft({"fiche_json": sheet})
+        write_draft({"fiche_json": sheet})
     except ToolError as error:
         return f"write_draft non appelé ; JSON de la réponse refusé : {error}"
     return "write_draft non appelé par le modèle : fiche et brouillon enregistrés par le script à partir de sa réponse"
@@ -254,18 +141,14 @@ def build_result(request_id: str, tools: HotelTools, final_text: str) -> Request
     )
     if fallback_note:
         result.points_a_verifier.append(fallback_note)
-    if result.statut == "proposition" and quote:
-        problem = check_quote(needs, quote["total_ttc"])
-        if problem:
-            result.points_a_verifier.append(problem)
-    if result.statut == "dates_alternatives":
-        if not result.dates_alternatives:
-            result.points_a_verifier.append("statut « dates_alternatives » sans aucune date proposée")
-        result.points_a_verifier += check_alternatives(needs, result.dates_alternatives)
-        if quote:
-            problem = check_alternative_quote(quote, result.dates_alternatives)
-            if problem:
-                result.points_a_verifier.append(problem)
+    result.points_a_verifier += checks.review_sheet(
+        result.statut,
+        needs,
+        quote,
+        result.dates_alternatives,
+        result.informations_manquantes,
+        str(sheet.get("brouillon_reponse") or ""),
+    )
     return result
 
 
@@ -276,17 +159,33 @@ def process_request(
     tools = tools_factory(kit, request_id)
     try:
         final_text = provider.run_agent(system_prompt, f"Demande : {request_id}", tools.specs(), max_steps=MAX_STEPS)
-    except LLMBatchError:
-        # Quota épuisé ou configuration refusée : le lot entier s'arrête (voir process_all).
-        raise
+    except LLMBatchError as error:
+        # Quota épuisé, configuration refusée ou serveur arrêté : le lot entier s'arrête (voir process_all).
+        # Un write_draft déjà réussi est tout de même pris en compte, et son brouillon remplace l'ancien.
+        result = finish_request(kit, request_id, tools, "") if tools.draft is not None else None
+        if result is not None:
+            result.points_a_verifier.append(f"lot arrêté après write_draft : {error}")
+        raise BatchStoppedError(error, result) from error
     except LLMError as error:
         logger.error("%s : %s", request_id, error)
         if tools.draft is None:
             return RequestResult(demande_id=request_id, statut="erreur", points_a_verifier=[str(error)])
         final_text = ""
+    try:
+        return finish_request(kit, request_id, tools, final_text)
+    except LLMBatchError as error:
+        # Serveur MCP perdu pendant le filet write_draft : rien n'a été enregistré, le lot s'arrête.
+        raise BatchStoppedError(error, None) from error
+
+
+def finish_request(kit: KitCaller, request_id: str, tools: HotelTools, final_text: str) -> RequestResult:
+    """Construit et contrôle le résultat, puis met le nouveau brouillon à la place de l'ancien."""
     result = build_result(request_id, tools, final_text)
     if result.brouillon:
-        result.brouillon = replace_previous_draft(kit, request_id, result.brouillon)
+        try:
+            result.brouillon = replace_previous_draft(kit, request_id, result.brouillon)
+        except (LLMError, ToolError, OSError) as error:
+            result.points_a_verifier.append(f"ancien brouillon non remplacé ({error}) : écarter le doublon à la main")
     return result
 
 
@@ -297,7 +196,7 @@ def replace_previous_draft(kit: KitCaller, request_id: str, new_id: str, drafts_
     un numéro existant. Le nouveau fichier prend donc la place de l'ancien (os.replace), ce qui garde
     un numéro stable par demande et un nombre de fichiers cohérent.
     """
-    drafts_dir = drafts_dir or init_donnees.BOITE / "brouillons"
+    drafts_dir = drafts_dir or mailbox_dir() / "brouillons"
     previous = sorted(
         draft["id"]
         for draft in kit.call("lister_brouillons", {})["brouillons"]
@@ -311,85 +210,6 @@ def replace_previous_draft(kit: KitCaller, request_id: str, new_id: str, drafts_
     if duplicates:
         logger.warning("Anciens brouillons en double pour %s : %s (à écarter à la main).", request_id, duplicates)
     return target
-
-
-def table_cell(text: str) -> str:
-    """Neutralise les caractères qui casseraient une ligne de tableau Markdown."""
-    return " ".join(text.split()).replace("|", "\\|")
-
-
-def format_synthesis(
-    results: list[RequestResult],
-    model: str,
-    planning_unchanged: bool,
-    progress: tuple[int, int] | None = None,
-) -> str:
-    """Construit le tableau de synthèse de toutes les demandes analysées, au format Markdown.
-
-    progress = (demandes traitées, demandes prévues) pour le lancement en cours : tant qu'il n'est pas
-    fini, une ligne d'avancement l'indique.
-    """
-    rows = []
-    for item in results:
-        needs = item.besoins
-        stay = f"{needs.get('date_arrivee') or '?'} → {needs.get('date_depart') or '?'}" if needs else "—"
-        cells = [
-            item.demande_id,
-            item.statut,
-            stay,
-            "; ".join(item.informations_manquantes) or "—",
-            "; ".join(item.dates_alternatives) or "—",
-            f"{item.devis_total:.2f}" if item.devis_total is not None else "—",
-            item.brouillon or "—",
-            item.traite_le or "—",
-            "; ".join(item.changements) or "—",
-        ]
-        rows.append("| " + " | ".join(table_cell(cell) for cell in cells) + " |")
-    points = [f"- {item.demande_id} : {table_cell(point)}" for item in results for point in item.points_a_verifier]
-    lines = [
-        "# Synthèse des demandes de groupe",
-        "",
-        f"Modèle : `{model}`",
-        "Planning inchangé : " + ("oui" if planning_unchanged else "**NON — vérifier immédiatement**"),
-    ]
-    if progress is not None and progress[0] < progress[1]:
-        lines.append(f"Avancement : {progress[0]}/{progress[1]} demandes traitées (lot en cours)")
-    lines += [
-        "",
-        (
-            "| Demande | Statut | Séjour | Informations manquantes | Dates alternatives | Devis (EUR TTC) | Brouillon "
-            "| Traité le | Changements |"
-        ),
-        "|---|---|---|---|---|---|---|---|---|",
-        *rows,
-        "",
-    ]
-    if points:
-        lines += ["## Points à vérifier", "", *points, ""]
-    lines += ["Aucun envoi : le service commercial relit chaque brouillon et décide de l'envoi.", ""]
-    return "\n".join(lines)
-
-
-def _write_atomic(path: Path, text: str) -> None:
-    """Écrit dans un fichier temporaire du même dossier puis le renomme : jamais de fichier à moitié écrit."""
-    temporary = path.with_name(path.name + ".tmp")
-    temporary.write_text(text, encoding="utf-8")
-    os.replace(temporary, path)
-
-
-def write_outputs(
-    results: list[RequestResult],
-    model: str,
-    planning_unchanged: bool,
-    output_dir: Path,
-    progress: tuple[int, int] | None = None,
-) -> str:
-    """Écrit la synthèse et les résultats bruts (de façon atomique) ; renvoie la synthèse."""
-    synthesis = format_synthesis(results, model, planning_unchanged, progress)
-    _write_atomic(output_dir / SYNTHESIS_NAME, synthesis)
-    raw = json.dumps([asdict(item) for item in results], ensure_ascii=False, indent=2)
-    _write_atomic(output_dir / RESULTS_NAME, raw + "\n")
-    return synthesis
 
 
 def process_all(
@@ -411,7 +231,7 @@ def process_all(
             raise ValueError(f"Demande inconnue : « {only} ». Demandes disponibles : {', '.join(request_ids)}")
         request_ids = [only]
     system_prompt = load_system_prompt(date.today())
-    before = planning_fingerprint()
+    before = checks.planning_fingerprint()
     known = load_previous_results(output_dir)
     results: list[RequestResult] = []
     saved: list[RequestResult] = []
@@ -421,7 +241,7 @@ def process_all(
         for result in results[len(saved) :]:
             merge_result(known, result, datetime.now().strftime("%Y-%m-%d %H:%M"))
         saved.extend(results[len(saved) :])
-        unchanged = planning_fingerprint() == before
+        unchanged = checks.planning_fingerprint() == before
         ordered = [known[key] for key in sorted(known)]
         return write_outputs(ordered, provider.model, unchanged, output_dir, (len(results), len(request_ids)))
 
@@ -430,9 +250,11 @@ def process_all(
         logger.info("Demande %d/%d : %s — en cours…", position, len(request_ids), request_id)
         try:
             result = process_request(kit, request_id, provider, system_prompt, tools_factory)
-        except LLMBatchError as error:
+        except BatchStoppedError as error:
             logger.error("Arrêt du lot : %s", error)
-            results.append(RequestResult(demande_id=request_id, statut="erreur", points_a_verifier=[str(error)]))
+            results.append(
+                error.result or RequestResult(demande_id=request_id, statut="erreur", points_a_verifier=[str(error)])
+            )
             results += [
                 RequestResult(demande_id=pending, statut="non_traitee", points_a_verifier=[QUOTA_NOTE])
                 for pending in request_ids[position:]
@@ -488,6 +310,36 @@ def parse_arguments() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def check_only(only: str | None, inbox_dir: Path) -> None:
+    """Vérifie --only avant de démarrer le serveur MCP : un message clair plutôt qu'une trace d'erreur."""
+    if only is None:
+        return
+    available = sorted(path.stem for path in inbox_dir.glob("*.eml"))
+    if only not in available:
+        listed = ", ".join(available) or "aucune (lancer avec --reset)"
+        raise SystemExit(f"Demande inconnue : « {only} ». Demandes disponibles : {listed}")
+
+
+def leaf_errors(group: BaseExceptionGroup) -> list[BaseException]:
+    """Erreurs d'un groupe d'exceptions (anyio les regroupe), groupes imbriqués compris."""
+    return [
+        leaf
+        for error in group.exceptions
+        for leaf in (leaf_errors(error) if isinstance(error, BaseExceptionGroup) else [error])
+    ]
+
+
+def run_batch(provider: LLMProvider, output_dir: Path, only: str | None) -> None:
+    """Lance le traitement ; une erreur attendue (même regroupée par anyio) arrête le script avec son message."""
+    failure = None
+    try:
+        anyio.run(run, provider, output_dir, only)
+    except* (ValueError, OSError, sqlite3.Error, LLMError, ToolError) as group:
+        failure = "; ".join(str(error) or type(error).__name__ for error in leaf_errors(group))
+    if failure is not None:
+        raise SystemExit(f"Traitement interrompu : {failure}")
+
+
 def main() -> None:
     """Point d'entrée du script."""
     arguments = parse_arguments()
@@ -495,19 +347,20 @@ def main() -> None:
     logger.info("Journal des appels d'outils : %s", journal_path)
     load_dotenv(ENV_PATH)
     if arguments.reset:
+        # init_donnees réinitialise toujours hotel.db et boite/ du kit, sans lire KIT_BASE ni KIT_BOITE.
+        if os.environ.get("KIT_BASE") or os.environ.get("KIT_BOITE"):
+            raise SystemExit("--reset ne réinitialise que hotel.db et boite/ du kit : retirer KIT_BASE et KIT_BOITE.")
         init_donnees.initialiser()
         # Boîte et brouillons réinitialisés : les résultats cumulés ne correspondent plus à rien.
         for name in (SYNTHESIS_NAME, RESULTS_NAME):
             (arguments.output / name).unlink(missing_ok=True)
+    check_only(arguments.only, mailbox_dir() / "inbox")
     try:
         provider = get_provider(provider=LLM_PROVIDER, model=LLM_MODEL, temperature=LLM_TEMPERATURE)
     except LLMError as error:
         raise SystemExit(str(error)) from error
     logger.info("Modèle utilisé : %s", provider.model)
-    try:
-        anyio.run(run, provider, arguments.output, arguments.only)
-    except (ValueError, OSError) as error:
-        raise SystemExit(str(error)) from error
+    run_batch(provider, arguments.output, arguments.only)
 
 
 if __name__ == "__main__":

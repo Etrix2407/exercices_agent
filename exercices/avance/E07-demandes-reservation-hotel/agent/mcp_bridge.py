@@ -9,21 +9,27 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import sys
-import unicodedata
-from collections.abc import AsyncIterator, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Any, Protocol
 
 import anyio
-from mcp import Client, StdioServerParameters
+from mcp import Client, MCPError, StdioServerParameters
+from mcp.client.stdio import get_default_environment
+from mcp_types import CONNECTION_CLOSED
 
-from agent.llm_providers.base import ToolError, ToolSpec
+import planning
+from agent.llm_providers.base import LLMBatchError, ToolError, ToolSpec
 
 # Le serveur MCP fait partie du kit du formateur, dans le dossier parent de agent/.
-SERVER_PATH = Path(__file__).resolve().parents[1] / "serveur_mcp.py"
+KIT_DIR = Path(__file__).resolve().parents[1]
+SERVER_PATH = KIT_DIR / "serveur_mcp.py"
+# Erreurs du flux stdio quand le serveur s'est arrêté (processus terminé, tube cassé ou fermé).
+TRANSPORT_ERRORS = (anyio.ClosedResourceError, anyio.BrokenResourceError, anyio.EndOfStream, ConnectionError)
 GRID_URI = "hotel://grille-tarifaire"
 STATUSES = ("proposition", "precisions_requises", "dates_alternatives", "hors_perimetre", "erreur")
 # Statuts pour lesquels le devis calculé par le code est joint au brouillon.
@@ -108,6 +114,10 @@ def decode_result(result: Any) -> Any:
     return json.loads(text)
 
 
+class KitConnectionError(LLMBatchError):
+    """Connexion au serveur MCP du kit perdue : les demandes suivantes échoueraient aussi, le lot s'arrête."""
+
+
 class KitClient:
     """Enveloppe synchrone d'un client MCP ouvert dans la boucle asynchrone principale."""
 
@@ -116,32 +126,65 @@ class KitClient:
 
     def call(self, name: str, arguments: dict[str, Any]) -> Any:
         """Appelle un outil du serveur depuis un thread de travail lancé par anyio."""
-        return decode_result(anyio.from_thread.run(self._call_with_timeout, name, arguments))
-
-    async def _call_with_timeout(self, name: str, arguments: dict[str, Any]) -> Any:
-        """Un serveur qui ne répond plus donne une erreur d'outil au lieu de bloquer l'agent."""
-        try:
-            with anyio.fail_after(MCP_TIMEOUT_S):
-                return await self._client.call_tool(name, arguments)
-        except TimeoutError as error:
-            raise ToolError(f"Le serveur MCP n'a pas répondu en {MCP_TIMEOUT_S} s à l'outil {name}.") from error
+        result = anyio.from_thread.run(self._guarded, f"l'outil {name}", self._client.call_tool, name, arguments)
+        return decode_result(result)
 
     def read_grid(self) -> str:
         """Lit la grille tarifaire exposée en ressource par le serveur."""
-        resource = anyio.from_thread.run(self._client.read_resource, GRID_URI)
+        resource = anyio.from_thread.run(self._guarded, "la grille tarifaire", self._client.read_resource, GRID_URI)
         return resource.contents[0].text
+
+    @staticmethod
+    async def _guarded(label: str, request: Callable[..., Awaitable[Any]], *args: Any) -> Any:
+        """Délai maximal et erreurs du serveur traduits en ToolError (renvoyée au modèle) ou KitConnectionError."""
+        try:
+            with anyio.fail_after(MCP_TIMEOUT_S):
+                return await request(*args)
+        except TimeoutError as error:
+            raise ToolError(f"Le serveur MCP n'a pas répondu en {MCP_TIMEOUT_S} s pour {label}.") from error
+        except MCPError as error:
+            if error.code == CONNECTION_CLOSED:
+                raise KitConnectionError(f"Connexion au serveur MCP du kit fermée ({label}).") from error
+            raise ToolError(f"Le serveur MCP a refusé {label} : {error}") from error
+        except TRANSPORT_ERRORS as error:
+            raise KitConnectionError(
+                f"Serveur MCP du kit injoignable ({label}) : {type(error).__name__} {error}".rstrip()
+            ) from error
 
 
 @asynccontextmanager
 async def kit_session() -> AsyncIterator[Client]:
-    """Démarre le serveur MCP du kit (stdio) le temps du traitement."""
-    async with Client(StdioServerParameters(command=sys.executable, args=[str(SERVER_PATH)])) as client:
+    """Démarre le serveur MCP du kit (stdio) le temps du traitement, sur la même base et la même boîte."""
+    # planning fige CHEMIN_BASE à son import (avant load_dotenv) : on l'aligne sur la base du serveur,
+    # pour que les contrôles de checks.py relisent le même planning.
+    planning.CHEMIN_BASE = database_path()
+    parameters = StdioServerParameters(command=sys.executable, args=[str(SERVER_PATH)], env=kit_environment())
+    async with Client(parameters) as client:
         yield client
 
 
-def _plain(text: str) -> str:
-    """Minuscules sans accents, pour comparer les noms de salles."""
-    return "".join(c for c in unicodedata.normalize("NFD", text) if unicodedata.category(c) != "Mn").lower()
+def kit_environment() -> dict[str, str]:
+    """Environnement du serveur MCP : le SDK ne transmet qu'une liste blanche de variables.
+
+    KIT_BASE et KIT_BOITE sont donc passées explicitement, en chemins absolus (avec les mêmes défauts
+    que le kit) : le serveur et l'agent travaillent toujours sur les mêmes fichiers.
+    """
+    return get_default_environment() | {"KIT_BASE": str(database_path()), "KIT_BOITE": str(mailbox_dir())}
+
+
+def database_path() -> Path:
+    """Base du planning, lue au moment de l'appel (après load_dotenv) : KIT_BASE, sinon hotel.db du kit."""
+    return Path(os.environ.get("KIT_BASE", KIT_DIR / "hotel.db")).resolve()
+
+
+def mailbox_dir() -> Path:
+    """Dossier de la boîte du kit, au même endroit que serveur_mcp.py (variable KIT_BOITE, sinon boite/)."""
+    return Path(os.environ.get("KIT_BOITE", KIT_DIR / "boite")).resolve()
+
+
+def same_hall(first: str, second: str) -> bool:
+    """Compare deux noms de salles sans tenir compte des accents ni de la casse, comme le kit."""
+    return planning._sans_accent(first.strip()) == planning._sans_accent(second.strip())
 
 
 def _require_str(args: dict, key: str) -> str:
@@ -277,7 +320,7 @@ class HotelTools:
         for hall, dates in halls_with_dates(needs):
             for day in dates:
                 status = self.kit.call("disponibilites_salles", {"date_debut": day, "date_fin": day})[0]
-                free = any(_plain(name) == _plain(hall) for name in status["libres"])
+                free = any(same_hall(name, hall) for name in status["libres"])
                 halls.append({"salle": hall, "date": day, "libre": free})
         available = not missing and all(hall["libre"] for hall in halls)
         return {"chambres_manquantes": missing, "salles_demandees": halls, "disponible": available}
@@ -298,12 +341,16 @@ class HotelTools:
         status = sheet.get("statut")
         if status not in STATUSES:
             raise ToolError(f"Statut invalide : {status!r} (valeurs : {', '.join(STATUSES)}).")
+        sheet["demande_id"] = self.request_id
+        if status == "erreur":
+            # Ni fiche ni brouillon : un brouillon valide d'un traitement précédent n'est jamais écrasé.
+            self.draft = {"fiche": sheet, "brouillon": {}, "devis": None}
+            return "Statut erreur noté, aucun brouillon écrit."
         reply = sheet.get("brouillon_reponse")
         if not isinstance(reply, str) or not reply.strip():
             raise ToolError("« brouillon_reponse » est vide : rédige le brouillon avant d'appeler write_draft.")
         if status == "proposition" and self.last_quote is None:
             raise ToolError("Statut « proposition » sans devis : appelle calc_devis avant write_draft.")
-        sheet["demande_id"] = self.request_id
         quote = self.last_quote if status in QUOTE_STATUSES else None
         self.kit.call("enregistrer_fiche_besoins", {"identifiant_demande": self.request_id, "fiche": sheet})
         saved = self.kit.call(
@@ -371,7 +418,8 @@ class HotelTools:
                 "write_draft",
                 (
                     "Enregistre la fiche (le JSON final complet) et le brouillon de réponse. Un seul appel, à la fin. "
-                    "Le devis du dernier calc_devis est joint par le code pour 'proposition' et 'dates_alternatives'."
+                    "Le devis du dernier calc_devis est joint par le code pour 'proposition' et 'dates_alternatives'. "
+                    "Avec le statut 'erreur', rien n'est écrit : le statut est seulement noté."
                 ),
                 {
                     "type": "object",
