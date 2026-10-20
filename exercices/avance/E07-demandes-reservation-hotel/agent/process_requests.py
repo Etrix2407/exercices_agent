@@ -15,6 +15,7 @@ import json
 import logging
 import os
 import re
+import sqlite3
 from collections.abc import Callable
 from datetime import date, datetime
 from pathlib import Path
@@ -303,6 +304,36 @@ def parse_arguments() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def check_only(only: str | None, inbox_dir: Path) -> None:
+    """Vérifie --only avant de démarrer le serveur MCP : un message clair plutôt qu'une trace d'erreur."""
+    if only is None:
+        return
+    available = sorted(path.stem for path in inbox_dir.glob("*.eml"))
+    if only not in available:
+        listed = ", ".join(available) or "aucune (lancer avec --reset)"
+        raise SystemExit(f"Demande inconnue : « {only} ». Demandes disponibles : {listed}")
+
+
+def leaf_errors(group: BaseExceptionGroup) -> list[BaseException]:
+    """Erreurs d'un groupe d'exceptions (anyio les regroupe), groupes imbriqués compris."""
+    return [
+        leaf
+        for error in group.exceptions
+        for leaf in (leaf_errors(error) if isinstance(error, BaseExceptionGroup) else [error])
+    ]
+
+
+def run_batch(provider: LLMProvider, output_dir: Path, only: str | None) -> None:
+    """Lance le traitement ; une erreur attendue (même regroupée par anyio) arrête le script avec son message."""
+    failure = None
+    try:
+        anyio.run(run, provider, output_dir, only)
+    except* (ValueError, OSError, sqlite3.Error, LLMError, ToolError) as group:
+        failure = "; ".join(str(error) or type(error).__name__ for error in leaf_errors(group))
+    if failure is not None:
+        raise SystemExit(f"Traitement interrompu : {failure}")
+
+
 def main() -> None:
     """Point d'entrée du script."""
     arguments = parse_arguments()
@@ -314,15 +345,13 @@ def main() -> None:
         # Boîte et brouillons réinitialisés : les résultats cumulés ne correspondent plus à rien.
         for name in (SYNTHESIS_NAME, RESULTS_NAME):
             (arguments.output / name).unlink(missing_ok=True)
+    check_only(arguments.only, mailbox_dir() / "inbox")
     try:
         provider = get_provider(provider=LLM_PROVIDER, model=LLM_MODEL, temperature=LLM_TEMPERATURE)
     except LLMError as error:
         raise SystemExit(str(error)) from error
     logger.info("Modèle utilisé : %s", provider.model)
-    try:
-        anyio.run(run, provider, arguments.output, arguments.only)
-    except (ValueError, OSError) as error:
-        raise SystemExit(str(error)) from error
+    run_batch(provider, arguments.output, arguments.only)
 
 
 if __name__ == "__main__":

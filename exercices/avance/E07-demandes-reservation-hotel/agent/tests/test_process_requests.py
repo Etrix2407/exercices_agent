@@ -220,6 +220,37 @@ def test_new_draft_replaces_previous_one_under_same_id(tmp_path: Path) -> None:
     assert sorted(path.stem for path in tmp_path.glob("b*.eml")) == ["b001", "b002"]
 
 
+def test_unknown_only_stops_before_starting_the_server(tmp_path: Path, monkeypatch) -> None:
+    import pytest
+
+    from agent import process_requests
+
+    (tmp_path / "inbox").mkdir()
+    (tmp_path / "inbox" / "demande_01_mariage.eml").write_text("", encoding="utf-8")
+    monkeypatch.setenv("KIT_BOITE", str(tmp_path))
+    monkeypatch.setattr("sys.argv", ["agent", "--only", "demande_99", "--output", str(tmp_path / "sorties")])
+    monkeypatch.setattr(process_requests, "configure_logging", lambda output_dir: output_dir / "journal_outils.txt")
+    monkeypatch.setattr(process_requests, "run_batch", lambda *args: pytest.fail("serveur démarré"))
+    with pytest.raises(SystemExit, match="Demande inconnue : « demande_99 ».*demande_01_mariage"):
+        process_requests.main()
+
+
+def test_grouped_errors_end_with_a_clear_message(monkeypatch) -> None:
+    import anyio
+    import pytest
+
+    from agent import process_requests
+
+    async def failing_run(*args) -> None:
+        async with anyio.create_task_group() as group:
+            group.start_soon(anyio.sleep, 0)
+            raise ValueError("boîte illisible")
+
+    monkeypatch.setattr(process_requests, "run", failing_run)
+    with pytest.raises(SystemExit, match="Traitement interrompu : boîte illisible"):
+        process_requests.run_batch(ScriptedAgent(), Path("."), None)
+
+
 class ForgetfulAgent(ScriptedAgent):
     """Faux modèle qui calcule le devis puis répond avec le JSON final sans appeler write_draft."""
 
