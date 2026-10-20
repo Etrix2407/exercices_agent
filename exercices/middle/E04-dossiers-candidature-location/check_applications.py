@@ -43,6 +43,7 @@ TOOL_JOURNAL_NAME = "journal_outils.txt"
 # Le nom du propriétaire n'est dans aucune donnée : le gestionnaire le complète avant l'envoi.
 OWNER_PLACEHOLDER = "[à compléter]"
 AGENCY_NAME = "L'agence Habitat Delorme"
+OWNER_DRAFT_SKIPPED_NOTE = "transmission non écrite : points à vérifier"
 
 STATUSES = ("complet", "incomplet", "a_verifier", "hors_perimetre", "erreur")
 STATUS_LABELS = {"a_verifier": "à vérifier", "hors_perimetre": "hors périmètre"}
@@ -131,8 +132,15 @@ def format_owner_draft(result: ApplicationResult, grid: dict[str, Any]) -> str:
 
 
 def write_owner_draft(result: ApplicationResult, grid: dict[str, Any], output_dir: Path) -> None:
-    """Écrit le brouillon de transmission au propriétaire si le dossier est complet."""
+    """Écrit le brouillon de transmission au propriétaire si le dossier est complet et sans point à vérifier.
+
+    Un dossier « complet » qui garde des points à vérifier (pièce illisible, relance contraire au statut…)
+    ne part pas chez le propriétaire : le point est signalé au gestionnaire à la place.
+    """
     if result.statut != "complet":
+        return
+    if result.points_a_verifier:
+        result.points_a_verifier.append(OWNER_DRAFT_SKIPPED_NOTE)
         return
     name = transmission_name(result.folder)
     (output_dir / name).write_text(format_owner_draft(result, grid), encoding="utf-8")

@@ -173,3 +173,13 @@ def test_owner_draft_only_for_complete_dossier(workspace) -> None:
     assert "- Garant : pièce d'identité : garant/identite.txt" in draft
     assert bruno.transmission_fichier == ""
     assert not (output / "transmission_bruno-test.txt").exists()
+
+
+def test_owner_draft_skipped_when_points_to_check(workspace) -> None:
+    output = workspace[2]
+    points = ["identite.pdf : PDF sans texte extractible (document scanné ?)"]
+    answers = {"alice-test": answer("complet", candidat="Alice Test", points_a_verifier=points)}
+    alice = run(workspace, answers, only="alice-test")[0]
+    assert alice.transmission_fichier == ""
+    assert not (output / "transmission_alice-test.txt").exists()
+    assert alice.points_a_verifier == [*points, "transmission non écrite : points à vérifier"]
