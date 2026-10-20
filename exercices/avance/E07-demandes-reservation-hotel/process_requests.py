@@ -14,6 +14,7 @@ import argparse
 import hashlib
 import json
 import logging
+import os
 import re
 import sqlite3
 from collections.abc import Callable
@@ -191,8 +192,14 @@ def table_cell(text: str) -> str:
     return " ".join(text.split()).replace("|", "\\|")
 
 
-def format_synthesis(results: list[RequestResult], model: str, planning_unchanged: bool) -> str:
-    """Construit le tableau de synthèse des demandes, au format Markdown."""
+def format_synthesis(
+    results: list[RequestResult], model: str, planning_unchanged: bool, total: int | None = None
+) -> str:
+    """Construit le tableau de synthèse des demandes, au format Markdown.
+
+    Si total est fourni et que toutes les demandes ne sont pas encore traitées, ajoute une ligne
+    d'avancement : la synthèse est alors un état intermédiaire du lot.
+    """
     rows = []
     for item in results:
         needs = item.besoins
@@ -213,6 +220,10 @@ def format_synthesis(results: list[RequestResult], model: str, planning_unchange
         "",
         f"Modèle : `{model}`",
         "Planning inchangé : " + ("oui" if planning_unchanged else "**NON — vérifier immédiatement**"),
+    ]
+    if total is not None and len(results) < total:
+        lines.append(f"Avancement : {len(results)}/{total} demandes traitées (lot en cours)")
+    lines += [
         "",
         "| Demande | Statut | Séjour | Informations manquantes | Dates alternatives | Devis (EUR TTC) | Brouillon |",
         "|---|---|---|---|---|---|---|",
@@ -225,12 +236,25 @@ def format_synthesis(results: list[RequestResult], model: str, planning_unchange
     return "\n".join(lines)
 
 
-def write_outputs(results: list[RequestResult], model: str, planning_unchanged: bool, output_dir: Path) -> str:
-    """Écrit la synthèse et les résultats bruts ; renvoie la synthèse."""
-    synthesis = format_synthesis(results, model, planning_unchanged)
-    (output_dir / SYNTHESIS_NAME).write_text(synthesis, encoding="utf-8")
+def _write_atomic(path: Path, text: str) -> None:
+    """Écrit dans un fichier temporaire du même dossier puis le renomme : jamais de fichier à moitié écrit."""
+    temporary = path.with_name(path.name + ".tmp")
+    temporary.write_text(text, encoding="utf-8")
+    os.replace(temporary, path)
+
+
+def write_outputs(
+    results: list[RequestResult],
+    model: str,
+    planning_unchanged: bool,
+    output_dir: Path,
+    total: int | None = None,
+) -> str:
+    """Écrit la synthèse et les résultats bruts (de façon atomique) ; renvoie la synthèse."""
+    synthesis = format_synthesis(results, model, planning_unchanged, total)
+    _write_atomic(output_dir / SYNTHESIS_NAME, synthesis)
     raw = json.dumps([asdict(item) for item in results], ensure_ascii=False, indent=2)
-    (output_dir / RESULTS_NAME).write_text(raw + "\n", encoding="utf-8")
+    _write_atomic(output_dir / RESULTS_NAME, raw + "\n")
     return synthesis
 
 
@@ -241,7 +265,11 @@ def process_all(
     only: str | None = None,
     tools_factory: ToolsFactory = HotelTools,
 ) -> list[RequestResult]:
-    """Traite chaque demande de la boîte (ou la seule demandée), puis écrit la synthèse."""
+    """Traite chaque demande de la boîte (ou la seule demandée) en réécrivant la synthèse après chacune.
+
+    Les fichiers d'un lancement précédent sont écrasés dès le départ (synthèse « 0/N ») : après un
+    Ctrl+C, output/ reflète donc le lot interrompu et non un ancien lot complet.
+    """
     request_ids = [item["id"] for item in kit.call("lister_demandes", {})["demandes"]]
     if only is not None:
         if only not in request_ids:
@@ -249,7 +277,14 @@ def process_all(
         request_ids = [only]
     system_prompt = load_system_prompt(date.today())
     before = planning_fingerprint()
-    results = []
+    results: list[RequestResult] = []
+
+    def save() -> str:
+        """Seul point d'écriture : recalcule l'empreinte du planning et réécrit synthèse et résultats."""
+        unchanged = planning_fingerprint() == before
+        return write_outputs(results, provider.model, unchanged, output_dir, total=len(request_ids))
+
+    synthesis = save()
     for position, request_id in enumerate(request_ids, start=1):
         logger.info("Demande %d/%d : %s — en cours…", position, len(request_ids), request_id)
         try:
@@ -261,10 +296,13 @@ def process_all(
                 RequestResult(demande_id=pending, statut="non_traitee", points_a_verifier=[QUOTA_NOTE])
                 for pending in request_ids[position:]
             ]
+        else:
+            logger.info("→ %s : %s", request_id, result.statut)
+            results.append(result)
+        synthesis = save()
+        # Lot arrêté : les demandes restantes sont déjà marquées « non_traitee ».
+        if len(results) == len(request_ids):
             break
-        logger.info("→ %s : %s", request_id, result.statut)
-        results.append(result)
-    synthesis = write_outputs(results, provider.model, planning_fingerprint() == before, output_dir)
     logger.info("\n%s", synthesis)
     logger.info("Synthèse, résultats et journal écrits dans %s", output_dir)
     return results
