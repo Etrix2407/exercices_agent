@@ -86,21 +86,19 @@ def table_cell(text: str) -> str:
     return " ".join(text.split()).replace("|", "\\|")
 
 
-def write_recap(output_dir: Path, summaries: list[DraftSummary], provider: LLMProvider) -> Path:
-    """Écrit le tableau récapitulatif des étiquettes."""
+def format_recap(summaries: list[DraftSummary], model: str) -> str:
+    """Construit le tableau récapitulatif des étiquettes, au format Markdown."""
     lines = [
         "# Récapitulatif des brouillons",
         "",
-        f"Modèle : `{provider.model}`",
+        f"Modèle : `{model}`",
         "",
         "| Identifiant | Étiquette | Section |",
         "|---|---|---|",
         *(f"| {item.question_id} | {table_cell(item.label)} | {table_cell(item.section)} |" for item in summaries),
         "",
     ]
-    recap_path = output_dir / "recap.md"
-    recap_path.write_text("\n".join(lines), encoding="utf-8")
-    return recap_path
+    return "\n".join(lines)
 
 
 def draft_answers(
@@ -114,10 +112,11 @@ def draft_answers(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     summaries = []
-    for record in questions.to_dict("records"):
+    total = len(questions)
+    for position, record in enumerate(questions.to_dict("records"), start=1):
         question_id = record["identifiant"]
         draft_path = output_dir / f"{question_id}.md"
-        logger.info("Traitement de %s", question_id)
+        logger.info("Question %d/%d : %s", position, total, question_id)
         try:
             draft = provider.generate(system_prompt, format_question(record))
         except LLMError as error:
@@ -129,9 +128,13 @@ def draft_answers(
             continue
         draft_path.write_text(draft + "\n", encoding="utf-8")
         summaries.append(summarize_draft(question_id, draft))
+        logger.info("\n%s\n", draft)
 
-    recap_path = write_recap(output_dir, summaries, provider)
-    logger.info("Récapitulatif écrit dans %s", recap_path)
+    recap = format_recap(summaries, provider.model)
+    recap_path = output_dir / "recap.md"
+    recap_path.write_text(recap, encoding="utf-8")
+    logger.info("\n%s", recap)
+    logger.info("Brouillons et récapitulatif écrits dans %s", output_dir)
     return summaries
 
 
@@ -160,7 +163,10 @@ def parse_arguments() -> argparse.Namespace:
 
 def main() -> None:
     """Point d'entrée du script."""
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
+    # Les SDK journalisent chaque requête HTTP : on ne garde que leurs avertissements et erreurs.
+    for library_logger in ("httpx", "google_genai", "anthropic"):
+        logging.getLogger(library_logger).setLevel(logging.WARNING)
     arguments = parse_arguments()
     load_dotenv(ENV_PATH)
     try:
