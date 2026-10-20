@@ -8,6 +8,9 @@ pandas>=3.0,<4
 anthropic>=1.15,<2
 google-genai>=2.31,<3
 
+# Lecture du texte des pièces PDF (E04)
+pypdf>=6.21,<7
+
 # Lecture des clés d'API depuis exercices/.env
 python-dotenv>=1.2,<2
 

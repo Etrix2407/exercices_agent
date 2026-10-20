@@ -19,6 +19,13 @@ from dotenv import load_dotenv
 
 from llm_providers import LLMError, LLMProvider, get_provider
 
+# Réglages du modèle propres à cet exercice (le .env est partagé par tous les exercices).
+# None : choix automatique selon les clés du .env / modèle et température par défaut.
+LLM_PROVIDER = "gemini"
+LLM_MODEL = "gemini-3.5-flash-lite"
+# Température basse : étiquetage plus régulier d'un lot à l'autre. Ignorée par Claude.
+LLM_TEMPERATURE = 0.2
+
 BASE_DIR = Path(__file__).resolve().parent
 ENV_PATH = BASE_DIR.parents[1] / ".env"
 SYSTEM_PROMPT_PATH = BASE_DIR / "prompt-systeme.md"
@@ -170,7 +177,7 @@ def main() -> None:
     arguments = parse_arguments()
     load_dotenv(ENV_PATH)
     try:
-        provider = get_provider()
+        provider = get_provider(provider=LLM_PROVIDER, model=LLM_MODEL, temperature=LLM_TEMPERATURE)
     except LLMError as error:
         raise SystemExit(str(error)) from error
     logger.info("Modèle utilisé : %s", provider.model)

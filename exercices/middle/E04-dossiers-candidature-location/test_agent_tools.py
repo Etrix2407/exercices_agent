@@ -46,7 +46,9 @@ def test_read_file_nested_and_logged(tools: dict, caplog: pytest.LogCaptureFixtu
     assert "Smith" not in caplog.text
 
 
-@pytest.mark.parametrize("bad_path", ["../secret.txt", "garant/../../secret.txt", "scan.pdf", "absent.txt"])
+@pytest.mark.parametrize(
+    "bad_path", ["../secret.txt", "garant/../../secret.txt", "scan.pdf", "photo.jpg", "absent.txt"]
+)
 def test_read_file_refuses_bad_paths(tools: dict, bad_path: str) -> None:
     with pytest.raises(ToolError):
         tools["read_file"]({"path": bad_path})
@@ -86,3 +88,52 @@ def test_os_error_becomes_tool_error(tools: dict, monkeypatch: pytest.MonkeyPatc
     monkeypatch.setattr(Path, "rglob", failing_rglob)
     with pytest.raises(ToolError, match="accès refusé"):
         tools["list_folder"]({})
+
+
+def _minimal_pdf(text: str) -> bytes:
+    """Construit un PDF d'une page contenant `text` (Helvetica), sans bibliothèque d'écriture."""
+    stream = f"BT /F1 12 Tf 72 720 Td ({text}) Tj ET".encode("latin-1")
+    objects = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        (
+            b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R "
+            b"/Resources << /Font << /F1 5 0 R >> >> >>"
+        ),
+        b"<< /Length %d >>\nstream\n" % len(stream) + stream + b"\nendstream",
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    ]
+    pdf = bytearray(b"%PDF-1.4\n")
+    offsets = []
+    for number, body in enumerate(objects, start=1):
+        offsets.append(len(pdf))
+        pdf += b"%d 0 obj\n" % number + body + b"\nendobj\n"
+    xref = len(pdf)
+    pdf += b"xref\n0 %d\n0000000000 65535 f \n" % (len(objects) + 1)
+    pdf += b"".join(b"%010d 00000 n \n" % offset for offset in offsets)
+    pdf += b"trailer\n<< /Size %d /Root 1 0 R >>\nstartxref\n%d\n%%%%EOF\n" % (len(objects) + 1, xref)
+    return bytes(pdf)
+
+
+def test_read_file_extracts_pdf_text(tools: dict) -> None:
+    candidate = tools["_root"] / "candidats" / "jane-doe"
+    (candidate / "identite.pdf").write_bytes(_minimal_pdf("Nom : Jane Doe"))
+    assert "Nom : Jane Doe" in tools["read_file"]({"path": "identite.pdf"})
+
+
+def test_read_file_refuses_pdf_without_text(tools: dict) -> None:
+    from pypdf import PdfWriter
+
+    writer = PdfWriter()
+    writer.add_blank_page(width=612, height=792)
+    with (tools["_root"] / "candidats" / "jane-doe" / "scan_vide.pdf").open("wb") as handle:
+        writer.write(handle)
+    with pytest.raises(ToolError, match="sans texte"):
+        tools["read_file"]({"path": "scan_vide.pdf"})
+
+
+def test_read_file_refuses_corrupted_pdf(tools: dict) -> None:
+    pdf = bytearray(_minimal_pdf("Nom : Jane Doe"))
+    (tools["_root"] / "candidats" / "jane-doe" / "abime.pdf").write_bytes(bytes(pdf[: len(pdf) // 2]))
+    with pytest.raises(ToolError):
+        tools["read_file"]({"path": "abime.pdf"})

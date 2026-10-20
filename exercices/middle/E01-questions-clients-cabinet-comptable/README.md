@@ -24,6 +24,8 @@ Configuration dans `exercices/.env` :
 - `LLM_PROVIDER` (facultatif) : `anthropic` ou `gemini`. Sans valeur, le premier fournisseur dont la clé est présente, dans cet ordre.
 - `LLM_MODEL` (facultatif) : modèle à utiliser. Par défaut : `claude-opus-5-5` ou `gemini-3.5-flash`.
 
+Le fournisseur, le modèle et la température de cet exercice se règlent plutôt en tête de `draft_answers.py` (`LLM_PROVIDER`, `LLM_MODEL`, `LLM_TEMPERATURE`) : ces constantes priment sur le `.env`, qui est partagé par tous les exercices. `None` rend la main au `.env` ou à la valeur par défaut.
+
 Utilisation (depuis ce dossier) :
 
 ```

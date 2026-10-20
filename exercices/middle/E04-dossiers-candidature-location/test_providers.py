@@ -141,3 +141,14 @@ def test_gemini_max_steps() -> None:
 
     with pytest.raises(LLMError, match="max_steps"):
         provider.run_agent("sys", "go", [make_tool([])], max_steps=3)
+
+
+def test_exercise_settings_override_env_and_set_temperature() -> None:
+    from llm_providers import get_provider
+    from llm_providers.gemini_provider import _agent_config
+
+    env = {"ANTHROPIC_API_KEY": "a", "API_KEY_GEMINI": "g", "LLM_PROVIDER": "anthropic", "LLM_MODEL": "autre"}
+    provider = get_provider(env, provider="gemini", model="gemini-test", temperature=0.2)
+    assert isinstance(provider, GeminiProvider)
+    assert provider.model == "gemini-test"
+    assert _agent_config("système", [], provider.temperature).temperature == 0.2

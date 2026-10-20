@@ -14,6 +14,8 @@ import json
 import logging
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
+from datetime import date
+from fnmatch import fnmatch
 from pathlib import Path
 from typing import Any
 
@@ -21,6 +23,13 @@ from dotenv import load_dotenv
 
 from llm_providers import LLMError, LLMProvider, get_provider
 from llm_providers.base import ToolSpec
+
+# Réglages du modèle propres à cet exercice (le .env est partagé par tous les exercices).
+# None : choix automatique selon les clés du .env / modèle et température par défaut.
+LLM_PROVIDER = "gemini"
+LLM_MODEL = "gemini-3.5-flash-lite"
+# Température basse : résultats plus réguliers d'un lancement à l'autre. Ignorée par Claude.
+LLM_TEMPERATURE = 0.2
 
 BASE_DIR = Path(__file__).resolve().parent
 ENV_PATH = BASE_DIR.parents[1] / ".env"
@@ -31,6 +40,9 @@ OUTPUT_DIR = BASE_DIR / "output"
 SYNTHESIS_NAME = "synthese.md"
 RESULTS_NAME = "resultats.json"
 TOOL_JOURNAL_NAME = "journal_outils.txt"
+# Le nom du propriétaire n'est dans aucune donnée : le gestionnaire le complète avant l'envoi.
+OWNER_PLACEHOLDER = "[à compléter]"
+AGENCY_NAME = "L'agence Habitat Delorme"
 
 STATUSES = ("complet", "incomplet", "a_verifier", "hors_perimetre", "erreur")
 STATUS_LABELS = {"a_verifier": "à vérifier", "hors_perimetre": "hors périmètre"}
@@ -58,6 +70,7 @@ class ApplicationResult:
     relance_fichier: str = ""
     points_a_verifier: list[str] = field(default_factory=list)
     sources: list[str] = field(default_factory=list)
+    transmission_fichier: str = ""
 
 
 def relance_name(folder: str) -> str:
@@ -65,10 +78,65 @@ def relance_name(folder: str) -> str:
     return f"relance_{folder}.txt"
 
 
-def load_reference_date(grid_path: Path) -> str:
-    """Lit la date de référence du contrôle dans la grille (chaîne vide si absente)."""
-    grid = json.loads(grid_path.read_text(encoding="utf-8"))
-    return str(grid.get("date_reference_controle", ""))
+def transmission_name(folder: str) -> str:
+    """Nom du brouillon de transmission au propriétaire pour un dossier complet."""
+    return f"transmission_{folder}.txt"
+
+
+def format_date(iso_date: str) -> str:
+    """Convertit une date AAAA-MM-JJ en JJ/MM/AAAA (inchangée si le format est autre)."""
+    try:
+        return date.fromisoformat(iso_date).strftime("%d/%m/%Y")
+    except ValueError:
+        return iso_date
+
+
+def list_documents_by_piece(grid: dict[str, Any], sources: list[str]) -> list[str]:
+    """Associe les fichiers lus par l'agent aux pièces de la grille (motifs), garant compris."""
+    pieces = grid.get("pieces_candidat", []) + grid.get("garant", {}).get("pieces_garant", [])
+    lines = []
+    for piece in pieces:
+        motifs = piece.get("motifs", [])
+        files = sorted(name for name in sources if any(fnmatch(name.lower(), motif) for motif in motifs))
+        if files:
+            lines.append(f"- {piece.get('court', piece.get('id', '?'))} : {', '.join(files)}")
+    return lines
+
+
+def format_owner_draft(result: ApplicationResult, grid: dict[str, Any]) -> str:
+    """Brouillon du courriel de transmission d'un dossier complet au propriétaire."""
+    housing = grid.get("logement", {})
+    reference = housing.get("reference", "")
+    address = housing.get("adresse_fictive", "")
+    lines = [
+        f"Objet : dossier de candidature complet – logement {reference} – {result.candidat}",
+        "",
+        f"Bonjour {OWNER_PLACEHOLDER},",
+        "",
+        f"Nous vous transmettons le dossier de candidature de {result.candidat} pour le logement {reference}"
+        + (f" ({address})" if address else "")
+        + ". Toutes les pièces exigées par notre grille sont présentes et à jour à la date du "
+        + f"{format_date(str(grid.get('date_reference_controle', '')))}.",
+        "",
+        "Pièces du dossier (jointes à ce courriel) :",
+        *list_documents_by_piece(grid, result.sources),
+        "",
+        "L'étude du dossier et la décision d'attribution vous reviennent.",
+        "",
+        "Bien cordialement,",
+        AGENCY_NAME,
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def write_owner_draft(result: ApplicationResult, grid: dict[str, Any], output_dir: Path) -> None:
+    """Écrit le brouillon de transmission au propriétaire si le dossier est complet."""
+    if result.statut != "complet":
+        return
+    name = transmission_name(result.folder)
+    (output_dir / name).write_text(format_owner_draft(result, grid), encoding="utf-8")
+    result.transmission_fichier = name
 
 
 def list_candidate_dirs(candidates_dir: Path, only: str | None = None) -> list[Path]:
@@ -128,7 +196,12 @@ def check_relance(result: ApplicationResult, output_dir: Path) -> None:
     if result.statut == "incomplet" and not written:
         result.points_a_verifier.append(f"relance non écrite ({expected} absent)")
     elif result.statut != "incomplet" and written:
-        result.points_a_verifier.append(f"relance écrite alors que le dossier n'est pas incomplet ({expected})")
+        # Relance contraire au statut final : on la retire pour qu'elle ne parte pas par erreur.
+        (output_dir / expected).unlink()
+        written = False
+        result.points_a_verifier.append(
+            f"relance écrite alors que le dossier n'est pas incomplet : {expected} supprimée, statut à confirmer"
+        )
     # On n'affiche que la relance réellement présente, pas le nom annoncé par l'agent.
     result.relance_fichier = expected if written else ""
 
@@ -150,8 +223,9 @@ def check_application(
 ) -> ApplicationResult:
     """Lance l'agent sur un dossier ; une erreur de modèle ou de format donne le statut « erreur »."""
     folder = candidate_dir.name
-    # Une relance d'une exécution précédente ne doit pas passer pour actuelle.
+    # Les brouillons d'une exécution précédente ne doivent pas passer pour actuels.
     (output_dir / relance_name(folder)).unlink(missing_ok=True)
+    (output_dir / transmission_name(folder)).unlink(missing_ok=True)
     try:
         answer = provider.run_agent(
             system_prompt, f"Dossier : {folder}", tools_factory(candidate_dir, grid_path, output_dir)
@@ -191,7 +265,7 @@ def format_synthesis(results: list[ApplicationResult], model: str, reference_dat
             STATUS_LABELS.get(item.statut, item.statut),
             format_missing(item.pieces_manquantes) or "—",
             "; ".join(item.incoherences) or "—",
-            item.relance_fichier or "—",
+            item.relance_fichier or item.transmission_fichier or "—",
         ]
         rows.append("| " + " | ".join(table_cell(cell) for cell in cells) + " |")
     points = [f"- {item.folder} : {table_cell(point)}" for item in results for point in item.points_a_verifier]
@@ -201,7 +275,7 @@ def format_synthesis(results: list[ApplicationResult], model: str, reference_dat
         f"Modèle : `{model}`",
         f"Date de référence (grille) : {reference_date or 'non précisée'}",
         "",
-        "| Dossier | Candidat | Statut | Pièces manquantes | Incohérences | Relance |",
+        "| Dossier | Candidat | Statut | Pièces manquantes | Incohérences | Brouillon |",
         "|---|---|---|---|---|---|",
         *rows,
         "",
@@ -224,13 +298,15 @@ def check_applications(
     tools_factory = tools_factory or default_tools_factory()
     folders = list_candidate_dirs(candidates_dir, only)
     system_prompt = PROMPT_PATH.read_text(encoding="utf-8")
-    reference_date = load_reference_date(grid_path)
+    grid = json.loads(grid_path.read_text(encoding="utf-8"))
+    reference_date = str(grid.get("date_reference_controle", ""))
     output_dir.mkdir(parents=True, exist_ok=True)
 
     results = []
     for position, candidate_dir in enumerate(folders, start=1):
         logger.info("Dossier %d/%d : %s — en cours…", position, len(folders), candidate_dir.name)
         result = check_application(candidate_dir, grid_path, output_dir, provider, system_prompt, tools_factory)
+        write_owner_draft(result, grid, output_dir)
         logger.info("→ %s : %s", result.folder, STATUS_LABELS.get(result.statut, result.statut))
         results.append(result)
 
@@ -239,7 +315,7 @@ def check_applications(
     raw = json.dumps([asdict(item) for item in results], ensure_ascii=False, indent=2)
     (output_dir / RESULTS_NAME).write_text(raw + "\n", encoding="utf-8")
     logger.info("\n%s", synthesis)
-    logger.info("Synthèse, résultats et relances écrits dans %s", output_dir)
+    logger.info("Synthèse, résultats et brouillons écrits dans %s", output_dir)
     return results
 
 
@@ -275,7 +351,7 @@ def main() -> None:
     logger.info("Journal des appels d'outils : %s", journal_path)
     load_dotenv(ENV_PATH)
     try:
-        provider = get_provider()
+        provider = get_provider(provider=LLM_PROVIDER, model=LLM_MODEL, temperature=LLM_TEMPERATURE)
     except LLMError as error:
         raise SystemExit(str(error)) from error
     logger.info("Modèle utilisé : %s", provider.model)

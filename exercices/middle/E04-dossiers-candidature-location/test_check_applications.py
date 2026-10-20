@@ -106,7 +106,10 @@ def test_relance_checks_and_stale_file_removed(workspace) -> None:
     assert alice.relance_fichier == "relance_alice-test.txt" and alice.points_a_verifier == []
     assert not (output / "relance_bruno-test.txt").exists()
     assert bruno.relance_fichier == "" and "relance non écrite" in bruno.points_a_verifier[0]
+    # Relance contraire au statut « complet » : signalée et retirée du dossier de sortie.
     assert "pas incomplet" in carla.points_a_verifier[0]
+    assert carla.relance_fichier == ""
+    assert not (output / "relance_carla-test.txt").exists()
 
 
 def test_synthesis_escapes_cells_and_labels_status(workspace) -> None:
@@ -134,3 +137,39 @@ def test_synthesis_escapes_cells_and_labels_status(workspace) -> None:
 def test_unknown_only_folder_raises(workspace) -> None:
     with pytest.raises(ValueError, match="Dossier inconnu"):
         list_candidate_dirs(workspace[0], "zoe-test")
+
+
+def test_owner_draft_only_for_complete_dossier(workspace) -> None:
+    _, grid_path, output = workspace
+    grid = {
+        "date_reference_controle": "2026-10-14",
+        "logement": {"reference": "LOG-TEST", "adresse_fictive": "Rue Test 1"},
+        "pieces_candidat": [
+            {"id": "identite", "court": "Pièce d'identité", "motifs": ["identite*"]},
+            {"id": "revenus", "court": "Justificatifs de revenus", "motifs": ["bulletin_*"]},
+        ],
+        "garant": {
+            "pieces_garant": [{"id": "g", "court": "Garant : pièce d'identité", "motifs": ["garant/identite*"]}]
+        },
+    }
+    grid_path.write_text(json.dumps(grid), encoding="utf-8")
+    output.mkdir(parents=True)
+    # Brouillon d'une exécution précédente : il doit disparaître si le dossier n'est plus complet.
+    (output / "transmission_bruno-test.txt").write_text("ancien", encoding="utf-8")
+    sources = ["identite_carte.pdf", "bulletin_2026-09.pdf", "bulletin_2026-08.pdf", "garant/identite.txt"]
+    answers = {
+        "alice-test": answer("complet", candidat="Alice Test", sources=sources),
+        "bruno-test": answer("a_verifier", candidat="Bruno Test"),
+    }
+    alice = run(workspace, answers, only="alice-test")[0]
+    bruno = run(workspace, answers, only="bruno-test")[0]
+
+    draft = (output / "transmission_alice-test.txt").read_text(encoding="utf-8")
+    assert alice.transmission_fichier == "transmission_alice-test.txt"
+    assert "Bonjour [à compléter]," in draft
+    assert "logement LOG-TEST (Rue Test 1)" in draft and "14/10/2026" in draft
+    assert "- Pièce d'identité : identite_carte.pdf" in draft
+    assert "- Justificatifs de revenus : bulletin_2026-08.pdf, bulletin_2026-09.pdf" in draft
+    assert "- Garant : pièce d'identité : garant/identite.txt" in draft
+    assert bruno.transmission_fichier == ""
+    assert not (output / "transmission_bruno-test.txt").exists()

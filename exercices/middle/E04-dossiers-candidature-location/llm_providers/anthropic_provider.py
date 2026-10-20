@@ -20,9 +20,12 @@ logger = logging.getLogger(__name__)
 class AnthropicProvider:
     """Génère les réponses avec un modèle Claude."""
 
-    def __init__(self, api_key: str, model: str | None = None) -> None:
+    def __init__(self, api_key: str, model: str | None = None, temperature: float | None = None) -> None:
         self._client = anthropic.Anthropic(api_key=api_key)
         self.model = model or DEFAULT_MODEL
+        if temperature is not None:
+            # Les modèles Claude actuels refusent les paramètres d'échantillonnage (erreur 400).
+            logger.warning("Température ignorée : non prise en charge par %s.", self.model)
 
     def generate(self, system: str, user: str) -> str:
         """Envoie la question au modèle et renvoie le texte de la réponse."""

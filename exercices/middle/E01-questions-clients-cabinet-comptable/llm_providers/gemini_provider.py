@@ -15,9 +15,11 @@ RETRY_OPTIONS = types.HttpRetryOptions(attempts=4, http_status_codes=[429, 500, 
 class GeminiProvider:
     """Génère les réponses avec un modèle Gemini."""
 
-    def __init__(self, api_key: str, model: str | None = None) -> None:
+    def __init__(self, api_key: str, model: str | None = None, temperature: float | None = None) -> None:
         self._client = genai.Client(api_key=api_key, http_options=types.HttpOptions(retry_options=RETRY_OPTIONS))
         self.model = model or DEFAULT_MODEL
+        # None : valeur par défaut du modèle.
+        self.temperature = temperature
 
     def generate(self, system: str, user: str) -> str:
         """Envoie la question au modèle et renvoie le texte de la réponse."""
@@ -25,7 +27,7 @@ class GeminiProvider:
             response = self._client.models.generate_content(
                 model=self.model,
                 contents=user,
-                config=types.GenerateContentConfig(system_instruction=system),
+                config=types.GenerateContentConfig(system_instruction=system, temperature=self.temperature),
             )
         except errors.APIError as error:
             raise LLMError(f"Gemini a renvoyé l'erreur {error.code} : {error.message}") from error
