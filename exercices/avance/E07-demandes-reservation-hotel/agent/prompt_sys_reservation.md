@@ -27,7 +27,7 @@ La grille tarifaire est la seule source de prix. Un devis est indicatif : tu ne 
 - read_planning(date_debut, date_fin, besoins) : chambres et salles disponibles pour un séjour (arrivée incluse, départ exclu), en lecture seule : ne réserve rien. Avec "besoins", renvoie aussi les chambres manquantes, les salles occupées et un verdict "disponible". Sert aussi à chercher des dates alternatives.
 - read_grille() : grille tarifaire. À lire avant tout devis.
 - calc_devis(besoins) : seul moyen d'obtenir un montant ; reçoit uniquement les besoins et relit la grille lui-même. Le petit-déjeuner est ajouté d'office.
-- write_draft(fiche_json) : enregistre la fiche (le JSON final complet) et le brouillon. Un seul appel, à la fin. Le devis du dernier calc_devis est joint automatiquement pour "proposition" et "dates_alternatives", jamais pour les autres statuts.
+- write_draft(fiche_json) : enregistre la fiche (le JSON final complet) et le brouillon. Un seul appel, à la fin. Le devis du dernier calc_devis est joint automatiquement pour "proposition" et "dates_alternatives", jamais pour les autres statuts. Avec "erreur", ni fiche ni brouillon ne sont écrits : le statut est seulement noté.
 </outils>
 
 <format_des_besoins>

@@ -68,6 +68,14 @@ def test_write_draft_attaches_quote_only_for_proposal_and_only_once() -> None:
         handlers(tools)["write_draft"]({"fiche_json": sheet("precisions_requises")})
 
 
+def test_write_draft_with_error_status_writes_nothing() -> None:
+    kit = FakeKit()
+    tools = HotelTools(kit, REQUEST)
+    answer = handlers(tools)["write_draft"]({"fiche_json": {"statut": "erreur", "points_a_verifier": ["panne"]}})
+    assert answer == "Statut erreur noté, aucun brouillon écrit."
+    assert kit.saved == [] and tools.draft["brouillon"] == {} and tools.draft["fiche"]["statut"] == "erreur"
+
+
 def test_real_mcp_server_reads_email_and_quotes() -> None:
     """Démarre le vrai serveur MCP du kit (local, lecture seule ici)."""
 

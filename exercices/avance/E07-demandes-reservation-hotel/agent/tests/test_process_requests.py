@@ -149,6 +149,24 @@ def test_failure_does_not_replace_previous_valid_result(tmp_path: Path, monkeypa
     assert "résultat précédent conservé" in saved["dem_panne"]["points_a_verifier"][-1]
 
 
+def test_error_draft_never_replaces_previous_valid_draft(tmp_path: Path, monkeypatch) -> None:
+    # L'agent conclut en « erreur » : aucun brouillon écrit, le résultat et le brouillon précédents restent.
+    class ErrorAgent(ScriptedAgent):
+        def run_agent(self, system: str, user: str, tools: list, max_steps: int = 25) -> str:
+            handlers = {spec.name: spec.handler for spec in tools}
+            return handlers["write_draft"]({"fiche_json": {"statut": "erreur", "points_a_verifier": ["outil HS"]}})
+
+    old = [{"demande_id": "dem_ok", "statut": "proposition", "devis_total": 1980.0, "brouillon": "b001"}]
+    (tmp_path / "resultats.json").write_text(json.dumps(old), encoding="utf-8")
+    monkeypatch.setattr("agent.checks.planning_fingerprint", lambda: "empreinte")
+    kit = ListingKit()
+    results = process_all(kit, ErrorAgent(), tmp_path, only="dem_ok")
+    assert results[0].statut == "erreur" and results[0].brouillon == ""
+    assert not [name for name, _ in kit.saved if name in ("enregistrer_brouillon", "enregistrer_fiche_besoins")]
+    saved = json.loads((tmp_path / "resultats.json").read_text(encoding="utf-8"))[0]
+    assert (saved["statut"], saved["brouillon"]) == ("proposition", "b001")
+
+
 def test_final_outputs_complete_without_tmp_files(tmp_path: Path, monkeypatch) -> None:
     # À la fin : plus de mention « lot en cours », 3 résultats et aucun fichier temporaire.
     run(tmp_path, monkeypatch)

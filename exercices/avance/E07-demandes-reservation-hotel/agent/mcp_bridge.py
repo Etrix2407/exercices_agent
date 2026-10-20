@@ -298,12 +298,16 @@ class HotelTools:
         status = sheet.get("statut")
         if status not in STATUSES:
             raise ToolError(f"Statut invalide : {status!r} (valeurs : {', '.join(STATUSES)}).")
+        sheet["demande_id"] = self.request_id
+        if status == "erreur":
+            # Ni fiche ni brouillon : un brouillon valide d'un traitement précédent n'est jamais écrasé.
+            self.draft = {"fiche": sheet, "brouillon": {}, "devis": None}
+            return "Statut erreur noté, aucun brouillon écrit."
         reply = sheet.get("brouillon_reponse")
         if not isinstance(reply, str) or not reply.strip():
             raise ToolError("« brouillon_reponse » est vide : rédige le brouillon avant d'appeler write_draft.")
         if status == "proposition" and self.last_quote is None:
             raise ToolError("Statut « proposition » sans devis : appelle calc_devis avant write_draft.")
-        sheet["demande_id"] = self.request_id
         quote = self.last_quote if status in QUOTE_STATUSES else None
         self.kit.call("enregistrer_fiche_besoins", {"identifiant_demande": self.request_id, "fiche": sheet})
         saved = self.kit.call(
@@ -371,7 +375,8 @@ class HotelTools:
                 "write_draft",
                 (
                     "Enregistre la fiche (le JSON final complet) et le brouillon de réponse. Un seul appel, à la fin. "
-                    "Le devis du dernier calc_devis est joint par le code pour 'proposition' et 'dates_alternatives'."
+                    "Le devis du dernier calc_devis est joint par le code pour 'proposition' et 'dates_alternatives'. "
+                    "Avec le statut 'erreur', rien n'est écrit : le statut est seulement noté."
                 ),
                 {
                     "type": "object",
