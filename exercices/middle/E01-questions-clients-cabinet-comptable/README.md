@@ -20,7 +20,7 @@ pip install -r requirements.txt
 
 Configuration dans `exercices/.env` :
 
-- `ANTHROPIC_API_KEY` ou `API_KEY_GEMINI` : au moins une clé.
+- `ANTHROPIC_API_KEY` ou `GEMINI_API_KEY` : au moins une clé.
 - `LLM_PROVIDER` (facultatif) : `anthropic` ou `gemini`. Sans valeur, le premier fournisseur dont la clé est présente, dans cet ordre.
 - `LLM_MODEL` (facultatif) : modèle à utiliser. Par défaut : `claude-opus-5-5` ou `gemini-3.5-flash`.
 
