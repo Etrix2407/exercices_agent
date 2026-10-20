@@ -1,0 +1,169 @@
+"""Tests de la boucle d'outils des fournisseurs, avec des clients factices (aucun appel réseau)."""
+
+from __future__ import annotations
+
+from types import SimpleNamespace
+from typing import Any
+
+import pytest
+from google.genai import types
+
+from llm_providers.anthropic_provider import AnthropicProvider
+from llm_providers.base import LLMError, ToolError, ToolSpec
+from llm_providers.gemini_provider import GeminiProvider
+
+SCHEMA = {"type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]}
+
+
+def make_tool(calls: list[dict], fail: bool = False) -> ToolSpec:
+    """Outil « read_file » qui enregistre ses arguments et peut échouer sur demande."""
+
+    def handler(args: dict) -> str:
+        calls.append(args)
+        if fail:
+            raise ToolError("fichier introuvable")
+        return "contenu"
+
+    return ToolSpec(name="read_file", description="Lit un fichier.", parameters=SCHEMA, handler=handler)
+
+
+# --- Anthropic ---------------------------------------------------------------------------------------------
+
+
+class FakeAnthropicClient:
+    """Client qui renvoie les réponses prévues et garde une copie des messages envoyés."""
+
+    def __init__(self, responses: list[Any]) -> None:
+        self._responses = iter(responses)
+        self.requests: list[dict] = []
+        self.beta = SimpleNamespace(messages=SimpleNamespace(create=self._create))
+
+    def _create(self, **kwargs: Any) -> Any:
+        self.requests.append({**kwargs, "messages": list(kwargs["messages"])})
+        return next(self._responses)
+
+
+def tool_use_response() -> Any:
+    block = SimpleNamespace(type="tool_use", id="tu_1", name="read_file", input={"path": "a.txt"})
+    return SimpleNamespace(stop_reason="tool_use", content=[block])
+
+
+def text_response(text: str) -> Any:
+    return SimpleNamespace(stop_reason="end_turn", content=[SimpleNamespace(type="text", text=text)])
+
+
+def anthropic_provider(responses: list[Any]) -> tuple[AnthropicProvider, FakeAnthropicClient]:
+    provider = AnthropicProvider(api_key="x")
+    provider._client = client = FakeAnthropicClient(responses)
+    return provider, client
+
+
+def test_anthropic_tool_call_then_answer() -> None:
+    calls: list[dict] = []
+    provider, client = anthropic_provider([tool_use_response(), text_response("  Verdict  ")])
+
+    assert provider.run_agent("sys", "go", [make_tool(calls)]) == "Verdict"
+    assert calls == [{"path": "a.txt"}]
+    assert client.requests[0]["tools"][0]["input_schema"] == SCHEMA
+    last = client.requests[1]["messages"][-1]
+    assert last == {"role": "user", "content": [{"type": "tool_result", "tool_use_id": "tu_1", "content": "contenu"}]}
+
+
+def test_anthropic_tool_error_is_sent_back() -> None:
+    provider, client = anthropic_provider([tool_use_response(), text_response("ok")])
+
+    assert provider.run_agent("sys", "go", [make_tool([], fail=True)]) == "ok"
+    result = client.requests[1]["messages"][-1]["content"][0]
+    assert result["is_error"] is True and "introuvable" in result["content"]
+
+
+def test_anthropic_max_steps() -> None:
+    provider, _ = anthropic_provider([tool_use_response() for _ in range(3)])
+
+    with pytest.raises(LLMError, match="max_steps"):
+        provider.run_agent("sys", "go", [make_tool([])], max_steps=3)
+
+
+# --- Gemini ------------------------------------------------------------------------------------------------
+
+
+class FakeGeminiClient:
+    """Client qui renvoie les réponses prévues et garde une copie des contenus envoyés."""
+
+    def __init__(self, responses: list[types.GenerateContentResponse]) -> None:
+        self._responses = iter(responses)
+        self.requests: list[dict] = []
+        self.models = SimpleNamespace(generate_content=self._generate_content)
+
+    def _generate_content(self, **kwargs: Any) -> types.GenerateContentResponse:
+        self.requests.append({**kwargs, "contents": list(kwargs["contents"])})
+        return next(self._responses)
+
+
+def gemini_response(part: types.Part) -> types.GenerateContentResponse:
+    content = types.Content(role="model", parts=[part])
+    return types.GenerateContentResponse(candidates=[types.Candidate(content=content)])
+
+
+def call_response() -> types.GenerateContentResponse:
+    call = types.FunctionCall(id="fc_1", name="read_file", args={"path": "a.txt"})
+    return gemini_response(types.Part(function_call=call))
+
+
+def gemini_provider(responses: list[types.GenerateContentResponse]) -> tuple[GeminiProvider, FakeGeminiClient]:
+    provider = GeminiProvider(api_key="x")
+    provider._client = client = FakeGeminiClient(responses)
+    return provider, client
+
+
+def test_gemini_tool_call_then_answer() -> None:
+    calls: list[dict] = []
+    provider, client = gemini_provider([call_response(), gemini_response(types.Part.from_text(text=" Verdict "))])
+
+    assert provider.run_agent("sys", "go", [make_tool(calls)]) == "Verdict"
+    assert calls == [{"path": "a.txt"}]
+    assert client.requests[0]["config"].automatic_function_calling.disable is True
+    reply = client.requests[1]["contents"][-1]
+    assert reply.role == "user"
+    response = reply.parts[0].function_response
+    assert (response.id, response.name, response.response) == ("fc_1", "read_file", {"result": "contenu"})
+
+
+def test_gemini_tool_error_is_sent_back() -> None:
+    provider, client = gemini_provider([call_response(), gemini_response(types.Part.from_text(text="ok"))])
+
+    assert provider.run_agent("sys", "go", [make_tool([], fail=True)]) == "ok"
+    assert client.requests[1]["contents"][-1].parts[0].function_response.response == {"error": "fichier introuvable"}
+
+
+def test_gemini_max_steps() -> None:
+    provider, _ = gemini_provider([call_response() for _ in range(3)])
+
+    with pytest.raises(LLMError, match="max_steps"):
+        provider.run_agent("sys", "go", [make_tool([])], max_steps=3)
+
+
+def test_exercise_settings_override_env_and_set_temperature() -> None:
+    from llm_providers import get_provider
+    from llm_providers.gemini_provider import _agent_config
+
+    env = {"ANTHROPIC_API_KEY": "a", "GEMINI_API_KEY": "g", "LLM_PROVIDER": "anthropic", "LLM_MODEL": "autre"}
+    provider = get_provider(env, provider="gemini", model="gemini-test", temperature=0.2)
+    assert isinstance(provider, GeminiProvider)
+    assert provider.model == "gemini-test"
+    assert _agent_config("système", [], provider.temperature).temperature == 0.2
+
+
+def test_gemini_persistent_429_raises_quota_error() -> None:
+    from google.genai import errors
+
+    from llm_providers.base import LLMQuotaError
+
+    class QuotaModels:
+        def generate_content(self, **kwargs: Any) -> Any:
+            raise errors.ClientError(429, {"error": {"code": 429, "message": "quota", "status": "RESOURCE_EXHAUSTED"}})
+
+    provider = GeminiProvider(api_key="x")
+    provider._client = SimpleNamespace(models=QuotaModels())
+    with pytest.raises(LLMQuotaError):
+        provider.generate("système", "question")

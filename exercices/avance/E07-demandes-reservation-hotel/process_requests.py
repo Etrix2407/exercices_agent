@@ -29,13 +29,13 @@ from dotenv import load_dotenv
 import init_donnees
 import planning
 from llm_providers import LLMError, LLMProvider, get_provider
-from llm_providers.base import ToolError
+from llm_providers.base import LLMQuotaError, ToolError
 from mcp_bridge import HotelTools, KitCaller, KitClient, kit_session, quote_arguments, rooms_by_type
 
 # Réglages du modèle propres à cet exercice (le .env est partagé par tous les exercices).
 # None : choix automatique selon les clés du .env / modèle et température par défaut.
 LLM_PROVIDER = "gemini"
-LLM_MODEL = "gemini-3.5-flash"
+LLM_MODEL = "gemini-3.8-flash"
 # Température : None garde la valeur par défaut du modèle (recommandé pour Gemini 3).
 # Plages acceptées : Gemini de 0 à 2 ; Claude de 0 à 1, mais les modèles Claude actuels (Opus 5.5)
 # la refusent : elle est alors ignorée avec un avertissement.
@@ -48,6 +48,9 @@ OUTPUT_DIR = BASE_DIR / "output"
 SYNTHESIS_NAME = "synthese.md"
 RESULTS_NAME = "resultats.json"
 TOOL_JOURNAL_NAME = "journal_outils.txt"
+# Nombre maximal d'appels au modèle par demande : au-delà, LLMError plutôt qu'une boucle sans fin.
+MAX_STEPS = 20
+QUOTA_NOTE = "non traitée : quota du modèle épuisé, relancer plus tard avec --only"
 ALTERNATIVE_PATTERN = re.compile(r"(\d{4}-\d{2}-\d{2})\s*(?:→|->|au|à)\s*(\d{4}-\d{2}-\d{2})")
 
 # (outils du kit, identifiant de la demande) -> outils de l'agent pour cette demande.
@@ -171,7 +174,10 @@ def process_request(
     """Lance l'agent sur une demande ; une erreur de modèle donne le statut « erreur » sans bloquer le lot."""
     tools = tools_factory(kit, request_id)
     try:
-        final_text = provider.run_agent(system_prompt, f"Demande : {request_id}", tools.specs(), max_steps=20)
+        final_text = provider.run_agent(system_prompt, f"Demande : {request_id}", tools.specs(), max_steps=MAX_STEPS)
+    except LLMQuotaError:
+        # Quota épuisé : le lot entier s'arrête (voir process_all), inutile d'essayer les demandes suivantes.
+        raise
     except LLMError as error:
         logger.error("%s : %s", request_id, error)
         if tools.draft is None:
@@ -246,7 +252,16 @@ def process_all(
     results = []
     for position, request_id in enumerate(request_ids, start=1):
         logger.info("Demande %d/%d : %s — en cours…", position, len(request_ids), request_id)
-        result = process_request(kit, request_id, provider, system_prompt, tools_factory)
+        try:
+            result = process_request(kit, request_id, provider, system_prompt, tools_factory)
+        except LLMQuotaError as error:
+            logger.error("Quota épuisé, arrêt du lot : %s", error)
+            results.append(RequestResult(demande_id=request_id, statut="erreur", points_a_verifier=[str(error)]))
+            results += [
+                RequestResult(demande_id=pending, statut="non_traitee", points_a_verifier=[QUOTA_NOTE])
+                for pending in request_ids[position:]
+            ]
+            break
         logger.info("→ %s : %s", request_id, result.statut)
         results.append(result)
     synthesis = write_outputs(results, provider.model, planning_fingerprint() == before, output_dir)

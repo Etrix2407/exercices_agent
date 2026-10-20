@@ -72,3 +72,18 @@ def test_alternative_quote_must_cover_first_alternative() -> None:
     quote = {"arrivee": "2027-01-04", "depart": "2027-01-06"}
     assert check_alternative_quote(quote, ["2027-01-04 → 2027-01-06"]) is None
     assert "≠" in check_alternative_quote(quote, ["2027-01-11 → 2027-01-13"])
+
+
+def test_exhausted_quota_stops_batch_immediately(tmp_path: Path, monkeypatch) -> None:
+    from llm_providers.base import LLMQuotaError
+
+    class QuotaAgent(ScriptedAgent):
+        def run_agent(self, system: str, user: str, tools: list, max_steps: int = 25) -> str:
+            if "dem_ecart" in user:
+                raise LLMQuotaError("quota du jour épuisé")
+            return super().run_agent(system, user, tools, max_steps)
+
+    monkeypatch.setattr("process_requests.planning_fingerprint", lambda: "empreinte")
+    ok, stopped, pending = process_all(ListingKit(), QuotaAgent(), tmp_path)
+    assert (ok.statut, stopped.statut, pending.statut) == ("proposition", "erreur", "non_traitee")
+    assert "quota" in pending.points_a_verifier[0]

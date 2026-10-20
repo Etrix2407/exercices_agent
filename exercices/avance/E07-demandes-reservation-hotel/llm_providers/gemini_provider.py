@@ -7,7 +7,7 @@ import logging
 from google import genai
 from google.genai import errors, types
 
-from llm_providers.base import LLMError, ToolError, ToolSpec
+from llm_providers.base import LLMError, LLMQuotaError, ToolError, ToolSpec
 
 DEFAULT_MODEL = "gemini-3.5-flash"
 # Le SDK ne réessaie pas par défaut : on réessaie sur saturation (429, 503) et erreurs serveur.
@@ -15,6 +15,8 @@ DEFAULT_MODEL = "gemini-3.5-flash"
 RETRY_OPTIONS = types.HttpRetryOptions(
     attempts=7, initial_delay=4.0, max_delay=60.0, http_status_codes=[429, 500, 502, 503, 504]
 )
+# Délai maximal d'une requête (en millisecondes) : une connexion bloquée lève une erreur au lieu de pendre.
+REQUEST_TIMEOUT_MS = 120_000
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +25,8 @@ class GeminiProvider:
     """Génère les réponses avec un modèle Gemini."""
 
     def __init__(self, api_key: str, model: str | None = None, temperature: float | None = None) -> None:
-        self._client = genai.Client(api_key=api_key, http_options=types.HttpOptions(retry_options=RETRY_OPTIONS))
+        http_options = types.HttpOptions(retry_options=RETRY_OPTIONS, timeout=REQUEST_TIMEOUT_MS)
+        self._client = genai.Client(api_key=api_key, http_options=http_options)
         self.model = model or DEFAULT_MODEL
         # None : valeur par défaut du modèle.
         self.temperature = temperature
@@ -61,7 +64,9 @@ class GeminiProvider:
         try:
             return self._client.models.generate_content(model=self.model, contents=contents, config=config)
         except errors.APIError as error:
-            raise LLMError(f"Gemini a renvoyé l'erreur {error.code} : {error.message}") from error
+            message = f"Gemini a renvoyé l'erreur {error.code} : {error.message}"
+            # Un 429 qui persiste après tous les réessais signifie un quota épuisé (souvent le quota du jour).
+            raise (LLMQuotaError if error.code == 429 else LLMError)(message) from error
 
 
 def _agent_config(system: str, tools: list[ToolSpec], temperature: float | None) -> types.GenerateContentConfig:
