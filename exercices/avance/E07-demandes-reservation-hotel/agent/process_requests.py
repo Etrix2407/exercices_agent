@@ -190,14 +190,45 @@ def check_alternative_quote(quote: dict[str, Any], alternatives: list[str]) -> s
     return f"devis joint ({quote.get('arrivee')} → {quote.get('depart')}) ≠ première date alternative proposée"
 
 
+def extract_json_object(text: str) -> dict[str, Any] | None:
+    """Extrait l'objet JSON le plus externe d'une réponse (tolère texte autour et balises ```json)."""
+    start, end = text.find("{"), text.rfind("}")
+    if start == -1 or end < start:
+        return None
+    try:
+        data = json.loads(text[start : end + 1])
+    except json.JSONDecodeError:
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def save_draft_from_answer(tools: HotelTools, final_text: str) -> str:
+    """Filet de sécurité : le modèle a donné le JSON final sans appeler write_draft, le script l'enregistre.
+
+    Les contrôles de write_draft s'appliquent (statut, brouillon non vide, devis issu de calc_devis).
+    Renvoie une note pour les points à vérifier, ou la raison de l'échec.
+    """
+    sheet = extract_json_object(final_text)
+    if sheet is None:
+        return "write_draft non appelé et aucun JSON exploitable dans la réponse du modèle"
+    try:
+        tools.write_draft({"fiche_json": sheet})
+    except ToolError as error:
+        return f"write_draft non appelé ; JSON de la réponse refusé : {error}"
+    return "write_draft non appelé par le modèle : fiche et brouillon enregistrés par le script à partir de sa réponse"
+
+
 def build_result(request_id: str, tools: HotelTools, final_text: str) -> RequestResult:
     """Construit le résultat à partir de la fiche écrite par write_draft, puis le contrôle en code."""
+    fallback_note = None
     if tools.draft is None:
-        return RequestResult(
-            demande_id=request_id,
-            statut="erreur",
-            points_a_verifier=["aucune fiche ni brouillon écrit (write_draft non appelé)", final_text[:200]],
-        )
+        fallback_note = save_draft_from_answer(tools, final_text)
+        if tools.draft is None:
+            return RequestResult(
+                demande_id=request_id,
+                statut="erreur",
+                points_a_verifier=[f"aucune fiche ni brouillon écrit : {fallback_note}", final_text[:200]],
+            )
     sheet = tools.draft["fiche"]
     quote = tools.draft["devis"]
     needs = sheet.get("besoins") if isinstance(sheet.get("besoins"), dict) else {}
@@ -211,6 +242,8 @@ def build_result(request_id: str, tools: HotelTools, final_text: str) -> Request
         brouillon=str(tools.draft["brouillon"].get("brouillon", "")),
         points_a_verifier=[str(item) for item in sheet.get("points_a_verifier") or []],
     )
+    if fallback_note:
+        result.points_a_verifier.append(fallback_note)
     if result.statut == "proposition" and quote:
         problem = check_quote(needs, quote["total_ttc"])
         if problem:

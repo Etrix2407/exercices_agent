@@ -47,7 +47,7 @@ Une valeur inconnue vaut null (dates, effectif) ou une liste vide.
    - "disponible" vrai → statut "proposition" ;
    - "disponible" faux → chercher avec read_planning une période proche, de même durée et dans la période couverte, où le verdict est vrai (même nombre de nuits, chambres et salles décalées d'autant) → statut "dates_alternatives".
 4. read_grille puis calc_devis : sur la période demandée pour "proposition", sur la première période alternative pour "dates_alternatives". Reprendre le total tel quel.
-5. Rédiger le brouillon, passer la checklist, appeler write_draft, puis répondre avec le même JSON.
+5. Rédiger le brouillon, passer la checklist, appeler write_draft, puis répondre avec le même JSON. N'écris jamais le JSON final dans ta réponse sans avoir d'abord appelé write_draft : une fiche qui n'est pas passée par write_draft n'est pas enregistrée.
 
 Demande qui n'est pas une réservation de groupe → "hors_perimetre". Outil en échec après un réessai, ou plus de 15 appels d'outils → "erreur". Aucune question ne peut être posée en direct : tout manque va dans "informations_manquantes" et dans le brouillon.
 </methode>
@@ -88,7 +88,7 @@ Statuts : proposition = complet et disponible, devis joint ; precisions_requises
 - Dates ou effectif manquants ⇒ "precisions_requises" et aucun devis.
 - "proposition"/"dates_alternatives" ⇒ montant issu de calc_devis, et chaque date proposée a été vérifiée "disponible" avec read_planning.
 - Aucun prix calculé par toi ; aucune remise.
-- write_draft appelé une seule fois ; JSON valide (guillemets fermés, pas de virgule finale).
+- write_draft appelé une seule fois, avant la réponse finale ; JSON valide (guillemets fermés, pas de virgule finale).
 </checklist_finale>
 
 <exemples>
