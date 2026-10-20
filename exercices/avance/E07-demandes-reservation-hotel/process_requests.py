@@ -20,7 +20,7 @@ import sqlite3
 from collections.abc import Callable
 from contextlib import closing
 from dataclasses import asdict, dataclass, field
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
@@ -72,6 +72,63 @@ class RequestResult:
     devis_total: float | None = None
     brouillon: str = ""
     points_a_verifier: list[str] = field(default_factory=list)
+    traite_le: str = ""
+    changements: list[str] = field(default_factory=list)
+
+
+# Statuts qui ne remplacent jamais un résultat valide déjà enregistré pour la même demande.
+FAILED_STATUSES = ("erreur", "non_traitee")
+FAILURE_PREFIX = "dernier traitement en échec"
+
+
+def load_previous_results(output_dir: Path) -> dict[str, RequestResult]:
+    """Relit resultats.json : les demandes déjà analysées restent dans la synthèse d'un lancement à l'autre."""
+    path = output_dir / RESULTS_NAME
+    if not path.is_file():
+        return {}
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        known = set(RequestResult.__dataclass_fields__)
+        items = [RequestResult(**{key: value for key, value in entry.items() if key in known}) for entry in raw]
+    except (OSError, ValueError, TypeError, AttributeError) as error:
+        logger.warning("Résultats précédents illisibles (%s) : la synthèse repart de zéro.", error)
+        return {}
+    return {item.demande_id: item for item in items}
+
+
+def describe_changes(previous: RequestResult | None, current: RequestResult) -> list[str]:
+    """Liste ce qui a changé depuis la dernière analyse de la même demande (statut, dates, effectif…)."""
+    if previous is None:
+        return []
+    old_needs, new_needs = previous.besoins or {}, current.besoins or {}
+    compared = [
+        ("statut", previous.statut, current.statut),
+        ("arrivée", old_needs.get("date_arrivee"), new_needs.get("date_arrivee")),
+        ("départ", old_needs.get("date_depart"), new_needs.get("date_depart")),
+        ("effectif", old_needs.get("nb_personnes"), new_needs.get("nb_personnes")),
+        ("chambres", old_needs.get("chambres"), new_needs.get("chambres")),
+        ("devis", previous.devis_total, current.devis_total),
+        ("informations manquantes", previous.informations_manquantes, current.informations_manquantes),
+    ]
+    return [
+        f"{label} : {json.dumps(old, ensure_ascii=False)} → {json.dumps(new, ensure_ascii=False)}"
+        for label, old, new in compared
+        if old != new
+    ]
+
+
+def merge_result(known: dict[str, RequestResult], result: RequestResult, processed_at: str) -> None:
+    """Ajoute ou met à jour une demande ; un échec ne remplace pas un résultat valide déjà enregistré."""
+    previous = known.get(result.demande_id)
+    if result.statut in FAILED_STATUSES and previous is not None and previous.statut not in FAILED_STATUSES:
+        reason = "; ".join(result.points_a_verifier) or result.statut
+        previous.points_a_verifier = [
+            point for point in previous.points_a_verifier if not point.startswith(FAILURE_PREFIX)
+        ] + [f"{FAILURE_PREFIX} ({processed_at}), résultat précédent conservé : {reason}"]
+        return
+    result.traite_le = processed_at
+    result.changements = describe_changes(previous, result)
+    known[result.demande_id] = result
 
 
 def load_system_prompt(reference_date: date) -> str:
@@ -184,7 +241,33 @@ def process_request(
         if tools.draft is None:
             return RequestResult(demande_id=request_id, statut="erreur", points_a_verifier=[str(error)])
         final_text = ""
-    return build_result(request_id, tools, final_text)
+    result = build_result(request_id, tools, final_text)
+    if result.brouillon:
+        result.brouillon = replace_previous_draft(kit, request_id, result.brouillon)
+    return result
+
+
+def replace_previous_draft(kit: KitCaller, request_id: str, new_id: str, drafts_dir: Path | None = None) -> str:
+    """Remplace l'ancien brouillon de la demande par le nouveau, sous le même identifiant.
+
+    Le kit numérote les brouillons en comptant les fichiers : supprimer un ancien brouillon ferait réutiliser
+    un numéro existant. Le nouveau fichier prend donc la place de l'ancien (os.replace), ce qui garde
+    un numéro stable par demande et un nombre de fichiers cohérent.
+    """
+    drafts_dir = drafts_dir or init_donnees.BOITE / "brouillons"
+    previous = sorted(
+        draft["id"]
+        for draft in kit.call("lister_brouillons", {})["brouillons"]
+        if draft.get("pour") == request_id and draft["id"] != new_id
+    )
+    if not previous:
+        return new_id
+    target, *duplicates = previous
+    os.replace(drafts_dir / f"{new_id}.eml", drafts_dir / f"{target}.eml")
+    logger.info("Brouillon %s de %s remplacé par la nouvelle version.", target, request_id)
+    if duplicates:
+        logger.warning("Anciens brouillons en double pour %s : %s (à écarter à la main).", request_id, duplicates)
+    return target
 
 
 def table_cell(text: str) -> str:
@@ -193,12 +276,15 @@ def table_cell(text: str) -> str:
 
 
 def format_synthesis(
-    results: list[RequestResult], model: str, planning_unchanged: bool, total: int | None = None
+    results: list[RequestResult],
+    model: str,
+    planning_unchanged: bool,
+    progress: tuple[int, int] | None = None,
 ) -> str:
-    """Construit le tableau de synthèse des demandes, au format Markdown.
+    """Construit le tableau de synthèse de toutes les demandes analysées, au format Markdown.
 
-    Si total est fourni et que toutes les demandes ne sont pas encore traitées, ajoute une ligne
-    d'avancement : la synthèse est alors un état intermédiaire du lot.
+    progress = (demandes traitées, demandes prévues) pour le lancement en cours : tant qu'il n'est pas
+    fini, une ligne d'avancement l'indique.
     """
     rows = []
     for item in results:
@@ -212,6 +298,8 @@ def format_synthesis(
             "; ".join(item.dates_alternatives) or "—",
             f"{item.devis_total:.2f}" if item.devis_total is not None else "—",
             item.brouillon or "—",
+            item.traite_le or "—",
+            "; ".join(item.changements) or "—",
         ]
         rows.append("| " + " | ".join(table_cell(cell) for cell in cells) + " |")
     points = [f"- {item.demande_id} : {table_cell(point)}" for item in results for point in item.points_a_verifier]
@@ -221,12 +309,15 @@ def format_synthesis(
         f"Modèle : `{model}`",
         "Planning inchangé : " + ("oui" if planning_unchanged else "**NON — vérifier immédiatement**"),
     ]
-    if total is not None and len(results) < total:
-        lines.append(f"Avancement : {len(results)}/{total} demandes traitées (lot en cours)")
+    if progress is not None and progress[0] < progress[1]:
+        lines.append(f"Avancement : {progress[0]}/{progress[1]} demandes traitées (lot en cours)")
     lines += [
         "",
-        "| Demande | Statut | Séjour | Informations manquantes | Dates alternatives | Devis (EUR TTC) | Brouillon |",
-        "|---|---|---|---|---|---|---|",
+        (
+            "| Demande | Statut | Séjour | Informations manquantes | Dates alternatives | Devis (EUR TTC) | Brouillon "
+            "| Traité le | Changements |"
+        ),
+        "|---|---|---|---|---|---|---|---|---|",
         *rows,
         "",
     ]
@@ -248,10 +339,10 @@ def write_outputs(
     model: str,
     planning_unchanged: bool,
     output_dir: Path,
-    total: int | None = None,
+    progress: tuple[int, int] | None = None,
 ) -> str:
     """Écrit la synthèse et les résultats bruts (de façon atomique) ; renvoie la synthèse."""
-    synthesis = format_synthesis(results, model, planning_unchanged, total)
+    synthesis = format_synthesis(results, model, planning_unchanged, progress)
     _write_atomic(output_dir / SYNTHESIS_NAME, synthesis)
     raw = json.dumps([asdict(item) for item in results], ensure_ascii=False, indent=2)
     _write_atomic(output_dir / RESULTS_NAME, raw + "\n")
@@ -267,8 +358,9 @@ def process_all(
 ) -> list[RequestResult]:
     """Traite chaque demande de la boîte (ou la seule demandée) en réécrivant la synthèse après chacune.
 
-    Les fichiers d'un lancement précédent sont écrasés dès le départ (synthèse « 0/N ») : après un
-    Ctrl+C, output/ reflète donc le lot interrompu et non un ancien lot complet.
+    La synthèse est cumulative : les demandes analysées lors des lancements précédents restent,
+    et une demande traitée à nouveau voit sa ligne mise à jour (avec la liste des changements).
+    Renvoie les résultats du lancement en cours uniquement.
     """
     request_ids = [item["id"] for item in kit.call("lister_demandes", {})["demandes"]]
     if only is not None:
@@ -277,12 +369,18 @@ def process_all(
         request_ids = [only]
     system_prompt = load_system_prompt(date.today())
     before = planning_fingerprint()
+    known = load_previous_results(output_dir)
     results: list[RequestResult] = []
+    saved: list[RequestResult] = []
 
     def save() -> str:
         """Seul point d'écriture : recalcule l'empreinte du planning et réécrit synthèse et résultats."""
+        for result in results[len(saved) :]:
+            merge_result(known, result, datetime.now().strftime("%Y-%m-%d %H:%M"))
+        saved.extend(results[len(saved) :])
         unchanged = planning_fingerprint() == before
-        return write_outputs(results, provider.model, unchanged, output_dir, total=len(request_ids))
+        ordered = [known[key] for key in sorted(known)]
+        return write_outputs(ordered, provider.model, unchanged, output_dir, (len(results), len(request_ids)))
 
     synthesis = save()
     for position, request_id in enumerate(request_ids, start=1):
@@ -335,7 +433,11 @@ def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Traitement des demandes de réservation de groupe (E07).")
     parser.add_argument("--output", type=Path, default=OUTPUT_DIR, help="Dossier de sortie (par défaut : output).")
     parser.add_argument("--only", help="Ne traiter qu'une demande (par exemple demande_01_mariage).")
-    parser.add_argument("--reset", action="store_true", help="Réinitialise la boîte et le planning du kit avant.")
+    parser.add_argument(
+        "--reset",
+        action="store_true",
+        help="Réinitialise la boîte et le planning du kit, et repart d'une synthèse vide.",
+    )
     return parser.parse_args()
 
 
@@ -347,6 +449,9 @@ def main() -> None:
     load_dotenv(ENV_PATH)
     if arguments.reset:
         init_donnees.initialiser()
+        # Boîte et brouillons réinitialisés : les résultats cumulés ne correspondent plus à rien.
+        for name in (SYNTHESIS_NAME, RESULTS_NAME):
+            (arguments.output / name).unlink(missing_ok=True)
     try:
         provider = get_provider(provider=LLM_PROVIDER, model=LLM_MODEL, temperature=LLM_TEMPERATURE)
     except LLMError as error:

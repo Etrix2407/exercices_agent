@@ -136,7 +136,7 @@ Depuis le dossier du kit :
 ..\.venv\Scripts\python -m pytest
 ```
 
-`--reset` recrée la boîte et le planning avant le traitement ; `--only` limite à une demande ; `--output` change le dossier de sortie (par défaut `output`).
+`--reset` recrée la boîte et le planning avant le traitement et repart d'une synthèse vide ; `--only` limite à une demande ; `--output` change le dossier de sortie (par défaut `output`).
 
 ### Sorties
 
@@ -146,7 +146,7 @@ Depuis le dossier du kit :
 - `boite\fiches\` : fiches JSON ; `boite\brouillons\` : brouillons, avec `devis.md` joint le cas échéant.
 
 `synthese.md` et `resultats.json` sont réécrits après chaque demande ; tant que le lot n'est pas fini, la synthèse porte la ligne « Avancement : n/N demandes traitées (lot en cours) ».
-Ils sont écrasés dès le début d'un lancement (aucun fichier périmé ne subsiste) et un Ctrl+C conserve les demandes déjà traitées.
+La synthèse est cumulative : les demandes analysées lors des lancements précédents restent ; une demande traitée à nouveau est mise à jour (colonnes « Traité le » et « Changements » : statut, dates, effectif, chambres, devis, informations manquantes). Un échec ne remplace pas un résultat valide déjà enregistré : il est seulement signalé. Le nouveau brouillon d'une demande traitée à nouveau remplace l'ancien sous le même numéro (`bNNN`), et sa fiche JSON est réécrite. Un Ctrl+C conserve les demandes déjà traitées.
 L'écriture passe par un fichier temporaire : un fichier ouvert dans l'éditeur n'est jamais à moitié écrit.
 
 Statuts possibles : `proposition`, `precisions_requises`, `dates_alternatives`, `hors_perimetre`, `erreur`.
