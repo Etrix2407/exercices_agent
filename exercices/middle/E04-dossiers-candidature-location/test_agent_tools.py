@@ -228,3 +228,80 @@ def test_raw_marker_ignores_plain_urls(raw: bytes, flagged: bool) -> None:
     from agent_tools import ACTIVE_CONTENT_PATTERN
 
     assert bool(ACTIVE_CONTENT_PATTERN.search(raw)) is flagged
+
+
+# --- Fraîcheur calculée en code ---------------------------------------------------------------------------------
+
+FRESHNESS_GRID = {
+    "date_reference_controle": "2026-10-14",
+    "pieces_candidat": [
+        {"id": "identite", "court": "Pièce d'identité", "motifs": ["identite*"], "nombre_min": 1},
+        {"id": "revenus", "court": "Justificatifs de revenus", "motifs": ["bulletin_*"], "fraicheur_mois": 3},
+        {"id": "avis", "court": "Avis d'imposition", "motifs": ["avis_imposition*"], "fraicheur_mois": 12},
+    ],
+    "garant": {
+        "pieces_garant": [
+            {"id": "g_avis", "court": "Garant : avis d'imposition", "motifs": ["garant/avis_imposition*"], "fraicheur_mois": 12}
+        ]
+    },
+}
+
+
+@pytest.fixture
+def fresh_read(tmp_path: Path):
+    """read_file sur un dossier factice, avec une grille qui a des durées de fraîcheur."""
+    import json
+
+    candidate = tmp_path / "candidats" / "jane-doe"
+    (candidate / "garant").mkdir(parents=True)
+    grid = tmp_path / "grille.json"
+    grid.write_text(json.dumps(FRESHNESS_GRID), encoding="utf-8")
+    read_file = {spec.name: spec.handler for spec in build_tools(candidate, grid, tmp_path / "sorties")}["read_file"]
+
+    def read(path: str, text: str) -> str:
+        (candidate / path).write_text(text, encoding="utf-8")
+        return read_file({"path": path})
+
+    return read
+
+
+@pytest.mark.parametrize(
+    ("path", "issued", "verdict"),
+    [
+        ("bulletin_2026-07.txt", "31/07/2026", "RECEVABLE"),
+        ("bulletin_2026-06.txt", "30/06/2026", "PÉRIMÉE (émise le 30/06/2026)"),
+        # « Émis après » la limite : émis le jour même de la limite, il est périmé.
+        ("bulletin_limite.txt", "14/07/2026", "PÉRIMÉE (émise le 14/07/2026)"),
+        ("avis_imposition_2025.txt", "20/06/2026", "RECEVABLE"),
+        ("garant/avis_imposition_2024.txt", "01/06/2025", "PÉRIMÉE (émise le 01/06/2025)"),
+    ],
+)
+def test_read_file_adds_code_computed_freshness(fresh_read, path: str, issued: str, verdict: str) -> None:
+    lines = fresh_read(path, f"Type de pièce : test\nDate d'émission : {issued}").splitlines()
+    # Le verdict est hors du cadre de la pièce : il vient du code, pas du document.
+    assert lines[-2].startswith("<<< Fin du contenu")
+    assert lines[-1].startswith("Contrôle de fraîcheur (calculé par le code")
+    assert lines[-1].endswith(f"→ {verdict}.")
+
+
+def test_freshness_limit_uses_piece_duration(fresh_read) -> None:
+    assert "émise après le 14/07/2026" in fresh_read("bulletin_a.txt", "Date d'émission : 31/07/2026")
+    assert "émise après le 14/10/2025" in fresh_read("avis_imposition.txt", "Date d'émission : 20/06/2026")
+
+
+def test_freshness_without_emission_date_asks_for_check(fresh_read) -> None:
+    assert fresh_read("bulletin_x.txt", "Nom : Jane Doe").endswith("→ À VÉRIFIER par le gestionnaire.")
+
+
+def test_no_freshness_line_for_pieces_without_duration(fresh_read) -> None:
+    content = fresh_read("identite.txt", "Nom : Jane Doe\nDate d'émission : 01/01/2020")
+    assert "Contrôle de fraîcheur" not in content
+
+
+def test_subtract_months_clamps_to_month_end() -> None:
+    from datetime import date
+
+    from agent_tools import subtract_months
+
+    assert subtract_months(date(2026, 5, 31), 3) == date(2026, 2, 28)
+    assert subtract_months(date(2026, 10, 14), 12) == date(2025, 10, 14)

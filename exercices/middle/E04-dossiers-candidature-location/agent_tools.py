@@ -6,10 +6,15 @@ lire un fichier du dossier, écrire la relance de ce dossier. Chaque appel est j
 
 from __future__ import annotations
 
+import calendar
+import json
 import logging
 import re
 import struct
 from collections.abc import Callable
+from dataclasses import dataclass
+from datetime import date
+from fnmatch import fnmatch
 from pathlib import Path
 
 from pypdf import PdfReader
@@ -52,8 +57,75 @@ DOCUMENT_FOOTER = "<<< Fin du contenu de la pièce « {name} » >>>"
 # Chevrons du cadre : une pièce ne doit pas pouvoir simuler la fin du cadre.
 FRAME_MARKER_PATTERN = re.compile(r"<{3,}|>{3,}")
 NO_ARGS_SCHEMA: dict = {"type": "object", "properties": {}}
+# Date d'émission telle qu'écrite sur les pièces : « Date d'émission : 31/07/2026 ».
+EMISSION_DATE_PATTERN = re.compile(r"Date d'[ée]mission\s*:\s*(\d{1,2})/(\d{1,2})/(\d{4})", re.IGNORECASE)
 
 Handler = Callable[[dict], str]
+
+
+@dataclass(frozen=True)
+class FreshnessRule:
+    """Pièce de la grille soumise à une durée de fraîcheur."""
+
+    label: str
+    patterns: tuple[str, ...]
+    months: int
+
+
+def load_freshness_rules(grid_path: Path) -> tuple[date | None, list[FreshnessRule]]:
+    """Date de référence et pièces avec « fraicheur_mois » (candidat et garant), lues dans la grille.
+
+    Grille absente ou illisible : (None, []) ; read_file n'ajoute alors aucun contrôle.
+    """
+    try:
+        grid = json.loads(grid_path.read_text(encoding="utf-8"))
+        reference = date.fromisoformat(str(grid["date_reference_controle"]))
+    except (OSError, ValueError, KeyError, TypeError):
+        return None, []
+    guarantor = grid.get("garant") if isinstance(grid.get("garant"), dict) else {}
+    pieces = [*(grid.get("pieces_candidat") or []), *(guarantor.get("pieces_garant") or [])]
+    rules = [
+        FreshnessRule(
+            label=str(piece.get("court") or piece.get("id")),
+            patterns=tuple(piece.get("motifs") or []),
+            months=int(piece["fraicheur_mois"]),
+        )
+        for piece in pieces
+        if isinstance(piece, dict) and piece.get("fraicheur_mois")
+    ]
+    return reference, rules
+
+
+def subtract_months(day: date, months: int) -> date:
+    """Recule de `months` mois ; le jour est ramené au dernier jour du mois si besoin (31/05 - 3 mois = 28/02)."""
+    year, month_index = divmod(day.year * 12 + day.month - 1 - months, 12)
+    return date(year, month_index + 1, min(day.day, calendar.monthrange(year, month_index + 1)[1]))
+
+
+def freshness_check(
+    relative_path: str, content: str, reference: date | None, rules: list[FreshnessRule]
+) -> str | None:
+    """Verdict de fraîcheur calculé en code, ou None si la pièce n'a pas de durée de fraîcheur.
+
+    Un fichier est recevable s'il est émis strictement après la date de référence diminuée de la durée.
+    """
+    rule = next((rule for rule in rules if any(fnmatch(relative_path, pattern) for pattern in rule.patterns)), None)
+    if rule is None or reference is None:
+        return None
+    limit = subtract_months(reference, rule.months)
+    prefix = (
+        f"Contrôle de fraîcheur (calculé par le code, à reprendre tel quel) : pièce « {rule.label} », "
+        f"recevable si émise après le {limit:%d/%m/%Y}"
+    )
+    match = EMISSION_DATE_PATTERN.search(content)
+    try:
+        issued = date(int(match.group(3)), int(match.group(2)), int(match.group(1))) if match else None
+    except ValueError:
+        issued = None
+    if issued is None:
+        return f"{prefix} ; date d'émission introuvable ou illisible → À VÉRIFIER par le gestionnaire."
+    verdict = "RECEVABLE" if issued > limit else f"PÉRIMÉE (émise le {issued:%d/%m/%Y})"
+    return f"{prefix} ; émise le {issued:%d/%m/%Y} → {verdict}."
 
 
 def relance_name(folder: str) -> str:
@@ -233,19 +305,20 @@ def _read_text_file(target: Path) -> str:
         raise ToolError(f"Impossible de lire le fichier : {exc}") from exc
 
 
-def _make_read_file(candidate_dir: Path) -> Handler:
+def _make_read_file(candidate_dir: Path, reference: date | None, rules: list[FreshnessRule]) -> Handler:
     def read_file(args: dict) -> str:
         raw_path = _get_str_arg(args, "path")
         target = _resolve_candidate_file(candidate_dir, raw_path)
         content = _read_pdf_text(target) if target.suffix.lower() == ".pdf" else _read_text_file(target)
         name = _neutralize_frame_markers(raw_path)
-        return "\n".join(
-            [
-                DOCUMENT_HEADER.format(name=name),
-                _neutralize_frame_markers(content.strip()),
-                DOCUMENT_FOOTER.format(name=name),
-            ]
-        )
+        lines = [
+            DOCUMENT_HEADER.format(name=name),
+            _neutralize_frame_markers(content.strip()),
+            DOCUMENT_FOOTER.format(name=name),
+        ]
+        # Hors du cadre : le verdict vient du code, pas de la pièce ; le modèle ne compare jamais les dates.
+        check = freshness_check(target.relative_to(candidate_dir.resolve()).as_posix(), content, reference, rules)
+        return "\n".join([*lines, check] if check else lines)
 
     return read_file
 
@@ -276,6 +349,7 @@ def _make_write_file(output_dir: Path, folder: str) -> Handler:
 def build_tools(candidate_dir: Path, grid_path: Path, output_dir: Path) -> list[ToolSpec]:
     """Construit les quatre outils de l'agent, liés au dossier `candidate_dir`."""
     name = candidate_dir.name
+    reference, freshness_rules = load_freshness_rules(grid_path)
     specs = [
         (
             "read_grid",
@@ -300,7 +374,8 @@ def build_tools(candidate_dir: Path, grid_path: Path, output_dir: Path) -> list[
             (
                 "Lit le contenu d'un fichier .txt ou .pdf du dossier du candidat (pour un PDF : le texte extrait, "
                 "page par page). Le chemin doit être relatif, exactement tel que renvoyé par list_folder "
-                "(ex. 'identite.txt', 'identite.pdf' ou 'garant/identite.txt')."
+                "(ex. 'identite.txt', 'identite.pdf' ou 'garant/identite.txt'). Pour une pièce soumise à une durée "
+                "de fraîcheur, la réponse se termine par un « Contrôle de fraîcheur » calculé par le code."
             ),
             {
                 "type": "object",
@@ -309,7 +384,7 @@ def build_tools(candidate_dir: Path, grid_path: Path, output_dir: Path) -> list[
                 },
                 "required": ["path"],
             },
-            _make_read_file(candidate_dir),
+            _make_read_file(candidate_dir, reference, freshness_rules),
         ),
         (
             "write_file",
