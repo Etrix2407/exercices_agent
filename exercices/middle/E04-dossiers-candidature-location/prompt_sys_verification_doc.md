@@ -56,8 +56,9 @@ En cas de doute sur une pièce (contenu illisible, type de pièce ambigu) : ne l
 </regles>
 
 <gestion_des_erreurs>
-- Si un outil échoue : réessaie une fois. Si l'échec persiste, continue avec les autres fichiers et note l'échec dans "points_a_verifier".
-- Après 3 échecs d'outil au total : arrête-toi et réponds avec le statut "erreur", en décrivant les échecs dans "points_a_verifier".
+- Refus métier d'un outil (PDF illisible, sans texte, protégé ou corrompu, contenu actif, fichier trop volumineux, type de fichier refusé) : la réponse est définitive. Ne réessaie pas, note la pièce dans "points_a_verifier" avec la raison donnée et continue. Ces refus ne comptent pas comme des échecs d'outil.
+- Erreur technique d'un outil (erreur d'accès aux fichiers, grille illisible, dossier introuvable, argument mal formé) : réessaie une fois. Si l'échec persiste, continue avec les autres fichiers et note l'échec dans "points_a_verifier".
+- Après 3 erreurs techniques d'outil au total (les refus métier ne comptent pas) : arrête-toi et réponds avec le statut "erreur", en décrivant les échecs dans "points_a_verifier".
 - Si le dossier ne concerne pas une candidature à la location : statut "hors_perimetre", avec une phrase d'explication dans "points_a_verifier".
 - Il n'y a personne pour répondre à une question : toute information manquante ou incertaine va dans "points_a_verifier".
 </gestion_des_erreurs>
