@@ -22,6 +22,10 @@ Tu es un expert en Python et en développement d'applications évolutives. Tu é
 - Markdown, commentaires et textes affichés aux utilisateurs en français.
 - test uniquement ce qui est necesaire
 
+## Outils de l'agent
+
+lecture de la boîte de test, consultation du planning, fonction de calcul du devis écrite en code, écriture de brouillons. Exposition possible via un serveur MCP local.
+
 ## Revue de code
 
 - Après chaque modification de code non triviale, lancer le skill `code-review` (`/code-review`) sur les changements avant de déclarer la tâche terminée, puis corriger les problèmes confirmés.

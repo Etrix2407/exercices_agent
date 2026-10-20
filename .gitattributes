@@ -1,2 +1,6 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Fichiers binaires : jamais de conversion des fins de ligne (un PDF converti devient illisible)
+*.pdf binary
+*.docx binary
