@@ -1,0 +1,371 @@
+{
+  "_aide": "Réponses attendues tirées des courriels (donnees/eml) et des règles du prompt système. null = non évalué. devis_total null : recalculé en code à partir des besoins (statut proposition).",
+  "demande_01_mariage": {
+    "statut": "proposition",
+    "besoins": {
+      "date_arrivee": "2026-11-06",
+      "date_depart": "2026-11-08",
+      "nb_personnes": 60,
+      "chambres": [
+        {
+          "type": "double",
+          "nombre": 12
+        },
+        {
+          "type": "suite",
+          "nombre": 2
+        }
+      ],
+      "salles": [
+        {
+          "salle": "Cèdre",
+          "dates": [
+            "2026-11-07"
+          ]
+        }
+      ],
+      "repas": [
+        {
+          "prestation": "diner",
+          "couverts": 60,
+          "nombre": 1
+        }
+      ]
+    },
+    "informations_manquantes": [],
+    "devis_total": null
+  },
+  "demande_02_seminaire_equipe": {
+    "statut": "proposition",
+    "besoins": {
+      "date_arrivee": "2026-11-16",
+      "date_depart": "2026-11-18",
+      "nb_personnes": 25,
+      "chambres": [
+        {
+          "type": "simple",
+          "nombre": 15
+        },
+        {
+          "type": "double",
+          "nombre": 5
+        }
+      ],
+      "salles": [
+        {
+          "salle": "Érable",
+          "dates": [
+            "2026-11-16",
+            "2026-11-17"
+          ]
+        }
+      ],
+      "repas": [
+        {
+          "prestation": "dejeuner_buffet",
+          "couverts": 25,
+          "nombre": 2
+        },
+        {
+          "prestation": "diner",
+          "couverts": 25,
+          "nombre": 1
+        },
+        {
+          "prestation": "pause_cafe",
+          "couverts": 25,
+          "nombre": 4
+        }
+      ]
+    },
+    "informations_manquantes": [],
+    "devis_total": null
+  },
+  "demande_03_voyage_organise": {
+    "statut": "proposition",
+    "besoins": {
+      "date_arrivee": "2026-12-02",
+      "date_depart": "2026-12-05",
+      "nb_personnes": 18,
+      "chambres": [
+        {
+          "type": "twin",
+          "nombre": 9
+        }
+      ],
+      "salles": [],
+      "repas": [
+        {
+          "prestation": "diner",
+          "couverts": 18,
+          "nombre": 1
+        },
+        {
+          "prestation": "dejeuner_buffet",
+          "couverts": 18,
+          "nombre": 1
+        }
+      ]
+    },
+    "informations_manquantes": [],
+    "devis_total": null
+  },
+  "demande_04_seminaire_annuel": {
+    "statut": "precisions_requises",
+    "besoins": {
+      "date_arrivee": null,
+      "date_depart": null,
+      "nb_personnes": 40,
+      "chambres": [
+        {
+          "type": "double",
+          "nombre": 15
+        },
+        {
+          "type": "simple",
+          "nombre": 10
+        }
+      ],
+      "salles": null,
+      "repas": [
+        {
+          "prestation": "dejeuner_buffet",
+          "couverts": 40,
+          "nombre": 1
+        },
+        {
+          "prestation": "pause_cafe",
+          "couverts": 40,
+          "nombre": 1
+        }
+      ]
+    },
+    "informations_manquantes": [
+      "date"
+    ],
+    "devis_total": null
+  },
+  "demande_05_fete_famille": {
+    "statut": "proposition",
+    "besoins": {
+      "date_arrivee": "2026-12-12",
+      "date_depart": "2026-12-13",
+      "nb_personnes": 50,
+      "chambres": [
+        {
+          "type": "double",
+          "nombre": 4
+        },
+        {
+          "type": "twin",
+          "nombre": 2
+        }
+      ],
+      "salles": [
+        {
+          "salle": "Érable",
+          "dates": [
+            "2026-12-12"
+          ]
+        }
+      ],
+      "repas": [
+        {
+          "prestation": "diner",
+          "couverts": 50,
+          "nombre": 1
+        }
+      ]
+    },
+    "informations_manquantes": [],
+    "devis_total": null
+  },
+  "demande_06_seminaire_direction": {
+    "statut": "proposition",
+    "besoins": {
+      "date_arrivee": "2026-12-13",
+      "date_depart": "2026-12-16",
+      "nb_personnes": 22,
+      "chambres": [
+        {
+          "type": "simple",
+          "nombre": 10
+        },
+        {
+          "type": "double",
+          "nombre": 6
+        }
+      ],
+      "salles": [
+        {
+          "salle": "Cèdre",
+          "dates": [
+            "2026-12-14"
+          ]
+        }
+      ],
+      "repas": [
+        {
+          "prestation": "dejeuner_buffet",
+          "couverts": 22,
+          "nombre": 2
+        },
+        {
+          "prestation": "diner",
+          "couverts": 22,
+          "nombre": 1
+        }
+      ]
+    },
+    "informations_manquantes": [],
+    "devis_total": null
+  },
+  "demande_07_retrouvailles": {
+    "statut": "proposition",
+    "besoins": {
+      "date_arrivee": "2027-01-08",
+      "date_depart": "2027-01-10",
+      "nb_personnes": 12,
+      "chambres": [
+        {
+          "type": "suite",
+          "nombre": 2
+        },
+        {
+          "type": "double",
+          "nombre": 4
+        }
+      ],
+      "salles": [
+        {
+          "salle": "Lys",
+          "dates": [
+            "2027-01-09"
+          ]
+        }
+      ],
+      "repas": [
+        {
+          "prestation": "diner",
+          "couverts": 12,
+          "nombre": 1
+        },
+        {
+          "prestation": "dejeuner_buffet",
+          "couverts": 12,
+          "nombre": 1
+        }
+      ]
+    },
+    "informations_manquantes": [],
+    "devis_total": null
+  },
+  "demande_08_seminaire_regional": {
+    "statut": "dates_alternatives",
+    "besoins": {
+      "date_arrivee": "2026-12-11",
+      "date_depart": "2026-12-13",
+      "nb_personnes": 45,
+      "chambres": [
+        {
+          "type": "double",
+          "nombre": 12
+        },
+        {
+          "type": "simple",
+          "nombre": 8
+        }
+      ],
+      "salles": [
+        {
+          "salle": "Cèdre",
+          "dates": [
+            "2026-12-12"
+          ]
+        }
+      ],
+      "repas": [
+        {
+          "prestation": "dejeuner_buffet",
+          "couverts": 45,
+          "nombre": 1
+        }
+      ]
+    },
+    "informations_manquantes": [],
+    "devis_total": null
+  },
+  "demande_09_formation": {
+    "statut": "precisions_requises",
+    "besoins": {
+      "date_arrivee": "2027-01-18",
+      "date_depart": null,
+      "nb_personnes": 30,
+      "chambres": [
+        {
+          "type": "double",
+          "nombre": 15
+        }
+      ],
+      "salles": [
+        {
+          "salle": "Érable",
+          "dates": [
+            "2027-01-18"
+          ]
+        }
+      ],
+      "repas": [
+        {
+          "prestation": "diner",
+          "couverts": 30,
+          "nombre": 1
+        }
+      ]
+    },
+    "informations_manquantes": [
+      "depart"
+    ],
+    "devis_total": null
+  },
+  "demande_10_voyage_etudes": {
+    "statut": "proposition",
+    "besoins": {
+      "date_arrivee": "2026-11-24",
+      "date_depart": "2026-11-27",
+      "nb_personnes": 16,
+      "chambres": [
+        {
+          "type": "twin",
+          "nombre": 7
+        },
+        {
+          "type": "simple",
+          "nombre": 2
+        }
+      ],
+      "salles": [
+        {
+          "salle": "Lys",
+          "dates": [
+            "2026-11-25"
+          ]
+        }
+      ],
+      "repas": [
+        {
+          "prestation": "dejeuner_buffet",
+          "couverts": 16,
+          "nombre": 1
+        },
+        {
+          "prestation": "pause_cafe",
+          "couverts": 16,
+          "nombre": 2
+        }
+      ]
+    },
+    "informations_manquantes": [],
+    "devis_total": null
+  }
+}
