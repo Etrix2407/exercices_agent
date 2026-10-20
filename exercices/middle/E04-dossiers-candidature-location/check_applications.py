@@ -23,7 +23,7 @@ from typing import Any
 
 from dotenv import load_dotenv
 
-from agent_tools import build_tools, relance_name
+from agent_tools import build_tools, list_candidate_files, relance_name
 from llm_providers import LLMError, LLMProvider, get_provider
 from llm_providers.base import LLMBatchError, ToolSpec
 
@@ -47,6 +47,8 @@ TOOL_JOURNAL_NAME = "journal_outils.txt"
 OWNER_PLACEHOLDER = "[à compléter]"
 AGENCY_NAME = "L'agence Habitat Delorme"
 OWNER_DRAFT_SKIPPED_NOTE = "transmission non écrite : points à vérifier"
+# Longueur maximale d'une relance, fixée par le prompt.
+MAX_RELANCE_WORDS = 120
 
 # Statuts que l'agent peut renvoyer ; « non_traite » est réservé à l'orchestrateur (lot arrêté).
 STATUSES = ("complet", "incomplet", "a_verifier", "hors_perimetre", "erreur")
@@ -216,6 +218,18 @@ def check_relance(result: ApplicationResult, output_dir: Path) -> None:
         )
     # On n'affiche que la relance réellement présente, pas le nom annoncé par l'agent.
     result.relance_fichier = expected if written else ""
+    if written:
+        words = len((output_dir / expected).read_text(encoding="utf-8").split())
+        if words > MAX_RELANCE_WORDS:
+            result.points_a_verifier.append(f"relance trop longue : {words} mots (limite {MAX_RELANCE_WORDS})")
+
+
+def check_sources(result: ApplicationResult, candidate_dir: Path) -> None:
+    """Signale les sources citées par l'agent qui ne correspondent à aucun fichier du dossier."""
+    existing = set(list_candidate_files(candidate_dir))
+    unknown = [source for source in result.sources if source not in existing]
+    if unknown:
+        result.points_a_verifier.append(f"sources absentes du dossier : {', '.join(unknown)}")
 
 
 def remove_previous_drafts(folder: str, output_dir: Path) -> None:
@@ -243,6 +257,7 @@ def check_application(
             system_prompt, f"Dossier : {folder}", tools_factory(candidate_dir, grid_path, output_dir)
         )
         result = parse_agent_output(folder, answer)
+        check_sources(result, candidate_dir)
     except LLMBatchError:
         raise
     except (LLMError, AgentOutputError) as error:

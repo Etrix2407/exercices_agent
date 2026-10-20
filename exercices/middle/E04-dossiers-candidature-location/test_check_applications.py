@@ -19,10 +19,17 @@ class FakeProvider:
 
     model = "factice"
 
-    def __init__(self, output_dir: Path, answers: dict[str, str | Exception], write_relance: set[str]) -> None:
+    def __init__(
+        self,
+        output_dir: Path,
+        answers: dict[str, str | Exception],
+        write_relance: set[str],
+        relance_text: str = "Bonjour,\n",
+    ) -> None:
         self.output_dir = output_dir
         self.answers = answers
         self.write_relance = write_relance
+        self.relance_text = relance_text
 
     def generate(self, system: str, user: str) -> str:
         raise NotImplementedError
@@ -33,7 +40,7 @@ class FakeProvider:
         if isinstance(answer, Exception):
             raise answer
         if folder in self.write_relance:
-            (self.output_dir / f"relance_{folder}.txt").write_text("Bonjour,\n", encoding="utf-8")
+            (self.output_dir / f"relance_{folder}.txt").write_text(self.relance_text, encoding="utf-8")
         return answer
 
 
@@ -64,11 +71,17 @@ def workspace(tmp_path: Path) -> tuple[Path, Path, Path]:
     return candidates, grid, tmp_path / "output"
 
 
-def run(workspace: tuple[Path, Path, Path], answers: dict, write_relance: set[str] = frozenset(), only=None):
+def run(
+    workspace: tuple[Path, Path, Path],
+    answers: dict,
+    write_relance: set[str] = frozenset(),
+    only=None,
+    relance_text: str = "Bonjour,\n",
+):
     """Lance l'orchestrateur avec le fournisseur factice et sans outils réels."""
     candidates, grid, output = workspace
     output.mkdir(parents=True, exist_ok=True)
-    provider = FakeProvider(output, answers, set(write_relance))
+    provider = FakeProvider(output, answers, set(write_relance), relance_text)
     return check_applications(candidates, grid, output, provider, only=only, tools_factory=lambda *_: [])
 
 
@@ -158,6 +171,9 @@ def test_owner_draft_only_for_complete_dossier(workspace) -> None:
     # Brouillon d'une exécution précédente : il doit disparaître si le dossier n'est plus complet.
     (output / "transmission_bruno-test.txt").write_text("ancien", encoding="utf-8")
     sources = ["identite_carte.pdf", "bulletin_2026-09.pdf", "bulletin_2026-08.pdf", "garant/identite.txt"]
+    for source in sources:
+        (workspace[0] / "alice-test" / source).parent.mkdir(exist_ok=True)
+        (workspace[0] / "alice-test" / source).write_text("pièce", encoding="utf-8")
     answers = {
         "alice-test": answer("complet", candidat="Alice Test", sources=sources),
         "bruno-test": answer("a_verifier", candidat="Bruno Test"),
@@ -227,6 +243,19 @@ def test_synthesis_written_after_each_folder(workspace) -> None:
     assert "Lot en cours : 0/3" in seen[0]
     assert "Lot en cours : 2/3" in seen[2] and "| bruno-test |" in seen[2]
     assert "Lot en cours" not in (output / "synthese.md").read_text(encoding="utf-8")
+
+
+def test_unknown_sources_and_long_relance_are_flagged(workspace) -> None:
+    answers = {
+        "alice-test": answer("complet", sources=["identite.txt", "bulletin_invente.pdf"]),
+        "bruno-test": answer("incomplet", sources=["identite.txt"]),
+    }
+    alice = run(workspace, answers, only="alice-test")[0]
+    bruno = run(workspace, answers, write_relance={"bruno-test"}, only="bruno-test", relance_text="mot " * 121)[0]
+    assert alice.points_a_verifier[0] == "sources absentes du dossier : bulletin_invente.pdf"
+    assert alice.transmission_fichier == ""
+    assert bruno.points_a_verifier == ["relance trop longue : 121 mots (limite 120)"]
+    assert bruno.relance_fichier == "relance_bruno-test.txt"
 
 
 def test_default_batch_only_has_the_eight_statement_folders() -> None:

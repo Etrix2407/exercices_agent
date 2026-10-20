@@ -101,7 +101,7 @@ def _with_logging(candidate_name: str, tool_name: str, handler: Handler) -> Hand
     return wrapped
 
 
-def _list_files(candidate_dir: Path) -> list[str]:
+def list_candidate_files(candidate_dir: Path) -> list[str]:
     """Chemins relatifs POSIX de tous les fichiers visibles du dossier, triés."""
     files = []
     for path in candidate_dir.rglob("*"):
@@ -212,7 +212,7 @@ def _make_list_folder(candidate_dir: Path) -> Handler:
     def list_folder(args: dict) -> str:
         if not candidate_dir.is_dir():
             raise ToolError("Le dossier du candidat est introuvable.")
-        files = _list_files(candidate_dir)
+        files = list_candidate_files(candidate_dir)
         if not files:
             return "Le dossier du candidat est vide : aucun fichier fourni."
         return "\n".join(files)
