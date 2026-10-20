@@ -86,4 +86,4 @@ def test_exhausted_quota_stops_batch_immediately(tmp_path: Path, monkeypatch) ->
     monkeypatch.setattr("process_requests.planning_fingerprint", lambda: "empreinte")
     ok, stopped, pending = process_all(ListingKit(), QuotaAgent(), tmp_path)
     assert (ok.statut, stopped.statut, pending.statut) == ("proposition", "erreur", "non_traitee")
-    assert "quota" in pending.points_a_verifier[0]
+    assert "lot arrêté" in pending.points_a_verifier[0]
