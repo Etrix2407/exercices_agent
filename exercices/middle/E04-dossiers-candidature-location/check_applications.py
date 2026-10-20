@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from datetime import date
@@ -23,7 +24,7 @@ from dotenv import load_dotenv
 
 from agent_tools import build_tools, relance_name
 from llm_providers import LLMError, LLMProvider, get_provider
-from llm_providers.base import ToolSpec
+from llm_providers.base import LLMBatchError, ToolSpec
 
 # Réglages du modèle propres à cet exercice (le .env est partagé par tous les exercices).
 # None : choix automatique selon les clés du .env / modèle et température par défaut.
@@ -46,8 +47,10 @@ OWNER_PLACEHOLDER = "[à compléter]"
 AGENCY_NAME = "L'agence Habitat Delorme"
 OWNER_DRAFT_SKIPPED_NOTE = "transmission non écrite : points à vérifier"
 
+# Statuts que l'agent peut renvoyer ; « non_traite » est réservé à l'orchestrateur (lot arrêté).
 STATUSES = ("complet", "incomplet", "a_verifier", "hors_perimetre", "erreur")
-STATUS_LABELS = {"a_verifier": "à vérifier", "hors_perimetre": "hors périmètre"}
+STATUS_LABELS = {"a_verifier": "à vérifier", "hors_perimetre": "hors périmètre", "non_traite": "non traité"}
+BATCH_STOP_NOTE = "non traité : lot arrêté (quota épuisé ou configuration refusée), relancer avec --only"
 LIST_FIELDS = ("pieces_manquantes", "incoherences", "points_a_verifier", "sources")
 
 # (dossier du candidat, grille, dossier de sortie) -> outils de l'agent.
@@ -62,7 +65,11 @@ class AgentOutputError(ValueError):
 
 @dataclass
 class ApplicationResult:
-    """Résultat du contrôle d'un dossier, repris dans la synthèse."""
+    """Résultat du contrôle d'un dossier, repris dans la synthèse.
+
+    Exception à la règle des identifiants en anglais : les champs reprennent les clés JSON françaises
+    du prompt (statut, pieces_manquantes…), qui forment le contrat avec l'agent et le format de resultats.json.
+    """
 
     folder: str
     statut: str
@@ -210,6 +217,12 @@ def check_relance(result: ApplicationResult, output_dir: Path) -> None:
     result.relance_fichier = expected if written else ""
 
 
+def remove_previous_drafts(folder: str, output_dir: Path) -> None:
+    """Supprime les brouillons d'une exécution précédente : ils ne doivent pas passer pour actuels."""
+    (output_dir / relance_name(folder)).unlink(missing_ok=True)
+    (output_dir / transmission_name(folder)).unlink(missing_ok=True)
+
+
 def check_application(
     candidate_dir: Path,
     grid_path: Path,
@@ -218,16 +231,19 @@ def check_application(
     system_prompt: str,
     tools_factory: ToolsFactory,
 ) -> ApplicationResult:
-    """Lance l'agent sur un dossier ; une erreur de modèle ou de format donne le statut « erreur »."""
+    """Lance l'agent sur un dossier ; une erreur de modèle ou de format donne le statut « erreur ».
+
+    Une LLMBatchError (quota épuisé, configuration refusée) est propagée : elle arrête tout le lot.
+    """
     folder = candidate_dir.name
-    # Les brouillons d'une exécution précédente ne doivent pas passer pour actuels.
-    (output_dir / relance_name(folder)).unlink(missing_ok=True)
-    (output_dir / transmission_name(folder)).unlink(missing_ok=True)
+    remove_previous_drafts(folder, output_dir)
     try:
         answer = provider.run_agent(
             system_prompt, f"Dossier : {folder}", tools_factory(candidate_dir, grid_path, output_dir)
         )
         result = parse_agent_output(folder, answer)
+    except LLMBatchError:
+        raise
     except (LLMError, AgentOutputError) as error:
         logger.error("%s : %s", folder, error)
         result = ApplicationResult(folder=folder, statut="erreur", points_a_verifier=[str(error)])
@@ -252,8 +268,10 @@ def format_missing(pieces: list[Any]) -> str:
     return "; ".join(labels)
 
 
-def format_synthesis(results: list[ApplicationResult], model: str, reference_date: str) -> str:
-    """Construit le tableau de synthèse des dossiers, au format Markdown."""
+def format_synthesis(
+    results: list[ApplicationResult], model: str, reference_date: str, total: int | None = None
+) -> str:
+    """Construit le tableau de synthèse des dossiers, au format Markdown (avancement si le lot est en cours)."""
     rows = []
     for item in results:
         cells = [
@@ -271,6 +289,7 @@ def format_synthesis(results: list[ApplicationResult], model: str, reference_dat
         "",
         f"Modèle : `{model}`",
         f"Date de référence (grille) : {reference_date or 'non précisée'}",
+        *([f"Lot en cours : {len(results)}/{total} dossiers traités."] if total and len(results) < total else []),
         "",
         "| Dossier | Candidat | Statut | Pièces manquantes | Incohérences | Brouillon |",
         "|---|---|---|---|---|---|",
@@ -283,6 +302,38 @@ def format_synthesis(results: list[ApplicationResult], model: str, reference_dat
     return "\n".join(lines)
 
 
+def write_atomic(path: Path, text: str) -> None:
+    """Écrit dans un fichier temporaire du même dossier puis le renomme : jamais de fichier à moitié écrit."""
+    temporary = path.with_name(path.name + ".tmp")
+    temporary.write_text(text, encoding="utf-8")
+    os.replace(temporary, path)
+
+
+def write_outputs(
+    results: list[ApplicationResult], model: str, reference_date: str, output_dir: Path, total: int
+) -> str:
+    """Écrit la synthèse et les résultats bruts (de façon atomique) ; renvoie la synthèse."""
+    synthesis = format_synthesis(results, model, reference_date, total)
+    write_atomic(output_dir / SYNTHESIS_NAME, synthesis)
+    raw = json.dumps([asdict(item) for item in results], ensure_ascii=False, indent=2)
+    write_atomic(output_dir / RESULTS_NAME, raw + "\n")
+    return synthesis
+
+
+def stop_batch(error: LLMBatchError, current: str, pending: list[Path], output_dir: Path) -> list[ApplicationResult]:
+    """Lot arrêté : dossier en cours en « erreur », dossiers suivants « non_traite » sans ancien brouillon."""
+    logger.error("Arrêt du lot : %s", error)
+    failed = ApplicationResult(folder=current, statut="erreur", points_a_verifier=[str(error)])
+    check_relance(failed, output_dir)
+    skipped = []
+    for candidate_dir in pending:
+        remove_previous_drafts(candidate_dir.name, output_dir)
+        skipped.append(
+            ApplicationResult(folder=candidate_dir.name, statut="non_traite", points_a_verifier=[BATCH_STOP_NOTE])
+        )
+    return [failed, *skipped]
+
+
 def check_applications(
     candidates_dir: Path,
     grid_path: Path,
@@ -291,7 +342,11 @@ def check_applications(
     only: str | None = None,
     tools_factory: ToolsFactory | None = None,
 ) -> list[ApplicationResult]:
-    """Contrôle chaque dossier, puis écrit la synthèse et les résultats bruts."""
+    """Contrôle chaque dossier et réécrit la synthèse et les résultats bruts après chacun.
+
+    Quota épuisé ou configuration refusée (LLMBatchError) : le lot s'arrête, la synthèse est quand même écrite.
+    Toute autre erreur inattendue ne touche que le dossier en cours (statut « erreur »).
+    """
     tools_factory = tools_factory or build_tools
     folders = list_candidate_dirs(candidates_dir, only)
     system_prompt = PROMPT_PATH.read_text(encoding="utf-8")
@@ -299,18 +354,26 @@ def check_applications(
     reference_date = str(grid.get("date_reference_controle", ""))
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    results = []
+    results: list[ApplicationResult] = []
+    synthesis = write_outputs(results, provider.model, reference_date, output_dir, len(folders))
     for position, candidate_dir in enumerate(folders, start=1):
-        logger.info("Dossier %d/%d : %s — en cours…", position, len(folders), candidate_dir.name)
-        result = check_application(candidate_dir, grid_path, output_dir, provider, system_prompt, tools_factory)
-        write_owner_draft(result, grid, output_dir)
+        folder = candidate_dir.name
+        logger.info("Dossier %d/%d : %s — en cours…", position, len(folders), folder)
+        try:
+            result = check_application(candidate_dir, grid_path, output_dir, provider, system_prompt, tools_factory)
+            write_owner_draft(result, grid, output_dir)
+        except LLMBatchError as error:
+            results += stop_batch(error, folder, folders[position:], output_dir)
+            synthesis = write_outputs(results, provider.model, reference_date, output_dir, len(folders))
+            break
+        except Exception as error:  # un dossier en échec ne doit pas faire perdre le lot
+            logger.exception("%s : erreur inattendue", folder)
+            message = f"erreur inattendue ({type(error).__name__} : {error}), voir le terminal"
+            result = ApplicationResult(folder=folder, statut="erreur", points_a_verifier=[message])
         logger.info("→ %s : %s", result.folder, STATUS_LABELS.get(result.statut, result.statut))
         results.append(result)
+        synthesis = write_outputs(results, provider.model, reference_date, output_dir, len(folders))
 
-    synthesis = format_synthesis(results, provider.model, reference_date)
-    (output_dir / SYNTHESIS_NAME).write_text(synthesis, encoding="utf-8")
-    raw = json.dumps([asdict(item) for item in results], ensure_ascii=False, indent=2)
-    (output_dir / RESULTS_NAME).write_text(raw + "\n", encoding="utf-8")
     logger.info("\n%s", synthesis)
     logger.info("Synthèse, résultats et brouillons écrits dans %s", output_dir)
     return results

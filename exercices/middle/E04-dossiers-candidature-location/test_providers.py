@@ -152,3 +152,162 @@ def test_exercise_settings_override_env_and_set_temperature() -> None:
     assert isinstance(provider, GeminiProvider)
     assert provider.model == "gemini-test"
     assert _agent_config("système", [], provider.temperature).temperature == 0.2
+
+
+def test_gemini_persistent_429_raises_quota_error() -> None:
+    from google.genai import errors
+
+    from llm_providers.base import LLMQuotaError
+
+    class QuotaModels:
+        def generate_content(self, **kwargs: Any) -> Any:
+            raise errors.ClientError(429, {"error": {"code": 429, "message": "quota", "status": "RESOURCE_EXHAUSTED"}})
+
+    provider = GeminiProvider(api_key="x")
+    provider._client = SimpleNamespace(models=QuotaModels())
+    with pytest.raises(LLMQuotaError):
+        provider.generate("système", "question")
+
+
+@pytest.mark.parametrize(("code", "message"), [(404, "This model is no longer available"), (400, "API key not valid")])
+def test_gemini_unknown_model_or_bad_key_raises_config_error(code: int, message: str) -> None:
+    from google.genai import errors
+
+    from llm_providers.base import LLMConfigError
+
+    class FailingModels:
+        def generate_content(self, **kwargs: Any) -> Any:
+            raise errors.ClientError(code, {"error": {"code": code, "message": message, "status": "X"}})
+
+    provider = GeminiProvider(api_key="x")
+    provider._client = SimpleNamespace(models=FailingModels())
+    with pytest.raises(LLMConfigError, match="LLM_MODEL"):
+        provider.generate("système", "question")
+
+
+def _quota_429(quota_id: str, retry_delay: str) -> Any:
+    from google.genai import errors
+
+    details = [
+        {"@type": "type.googleapis.com/google.rpc.QuotaFailure", "violations": [{"quotaId": quota_id}]},
+        {"@type": "type.googleapis.com/google.rpc.RetryInfo", "retryDelay": retry_delay},
+    ]
+    return errors.ClientError(429, {"error": {"code": 429, "message": "quota", "details": details}})
+
+
+def test_gemini_daily_quota_stops_without_waiting(monkeypatch: pytest.MonkeyPatch) -> None:
+    from llm_providers.base import LLMQuotaError
+
+    waits: list[float] = []
+    monkeypatch.setattr("llm_providers.gemini_provider.time.sleep", waits.append)
+
+    class DailyQuota:
+        def generate_content(self, **kwargs: Any) -> Any:
+            raise _quota_429("GenerateRequestsPerDayPerProjectPerModel-FreeTier", "71541s")
+
+    provider = GeminiProvider(api_key="x")
+    provider._client = SimpleNamespace(models=DailyQuota())
+    with pytest.raises(LLMQuotaError, match="quota du jour"):
+        provider.generate("système", "question")
+    assert waits == []  # aucune attente : arrêt immédiat
+
+
+def test_gemini_minute_quota_waits_then_succeeds(monkeypatch: pytest.MonkeyPatch) -> None:
+    waits: list[float] = []
+    monkeypatch.setattr("llm_providers.gemini_provider.time.sleep", waits.append)
+
+    class MinuteQuotaThenOk:
+        calls = 0
+
+        def generate_content(self, **kwargs: Any) -> Any:
+            self.calls += 1
+            if self.calls == 1:
+                raise _quota_429("GenerateRequestsPerMinutePerProjectPerModel-FreeTier", "12s")
+            return types.GenerateContentResponse(
+                candidates=[types.Candidate(content=types.Content(role="model", parts=[types.Part(text="OK")]))]
+            )
+
+    provider = GeminiProvider(api_key="x")
+    provider._client = SimpleNamespace(models=MinuteQuotaThenOk())
+    assert provider.generate("système", "question") == "OK"
+    assert waits == [13.0]  # délai annoncé par Google + 1 s
+
+
+def _ok_response() -> Any:
+    return types.GenerateContentResponse(
+        candidates=[types.Candidate(content=types.Content(role="model", parts=[types.Part(text="OK")]))]
+    )
+
+
+def test_gemini_timeout_fails_once_without_silent_retry(monkeypatch: pytest.MonkeyPatch) -> None:
+    import httpx
+
+    waits: list[float] = []
+    monkeypatch.setattr("llm_providers.gemini_provider.time.sleep", waits.append)
+
+    class SlowModels:
+        calls = 0
+
+        def generate_content(self, **kwargs: Any) -> Any:
+            self.calls += 1
+            raise httpx.ReadTimeout("trop lent")
+
+    provider = GeminiProvider(api_key="x")
+    provider._client = SimpleNamespace(models=SlowModels())
+    with pytest.raises(LLMError, match="n'a pas répondu"):
+        provider.generate("système", "question")
+    assert provider._client.models.calls == 1 and waits == []
+
+
+def test_gemini_server_error_retried_with_visible_wait(monkeypatch: pytest.MonkeyPatch) -> None:
+    from google.genai import errors
+
+    waits: list[float] = []
+    monkeypatch.setattr("llm_providers.gemini_provider.time.sleep", waits.append)
+
+    class BusyThenOk:
+        calls = 0
+
+        def generate_content(self, **kwargs: Any) -> Any:
+            self.calls += 1
+            if self.calls == 1:
+                raise errors.ServerError(
+                    503, {"error": {"code": 503, "message": "overloaded", "status": "UNAVAILABLE"}}
+                )
+            return _ok_response()
+
+    provider = GeminiProvider(api_key="x")
+    provider._client = SimpleNamespace(models=BusyThenOk())
+    assert provider.generate("système", "question") == "OK"
+    assert waits == [5]
+
+
+@pytest.mark.parametrize(
+    ("error_class", "status", "expected"),
+    [
+        ("RateLimitError", 429, "LLMQuotaError"),
+        ("AuthenticationError", 401, "LLMConfigError"),
+        ("PermissionDeniedError", 403, "LLMConfigError"),
+        ("NotFoundError", 404, "LLMConfigError"),
+    ],
+)
+def test_anthropic_batch_errors(error_class: str, status: int, expected: str) -> None:
+    import anthropic
+    import httpx
+
+    from llm_providers import base
+
+    request = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
+    error = getattr(anthropic, error_class)("refus", response=httpx.Response(status, request=request), body=None)
+
+    class FailingClient:
+        def __init__(self) -> None:
+            self.beta = SimpleNamespace(messages=SimpleNamespace(create=self._create))
+
+        def _create(self, **kwargs: Any) -> Any:
+            raise error
+
+    provider = AnthropicProvider(api_key="x")
+    provider._client = FailingClient()
+    with pytest.raises(getattr(base, expected)):
+        provider.generate("système", "question")

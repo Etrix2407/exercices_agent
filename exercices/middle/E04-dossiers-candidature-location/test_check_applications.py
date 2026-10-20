@@ -9,6 +9,7 @@ import pytest
 
 from check_applications import ApplicationResult, check_applications, list_candidate_dirs, parse_agent_output
 from llm_providers import LLMError
+from llm_providers.base import LLMQuotaError
 
 GRID = {"date_reference_controle": "2026-10-14", "pieces_candidat": []}
 
@@ -183,3 +184,46 @@ def test_owner_draft_skipped_when_points_to_check(workspace) -> None:
     assert alice.transmission_fichier == ""
     assert not (output / "transmission_alice-test.txt").exists()
     assert alice.points_a_verifier == [*points, "transmission non écrite : points à vérifier"]
+
+
+def test_quota_error_stops_batch_and_still_writes_synthesis(workspace) -> None:
+    _, _, output = workspace
+    output.mkdir(parents=True)
+    # Brouillon d'une exécution précédente pour un dossier qui ne sera pas traité : il doit disparaître.
+    (output / "relance_carla-test.txt").write_text("ancienne", encoding="utf-8")
+    answers = {"alice-test": answer("complet"), "bruno-test": LLMQuotaError("quota du jour épuisé")}
+    results = run(workspace, answers)
+    assert [item.statut for item in results] == ["complet", "erreur", "non_traite"]
+    assert results[1].points_a_verifier == ["quota du jour épuisé"]
+    assert "lot arrêté" in results[2].points_a_verifier[0]
+    assert not (output / "relance_carla-test.txt").exists()
+    synthesis = (output / "synthese.md").read_text(encoding="utf-8")
+    assert "| carla-test | — | non traité |" in synthesis
+    assert not list(output.glob("*.tmp"))
+
+
+def test_unexpected_exception_only_fails_current_folder(workspace, caplog: pytest.LogCaptureFixture) -> None:
+    answers = {"alice-test": RuntimeError("bogue"), "bruno-test": answer("complet"), "carla-test": answer("complet")}
+    results = run(workspace, answers)
+    assert [item.statut for item in results] == ["erreur", "complet", "complet"]
+    assert "RuntimeError" in results[0].points_a_verifier[0]
+    assert "erreur inattendue" in caplog.text
+
+
+def test_synthesis_written_after_each_folder(workspace) -> None:
+    output = workspace[2]
+    seen: list[str] = []
+
+    class SpyProvider(FakeProvider):
+        def run_agent(self, system: str, user: str, tools: list, max_steps: int = 25) -> str:
+            seen.append((output / "synthese.md").read_text(encoding="utf-8"))
+            return super().run_agent(system, user, tools, max_steps)
+
+    output.mkdir(parents=True)
+    answers = {name: answer("complet") for name in ("alice-test", "bruno-test", "carla-test")}
+    check_applications(
+        workspace[0], workspace[1], output, SpyProvider(output, answers, set()), tools_factory=lambda *_: []
+    )
+    assert "Lot en cours : 0/3" in seen[0]
+    assert "Lot en cours : 2/3" in seen[2] and "| bruno-test |" in seen[2]
+    assert "Lot en cours" not in (output / "synthese.md").read_text(encoding="utf-8")
