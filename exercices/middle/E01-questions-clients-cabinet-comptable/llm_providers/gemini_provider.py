@@ -7,8 +7,7 @@ from google.genai import errors, types
 
 from llm_providers.base import LLMError
 
-# Alias qui pointe toujours vers le dernier modèle Flash disponible.
-DEFAULT_MODEL = "gemini-flash-latest"
+DEFAULT_MODEL = "gemini-3.5-flash"
 # Le SDK ne réessaie pas par défaut : on réessaie sur saturation (429, 503) et erreurs serveur.
 RETRY_OPTIONS = types.HttpRetryOptions(attempts=4, http_status_codes=[429, 500, 502, 503, 504])
 
