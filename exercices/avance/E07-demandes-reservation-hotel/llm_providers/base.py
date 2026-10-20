@@ -11,6 +11,10 @@ class LLMError(Exception):
     """Erreur d'appel au modèle (configuration, réseau, refus, réponse vide, boucle trop longue)."""
 
 
+class LLMQuotaError(LLMError):
+    """Quota de l'API épuisé malgré les réessais : inutile de continuer le lot, il faut s'arrêter."""
+
+
 class ToolError(Exception):
     """Erreur « métier » d'un outil : son message est renvoyé au modèle comme résultat en erreur."""
 

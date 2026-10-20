@@ -129,3 +129,20 @@ def test_hall_without_dates_or_malformed_is_refused() -> None:
             tools["read_planning"](
                 {"date_debut": "2026-12-13", "date_fin": "2026-12-16", "besoins": {**WEDDING_NEEDS, "salles": halls}}
             )
+
+
+def test_unresponsive_mcp_server_raises_tool_error(monkeypatch) -> None:
+    import mcp_bridge
+
+    class SilentClient:
+        async def call_tool(self, name: str, arguments: dict) -> Any:
+            await anyio.sleep(10)
+
+    monkeypatch.setattr(mcp_bridge, "MCP_TIMEOUT_S", 0.2)
+    kit = KitClient(SilentClient())
+
+    async def scenario() -> None:
+        await anyio.to_thread.run_sync(kit.call, "lire_demande", {"identifiant": "x"})
+
+    with pytest.raises(ToolError, match="pas répondu"):
+        anyio.run(scenario)
