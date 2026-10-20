@@ -7,7 +7,7 @@ from typing import Any
 
 import anthropic
 
-from llm_providers.base import LLMConfigError, LLMError, LLMQuotaError, ToolError, ToolSpec
+from agent.llm_providers.base import LLMConfigError, LLMError, LLMQuotaError, ToolError, ToolSpec
 
 DEFAULT_MODEL = "claude-opus-5-5"
 # Modèles qui acceptent le repli automatique côté serveur en cas de refus.

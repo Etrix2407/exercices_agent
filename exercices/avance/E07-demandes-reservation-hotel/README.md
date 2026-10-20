@@ -100,7 +100,20 @@ asyncio.run(main())
 
 ## Agent de traitement des demandes
 
-`process_requests.py` traite chaque demande de la boîte et prépare une fiche et un brouillon de réponse, sans rien réserver ni envoyer. Architecture : une boucle d'agent (`llm_providers/`, Gemini ou Claude) appelle cinq outils définis dans `mcp_bridge.py`, qui relaient vers le serveur MCP `hotel-reservations-groupe` du kit, démarré en stdio le temps du traitement.
+L'agent traite chaque demande de la boîte et prépare une fiche et un brouillon de réponse, sans rien réserver ni envoyer. Son code est rangé dans `agent/`, séparé du kit (qui reste inchangé) :
+
+```
+agent/
+├── __main__.py              lancement : python -m agent
+├── process_requests.py      orchestrateur : une session d'agent par demande, contrôles, synthèse
+├── mcp_bridge.py            les cinq outils de l'agent, branchés sur le serveur MCP du kit
+├── prompt_sys_reservation.md
+├── llm_providers/           boucle d'agent Gemini ou Claude (un fichier par SDK)
+├── output/                  sorties (ignorées par git)
+└── tests/                   tests sans réseau ni modèle ; fakes.py : faux kit partagé
+```
+
+Architecture : une boucle d'agent (`agent/llm_providers/`, Gemini ou Claude) appelle cinq outils définis dans `agent/mcp_bridge.py`, qui relaient vers le serveur MCP `hotel-reservations-groupe` du kit, démarré en stdio le temps du traitement.
 
 | Outil | Rôle | Outil(s) du serveur |
 |---|---|---|
@@ -124,25 +137,25 @@ Clés lues dans le fichier partagé `exercices\.env` : `GEMINI_API_KEY` ou `ANTH
 
 ### Réglages
 
-Trois constantes en tête de `process_requests.py` : `LLM_PROVIDER` (`"gemini"` ou `"anthropic"`), `LLM_MODEL` et `LLM_TEMPERATURE` (`None` : valeur par défaut du modèle ; ignorée par Claude). Elles priment sur les variables `LLM_PROVIDER` et `LLM_MODEL` du `.env` ; avec `None`, le choix se fait selon les clés présentes.
+Trois constantes en tête de `agent/process_requests.py` : `LLM_PROVIDER` (`"gemini"` ou `"anthropic"`), `LLM_MODEL` et `LLM_TEMPERATURE` (`None` : valeur par défaut du modèle ; ignorée par Claude). Elles priment sur les variables `LLM_PROVIDER` et `LLM_MODEL` du `.env` ; avec `None`, le choix se fait selon les clés présentes.
 
 ### Lancer
 
 Depuis le dossier du kit :
 
 ```powershell
-..\.venv\Scripts\python process_requests.py --reset --only demande_01_mariage
-..\.venv\Scripts\python process_requests.py --reset
-..\.venv\Scripts\python -m pytest
+..\.venv\Scripts\python -m agent --reset --only demande_01_mariage
+..\.venv\Scripts\python -m agent --reset
+..\.venv\Scripts\python -m pytest          # tests de l'agent (pytest.ini : agent/tests)
 ```
 
 `--reset` recrée la boîte et le planning avant le traitement et repart d'une synthèse vide ; `--only` limite à une demande ; `--output` change le dossier de sortie (par défaut `output`).
 
 ### Sorties
 
-- `output\synthese.md` : tableau par demande (statut, séjour, informations manquantes, dates alternatives, devis TTC, brouillon) et points à vérifier ;
-- `output\resultats.json` : résultats bruts ;
-- `output\journal_outils.txt` : chaque appel d'outil et chaque refus ;
+- `agent\output\synthese.md` : tableau par demande (statut, séjour, informations manquantes, dates alternatives, devis TTC, brouillon) et points à vérifier ;
+- `agent\output\resultats.json` : résultats bruts ;
+- `agent\output\journal_outils.txt` : chaque appel d'outil et chaque refus ;
 - `boite\fiches\` : fiches JSON ; `boite\brouillons\` : brouillons, avec `devis.md` joint le cas échéant.
 
 `synthese.md` et `resultats.json` sont réécrits après chaque demande ; tant que le lot n'est pas fini, la synthèse porte la ligne « Avancement : n/N demandes traitées (lot en cours) ».

@@ -20,9 +20,10 @@ from typing import Any, Protocol
 import anyio
 from mcp import Client, StdioServerParameters
 
-from llm_providers.base import ToolError, ToolSpec
+from agent.llm_providers.base import ToolError, ToolSpec
 
-SERVER_PATH = Path(__file__).with_name("serveur_mcp.py")
+# Le serveur MCP fait partie du kit du formateur, dans le dossier parent de agent/.
+SERVER_PATH = Path(__file__).resolve().parents[1] / "serveur_mcp.py"
 GRID_URI = "hotel://grille-tarifaire"
 STATUSES = ("proposition", "precisions_requises", "dates_alternatives", "hors_perimetre", "erreur")
 # Statuts pour lesquels le devis calculé par le code est joint au brouillon.
