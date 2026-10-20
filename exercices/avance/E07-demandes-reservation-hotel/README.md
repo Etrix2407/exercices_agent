@@ -97,3 +97,62 @@ async def main() -> None:
 
 asyncio.run(main())
 ```
+
+## Agent de traitement des demandes
+
+`process_requests.py` traite chaque demande de la boîte et prépare une fiche et un brouillon de réponse, sans rien réserver ni envoyer. Architecture : une boucle d'agent (`llm_providers/`, Gemini ou Claude) appelle cinq outils définis dans `mcp_bridge.py`, qui relaient vers le serveur MCP `hotel-reservations-groupe` du kit, démarré en stdio le temps du traitement.
+
+| Outil | Rôle | Outil(s) du serveur |
+|---|---|---|
+| `read_email(demande_id)` | lit le courriel de la demande en cours, encadré comme une donnée | `lire_demande` |
+| `read_planning(date_debut, date_fin, besoins?)` | disponibilités en lecture seule ; avec `besoins`, chambres manquantes, salles occupées et verdict `disponible` | `disponibilites_chambres`, `disponibilites_salles` |
+| `read_grille()` | grille tarifaire | ressource `hotel://grille-tarifaire` |
+| `calc_devis(besoins)` | devis calculé en code d'après la grille (aucun montant fixé par le modèle) | `calculer_devis` |
+| `write_draft(fiche_json)` | fiche et brouillon ; un seul appel par demande | `enregistrer_fiche_besoins`, `enregistrer_brouillon` |
+
+Le devis du dernier `calc_devis` est joint par le code (`devis.md`) pour les statuts `proposition` et `dates_alternatives`, jamais pour `precisions_requises`, `hors_perimetre` ou `erreur`. `pre_reserver` n'est jamais exposé à l'agent : le planning reste inchangé.
+
+### Installation
+
+Le `requirements.txt` du dossier `avance\` contient tout : SDK MCP, SDK des fournisseurs (`google-genai`, `anthropic`) et `python-dotenv`.
+
+```powershell
+.venv\Scripts\python -m pip install -r requirements.txt
+```
+
+Clés lues dans le fichier partagé `exercices\.env` : `GEMINI_API_KEY` ou `ANTHROPIC_API_KEY`.
+
+### Réglages
+
+Trois constantes en tête de `process_requests.py` : `LLM_PROVIDER` (`"gemini"` ou `"anthropic"`), `LLM_MODEL` et `LLM_TEMPERATURE` (`None` : valeur par défaut du modèle ; ignorée par Claude). Elles priment sur les variables `LLM_PROVIDER` et `LLM_MODEL` du `.env` ; avec `None`, le choix se fait selon les clés présentes.
+
+### Lancer
+
+Depuis le dossier du kit :
+
+```powershell
+..\.venv\Scripts\python process_requests.py --reset --only demande_01_mariage
+..\.venv\Scripts\python process_requests.py --reset
+..\.venv\Scripts\python -m pytest
+```
+
+`--reset` recrée la boîte et le planning avant le traitement ; `--only` limite à une demande ; `--output` change le dossier de sortie (par défaut `output`).
+
+### Sorties
+
+- `output\synthese.md` : tableau par demande (statut, séjour, informations manquantes, dates alternatives, devis TTC, brouillon) et points à vérifier ;
+- `output\resultats.json` : résultats bruts ;
+- `output\journal_outils.txt` : chaque appel d'outil et chaque refus ;
+- `boite\fiches\` : fiches JSON ; `boite\brouillons\` : brouillons, avec `devis.md` joint le cas échéant.
+
+Statuts possibles : `proposition`, `precisions_requises`, `dates_alternatives`, `hors_perimetre`, `erreur`.
+
+### Contrôles automatiques
+
+- devis `proposition` recalculé à partir des besoins de la fiche et comparé au total joint ;
+- chaque date alternative revérifiée dans le planning (assez de chambres libres) ;
+- nombre de lignes d'occupation du planning comparé avant et après : « Planning inchangé » dans la synthèse.
+
+Les écarts sont ajoutés aux points à vérifier de la synthèse.
+
+Le quota gratuit de Gemini est limité (requêtes par minute et par jour) : lancer par étapes avec `--only`.
