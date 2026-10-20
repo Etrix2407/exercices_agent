@@ -17,7 +17,7 @@ from pathlib import Path
 import pandas as pd
 from dotenv import load_dotenv
 
-from llm_providers import LLMError, LLMProvider, get_provider
+from llm_providers import LLMBatchError, LLMError, LLMProvider, get_provider
 
 # Réglages du modèle propres à cet exercice (le .env est partagé par tous les exercices).
 # None : choix automatique selon les clés du .env / modèle et température par défaut.
@@ -36,6 +36,8 @@ SAFE_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]+$")
 LABEL_PATTERN = re.compile(r"\*\*Étiquette :\*\*\s*(.+)")
 SECTION_PATTERN = re.compile(r"\*\*Section citée :\*\*\s*(.+)")
 UNKNOWN = "non détectée"
+NOT_PROCESSED = "non_traitee"
+STOPPED_NOTE = "lot arrêté avant cette question (quota ou configuration), relancer plus tard"
 
 logger = logging.getLogger(__name__)
 
@@ -88,6 +90,11 @@ def summarize_draft(question_id: str, draft: str) -> DraftSummary:
     )
 
 
+def skipped_summaries(records: list[dict[str, str]]) -> list[DraftSummary]:
+    """Résumés des questions non envoyées au modèle après l'arrêt du lot."""
+    return [DraftSummary(record["identifiant"], NOT_PROCESSED, STOPPED_NOTE) for record in records]
+
+
 def table_cell(text: str) -> str:
     """Neutralise les caractères qui casseraient une ligne de tableau Markdown."""
     return " ".join(text.split()).replace("|", "\\|")
@@ -119,13 +126,21 @@ def draft_answers(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     summaries = []
-    total = len(questions)
-    for position, record in enumerate(questions.to_dict("records"), start=1):
+    records = questions.to_dict("records")
+    total = len(records)
+    for position, record in enumerate(records, start=1):
         question_id = record["identifiant"]
         draft_path = output_dir / f"{question_id}.md"
         logger.info("Question %d/%d : %s", position, total, question_id)
         try:
             draft = provider.generate(system_prompt, format_question(record))
+        except LLMBatchError as error:
+            # Quota épuisé ou configuration refusée : les questions suivantes échoueraient aussi.
+            logger.error("%s : %s. Arrêt du lot.", question_id, error)
+            draft_path.unlink(missing_ok=True)
+            summaries.append(DraftSummary(question_id, "erreur", str(error)))
+            summaries.extend(skipped_summaries(records[position:]))
+            break
         except LLMError as error:
             # Une question en échec ne bloque pas le lot : elle apparaît en erreur dans le récapitulatif.
             # On retire le brouillon d'une exécution précédente pour ne pas le faire passer pour actuel.

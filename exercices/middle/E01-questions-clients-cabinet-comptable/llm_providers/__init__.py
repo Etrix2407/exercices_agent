@@ -11,7 +11,7 @@ import os
 from collections.abc import Mapping
 
 from llm_providers.anthropic_provider import AnthropicProvider
-from llm_providers.base import LLMError, LLMProvider
+from llm_providers.base import LLMBatchError, LLMConfigError, LLMError, LLMProvider, LLMQuotaError
 from llm_providers.gemini_provider import GeminiProvider
 
 # Nom du fournisseur -> (variable de la clé, classe). L'ordre fixe la priorité du choix automatique.
@@ -20,7 +20,7 @@ PROVIDERS: dict[str, tuple[str, type[AnthropicProvider | GeminiProvider]]] = {
     "gemini": ("GEMINI_API_KEY", GeminiProvider),
 }
 
-__all__ = ["LLMError", "LLMProvider", "get_provider"]
+__all__ = ["LLMBatchError", "LLMConfigError", "LLMError", "LLMProvider", "LLMQuotaError", "get_provider"]
 
 
 def get_provider(

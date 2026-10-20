@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 from pathlib import Path
+from types import SimpleNamespace
 
+import httpx
 import pytest
+from google.genai import errors
 
-from draft_answers import UNKNOWN, draft_answers, load_questions, summarize_draft
-from llm_providers import LLMError, get_provider
+from draft_answers import NOT_PROCESSED, UNKNOWN, draft_answers, load_questions, summarize_draft
+from llm_providers import LLMError, LLMQuotaError, get_provider
 from llm_providers.anthropic_provider import AnthropicProvider
 from llm_providers.gemini_provider import GeminiProvider
 
@@ -19,12 +22,15 @@ class FakeProvider:
 
     model = "factice"
 
-    def __init__(self, failing_id: str | None = None) -> None:
+    def __init__(self, failing_id: str | None = None, error: LLMError | None = None) -> None:
         self.failing_id = failing_id
+        self.error = error or LLMError("panne | simulée\nsur deux lignes")
+        self.calls = 0
 
     def generate(self, system: str, user: str) -> str:
+        self.calls += 1
         if self.failing_id and user.startswith(self.failing_id):
-            raise LLMError("panne | simulée\nsur deux lignes")
+            raise self.error
         return "**Étiquette :** traitable\n**Section citée :** § 2.1 (Déclaration de TVA trimestrielle)"
 
 
@@ -83,3 +89,66 @@ def test_exercise_settings_override_env():
     provider = get_provider(env, provider="gemini", model="gemini-test", temperature=0.2)
     assert isinstance(provider, GeminiProvider)
     assert provider.model == "gemini-test" and provider.temperature == 0.2
+
+
+# --- Robustesse des fournisseurs et arrêt du lot --------------------------------------------------------------
+
+
+def quota_429(quota_id: str, retry_delay: str) -> errors.ClientError:
+    """Erreur 429 telle que Google la renvoie, avec QuotaFailure et RetryInfo."""
+    details = [
+        {"@type": "type.googleapis.com/google.rpc.QuotaFailure", "violations": [{"quotaId": quota_id}]},
+        {"@type": "type.googleapis.com/google.rpc.RetryInfo", "retryDelay": retry_delay},
+    ]
+    return errors.ClientError(429, {"error": {"code": 429, "message": "quota", "details": details}})
+
+
+class FailingModels:
+    """Faux client Gemini : chaque appel lève l'erreur donnée et est compté."""
+
+    def __init__(self, error: Exception) -> None:
+        self.error = error
+        self.calls = 0
+
+    def generate_content(self, **kwargs: object) -> None:
+        self.calls += 1
+        raise self.error
+
+
+def gemini_with(models: FailingModels) -> GeminiProvider:
+    provider = GeminiProvider(api_key="x")
+    provider._client = SimpleNamespace(models=models)
+    return provider
+
+
+def test_gemini_daily_quota_stops_without_waiting(monkeypatch):
+    waits: list[float] = []
+    monkeypatch.setattr("llm_providers.gemini_provider.time.sleep", waits.append)
+    models = FailingModels(quota_429("GenerateRequestsPerDayPerProjectPerModel-FreeTier", "71541s"))
+
+    with pytest.raises(LLMQuotaError, match="quota du jour"):
+        gemini_with(models).generate("système", "question")
+    assert models.calls == 1 and waits == []
+
+
+def test_gemini_timeout_fails_once_without_retry(monkeypatch):
+    waits: list[float] = []
+    monkeypatch.setattr("llm_providers.gemini_provider.time.sleep", waits.append)
+    models = FailingModels(httpx.ReadTimeout("trop lent"))
+
+    with pytest.raises(LLMError, match="n'a pas répondu"):
+        gemini_with(models).generate("système", "question")
+    assert models.calls == 1 and waits == []
+
+
+def test_draft_answers_stops_batch_on_batch_error(tmp_path):
+    csv_path = write_csv(tmp_path, HEADER + 'Q01,A,DA-1,"Q ?"\nQ02,B,DA-2,"Q ?"\nQ03,C,DA-3,"Q ?"\n')
+    output_dir = tmp_path / "drafts"
+    provider = FakeProvider(failing_id="Q02", error=LLMQuotaError("quota du jour épuisé"))
+
+    summaries = draft_answers(csv_path, output_dir, provider)
+
+    assert [item.label for item in summaries] == ["traitable", "erreur", NOT_PROCESSED]
+    assert provider.calls == 2
+    recap = (output_dir / "recap.md").read_text(encoding="utf-8")
+    assert "| Q03 | non_traitee |" in recap
