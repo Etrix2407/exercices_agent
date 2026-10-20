@@ -76,3 +76,10 @@ def test_draft_answers_continues_after_a_failure(tmp_path):
     assert (output_dir / "Q02.md").exists()
     recap = (output_dir / "recap.md").read_text(encoding="utf-8")
     assert "| Q01 | erreur | panne \\| simulée sur deux lignes |" in recap
+
+
+def test_exercise_settings_override_env():
+    env = {"ANTHROPIC_API_KEY": "a", "API_KEY_GEMINI": "g", "LLM_PROVIDER": "anthropic", "LLM_MODEL": "autre"}
+    provider = get_provider(env, provider="gemini", model="gemini-test", temperature=0.2)
+    assert isinstance(provider, GeminiProvider)
+    assert provider.model == "gemini-test" and provider.temperature == 0.2
