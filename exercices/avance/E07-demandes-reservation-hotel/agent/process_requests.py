@@ -130,10 +130,7 @@ def build_result(request_id: str, tools: HotelTools, final_text: str) -> Request
         if not result.dates_alternatives:
             result.points_a_verifier.append("statut « dates_alternatives » sans aucune date proposée")
         result.points_a_verifier += checks.check_alternatives(needs, result.dates_alternatives)
-        if quote:
-            problem = checks.check_alternative_quote(quote, result.dates_alternatives)
-            if problem:
-                result.points_a_verifier.append(problem)
+        result.points_a_verifier += checks.check_alternative_quote(needs, quote, result.dates_alternatives)
     return result
 
 

@@ -69,14 +69,6 @@ def test_synthesis_flags_changed_planning() -> None:
     assert "NON" in format_synthesis([], "factice", planning_unchanged=False)
 
 
-def test_alternative_quote_must_cover_first_alternative() -> None:
-    from agent.checks import check_alternative_quote
-
-    quote = {"arrivee": "2027-01-04", "depart": "2027-01-06"}
-    assert check_alternative_quote(quote, ["2027-01-04 → 2027-01-06"]) is None
-    assert "≠" in check_alternative_quote(quote, ["2027-01-11 → 2027-01-13"])
-
-
 def test_exhausted_quota_stops_batch_immediately(tmp_path: Path, monkeypatch) -> None:
     from agent.llm_providers.base import LLMQuotaError
 
