@@ -14,6 +14,7 @@ import argparse
 import json
 import logging
 import os
+import re
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from datetime import date
@@ -23,7 +24,13 @@ from typing import Any
 
 from dotenv import load_dotenv
 
-from agent_tools import build_tools, list_candidate_files, relance_name
+from agent_tools import (
+    build_tools,
+    list_candidate_files,
+    load_grid_pieces,
+    matching_files,
+    relance_name,
+)
 from llm_providers import LLMError, LLMProvider, get_provider
 from llm_providers.base import LLMBatchError, ToolSpec
 
@@ -58,6 +65,9 @@ LIST_FIELDS = ("pieces_manquantes", "incoherences", "points_a_verifier", "source
 
 # (dossier du candidat, grille, dossier de sortie) -> outils de l'agent.
 ToolsFactory = Callable[[Path, Path, Path], list[ToolSpec]]
+
+# Seuls motifs pour lesquels des fichiers présents ne comptent pas : pièce périmée ou expirée.
+OUTDATED_REASON = re.compile(r"p[ée]rim|expir", re.IGNORECASE)
 
 logger = logging.getLogger(__name__)
 
@@ -263,9 +273,48 @@ def check_application(
     except (LLMError, AgentOutputError) as error:
         logger.error("%s : %s", folder, error)
         result = ApplicationResult(folder=folder, statut="erreur", points_a_verifier=[str(error)])
+    drop_pieces_found_by_code(result, candidate_dir, grid_path)
     enforce_complete_status(result)
     check_relance(result, output_dir)
     return result
+
+
+def drop_pieces_found_by_code(result: ApplicationResult, candidate_dir: Path, grid_path: Path) -> None:
+    """Filet de sécurité : retire une pièce déclarée manquante alors que le dossier a assez de fichiers pour elle.
+
+    Une pièce n'est retirée que si son motif n'est ni « périmée » ni « expirée » (seuls cas où des fichiers
+    présents ne comptent pas) ; un nom différent reste une incohérence, pas une pièce manquante.
+    S'il ne reste aucune pièce manquante, le statut est recalculé selon les règles de la grille.
+    """
+    if result.statut != "incomplet":
+        return
+    files = list_candidate_files(candidate_dir)
+    present = {
+        piece.label.casefold()
+        for piece in load_grid_pieces(grid_path)
+        if len(matching_files(piece, files)) >= piece.minimum
+    }
+    kept, dropped = [], []
+    for piece in result.pieces_manquantes:
+        name = str(piece.get("piece", "")) if isinstance(piece, dict) else str(piece)
+        reason = str(piece.get("motif", "")) if isinstance(piece, dict) else ""
+        if name.strip().casefold() in present and not OUTDATED_REASON.search(reason):
+            dropped.append(name)
+        else:
+            kept.append(piece)
+    if not dropped:
+        return
+    result.pieces_manquantes = kept
+    previous = result.statut
+    if not kept:
+        result.statut = "a_verifier" if result.incoherences or result.points_a_verifier else "complet"
+    logger.warning(
+        "%s : pièce(s) déclarée(s) manquante(s) mais présente(s) dans le dossier, retirée(s) : %s (statut %s → %s)",
+        result.folder,
+        ", ".join(dropped),
+        previous,
+        result.statut,
+    )
 
 
 def enforce_complete_status(result: ApplicationResult) -> None:

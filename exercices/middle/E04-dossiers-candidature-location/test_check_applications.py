@@ -7,7 +7,12 @@ from pathlib import Path
 
 import pytest
 
-from check_applications import ApplicationResult, check_applications, list_candidate_dirs, parse_agent_output
+from check_applications import (
+    ApplicationResult,
+    check_applications,
+    list_candidate_dirs,
+    parse_agent_output,
+)
 from llm_providers import LLMError
 from llm_providers.base import LLMQuotaError
 
@@ -273,3 +278,58 @@ def test_complete_with_points_to_check_becomes_to_verify() -> None:
     result = ApplicationResult(folder="x", statut="complet", points_a_verifier=["bulletin.pdf illisible"])
     enforce_complete_status(result)
     assert result.statut == "a_verifier" and "ramené" in result.points_a_verifier[-1]
+
+
+# --- Filet de sécurité : pièce présente déclarée manquante -------------------------------------------------------
+
+SAFETY_GRID = {
+    "pieces_candidat": [
+        {"court": "Pièce d'identité", "motifs": ["identite*"], "nombre_min": 1},
+        {"court": "Avis d'imposition", "motifs": ["avis_imposition*"], "nombre_min": 1},
+        {"court": "Justificatifs de revenus", "motifs": ["bulletin_*"], "nombre_min": 3},
+    ]
+}
+
+
+@pytest.fixture
+def safety_folder(tmp_path: Path) -> tuple[Path, Path]:
+    candidate = tmp_path / "jane"
+    candidate.mkdir()
+    for name in ("identite.txt", "avis_imposition_2025.txt", "bulletin_1.txt", "bulletin_2.txt"):
+        (candidate / name).write_text("x", encoding="utf-8")
+    grid = tmp_path / "grille.json"
+    grid.write_text(json.dumps(SAFETY_GRID), encoding="utf-8")
+    return candidate, grid
+
+
+@pytest.mark.parametrize(
+    ("incoherences", "expected_status"),
+    [([], "complet"), (["avis_imposition_2025.txt au nom de « Jane Do »"], "a_verifier")],
+)
+def test_present_piece_declared_missing_is_dropped(safety_folder, incoherences, expected_status) -> None:
+    from check_applications import drop_pieces_found_by_code
+
+    result = ApplicationResult(
+        folder="jane",
+        statut="incomplet",
+        pieces_manquantes=[{"piece": "Avis d'imposition", "motif": "manquante (nom non concordant)"}],
+        incoherences=incoherences,
+    )
+    drop_pieces_found_by_code(result, *safety_folder)
+    assert result.pieces_manquantes == [] and result.statut == expected_status
+
+
+@pytest.mark.parametrize(
+    "piece",
+    [
+        {"piece": "Avis d'imposition", "motif": "périmée (émise le 01/01/2024)"},
+        {"piece": "Pièce d'identité", "motif": "périmée (expirée le 01/01/2026)"},
+        {"piece": "Justificatifs de revenus", "motif": "1 sur 3 manquante"},
+    ],
+)
+def test_outdated_or_really_missing_piece_is_kept(safety_folder, piece) -> None:
+    from check_applications import drop_pieces_found_by_code
+
+    result = ApplicationResult(folder="jane", statut="incomplet", pieces_manquantes=[piece])
+    drop_pieces_found_by_code(result, *safety_folder)
+    assert result.pieces_manquantes == [piece] and result.statut == "incomplet"
