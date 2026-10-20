@@ -35,12 +35,12 @@ def write_csv(tmp_path: Path, content: str) -> Path:
 
 
 def test_get_provider_prefers_anthropic_when_both_keys_exist():
-    provider = get_provider({"ANTHROPIC_API_KEY": "a", "API_KEY_GEMINI": "g"})
+    provider = get_provider({"ANTHROPIC_API_KEY": "a", "GEMINI_API_KEY": "g"})
     assert isinstance(provider, AnthropicProvider)
 
 
 def test_get_provider_uses_requested_provider_and_model():
-    env = {"ANTHROPIC_API_KEY": "a", "API_KEY_GEMINI": "g", "LLM_PROVIDER": "Gemini", "LLM_MODEL": "gemini-x"}
+    env = {"ANTHROPIC_API_KEY": "a", "GEMINI_API_KEY": "g", "LLM_PROVIDER": "Gemini", "LLM_MODEL": "gemini-x"}
     provider = get_provider(env)
     assert isinstance(provider, GeminiProvider)
     assert provider.model == "gemini-x"
@@ -48,7 +48,7 @@ def test_get_provider_uses_requested_provider_and_model():
 
 def test_get_provider_fails_without_key_for_requested_provider():
     with pytest.raises(LLMError, match="ANTHROPIC_API_KEY"):
-        get_provider({"LLM_PROVIDER": "anthropic", "API_KEY_GEMINI": "g"})
+        get_provider({"LLM_PROVIDER": "anthropic", "GEMINI_API_KEY": "g"})
 
 
 def test_load_questions_rejects_unsafe_identifier(tmp_path):
@@ -79,7 +79,7 @@ def test_draft_answers_continues_after_a_failure(tmp_path):
 
 
 def test_exercise_settings_override_env():
-    env = {"ANTHROPIC_API_KEY": "a", "API_KEY_GEMINI": "g", "LLM_PROVIDER": "anthropic", "LLM_MODEL": "autre"}
+    env = {"ANTHROPIC_API_KEY": "a", "GEMINI_API_KEY": "g", "LLM_PROVIDER": "anthropic", "LLM_MODEL": "autre"}
     provider = get_provider(env, provider="gemini", model="gemini-test", temperature=0.2)
     assert isinstance(provider, GeminiProvider)
     assert provider.model == "gemini-test" and provider.temperature == 0.2

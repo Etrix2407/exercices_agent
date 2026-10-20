@@ -28,7 +28,7 @@ python -m venv .venv
 
 Fichier `.env` à la racine de `exercices/` :
 
-- `ANTHROPIC_API_KEY` ou `API_KEY_GEMINI` : clé d'API du fournisseur.
+- `ANTHROPIC_API_KEY` ou `GEMINI_API_KEY` : clé d'API du fournisseur.
 - `LLM_PROVIDER` (facultatif) : `anthropic` ou `gemini` ; sans valeur, le premier fournisseur dont la clé est présente.
 - `LLM_MODEL` (facultatif) : modèle à utiliser ; sans valeur, le modèle par défaut du fournisseur.
 

@@ -17,7 +17,7 @@ from llm_providers.gemini_provider import GeminiProvider
 # Nom du fournisseur -> (variable de la clé, classe). L'ordre fixe la priorité du choix automatique.
 PROVIDERS: dict[str, tuple[str, type[AnthropicProvider | GeminiProvider]]] = {
     "anthropic": ("ANTHROPIC_API_KEY", AnthropicProvider),
-    "gemini": ("API_KEY_GEMINI", GeminiProvider),
+    "gemini": ("GEMINI_API_KEY", GeminiProvider),
 }
 
 __all__ = ["LLMError", "LLMProvider", "get_provider"]

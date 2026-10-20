@@ -147,7 +147,7 @@ def test_exercise_settings_override_env_and_set_temperature() -> None:
     from llm_providers import get_provider
     from llm_providers.gemini_provider import _agent_config
 
-    env = {"ANTHROPIC_API_KEY": "a", "API_KEY_GEMINI": "g", "LLM_PROVIDER": "anthropic", "LLM_MODEL": "autre"}
+    env = {"ANTHROPIC_API_KEY": "a", "GEMINI_API_KEY": "g", "LLM_PROVIDER": "anthropic", "LLM_MODEL": "autre"}
     provider = get_provider(env, provider="gemini", model="gemini-test", temperature=0.2)
     assert isinstance(provider, GeminiProvider)
     assert provider.model == "gemini-test"
