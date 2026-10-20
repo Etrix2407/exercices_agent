@@ -1,4 +1,4 @@
-"""Résultats des demandes et synthèse : format Markdown, écriture atomique, fusion cumulative d'un lancement à l'autre."""
+"""Résultats des demandes et synthèse : format Markdown, écriture atomique, fusion cumulative entre lancements."""
 
 from __future__ import annotations
 

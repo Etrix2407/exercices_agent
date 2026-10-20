@@ -2,7 +2,8 @@
 
 Démarre le serveur MCP du kit, puis lance une session d'agent par demande avec les outils read_email,
 read_planning, read_grille, calc_devis et write_draft. Contrôle ensuite chaque résultat en code
-(devis recalculé, dates alternatives revérifiées, planning inchangé) et écrit une synthèse.
+(checks.py : devis recalculé, dates alternatives revérifiées, planning inchangé) et écrit une synthèse
+(synthesis.py).
 L'agent ne réserve rien et n'envoie rien : il n'écrit que des fiches et des brouillons.
 
 Usage (depuis le dossier du kit E07) : python -m agent [--reset] [--only demande_01_mariage] [--output dossier]
