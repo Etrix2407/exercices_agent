@@ -134,8 +134,16 @@ def test_previous_results_kept_and_updated(tmp_path: Path, monkeypatch) -> None:
     saved = {item["demande_id"]: item for item in json.loads((tmp_path / "resultats.json").read_text(encoding="utf-8"))}
     assert saved["dem_ancienne"]["devis_total"] == 500.0
     assert saved["dem_ok"]["statut"] == "proposition"
-    changes = " ".join(saved["dem_ok"]["changements"])
-    assert "statut" in changes and "arrivée" in changes and "informations manquantes" in changes
+    # Seules les nouvelles valeurs apparaissent, jamais les anciennes.
+    assert saved["dem_ok"]["changements"] == [
+        "statut : proposition",
+        "arrivée : 2026-12-13",
+        "départ : 2026-12-16",
+        "chambres : 3 simple, 1 twin",
+        "devis : 1980.00 EUR",
+        "informations manquantes : aucune",
+    ]
+    assert "precisions_requises" not in (tmp_path / "synthese.md").read_text(encoding="utf-8")
 
 
 def test_failure_does_not_replace_previous_valid_result(tmp_path: Path, monkeypatch) -> None:
