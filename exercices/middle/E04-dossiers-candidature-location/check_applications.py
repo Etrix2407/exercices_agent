@@ -339,8 +339,9 @@ def write_outputs(
 def stop_batch(error: LLMBatchError, current: str, pending: list[Path], output_dir: Path) -> list[ApplicationResult]:
     """Lot arrêté : dossier en cours en « erreur », dossiers suivants « non_traite » sans ancien brouillon."""
     logger.error("Arrêt du lot : %s", error)
+    # Un brouillon écrit avant l'arrêt n'a pas de statut fiable : il est retiré.
+    remove_previous_drafts(current, output_dir)
     failed = ApplicationResult(folder=current, statut="erreur", points_a_verifier=[str(error)])
-    check_relance(failed, output_dir)
     skipped = []
     for candidate_dir in pending:
         remove_previous_drafts(candidate_dir.name, output_dir)
@@ -384,6 +385,7 @@ def check_applications(
             break
         except Exception as error:  # un dossier en échec ne doit pas faire perdre le lot
             logger.exception("%s : erreur inattendue", folder)
+            remove_previous_drafts(folder, output_dir)
             message = f"erreur inattendue ({type(error).__name__} : {error}), voir le terminal"
             result = ApplicationResult(folder=folder, statut="erreur", points_a_verifier=[message])
         logger.info("→ %s : %s", result.folder, STATUS_LABELS.get(result.statut, result.statut))
