@@ -315,7 +315,7 @@ def test_present_piece_declared_missing_is_dropped(safety_folder, incoherences, 
         pieces_manquantes=[{"piece": "Avis d'imposition", "motif": "manquante (nom non concordant)"}],
         incoherences=incoherences,
     )
-    drop_pieces_found_by_code(result, *safety_folder)
+    drop_pieces_found_by_code(result, *safety_folder, safety_folder[0].parent / "sorties")
     assert result.pieces_manquantes == [] and result.statut == expected_status
 
 
@@ -325,11 +325,34 @@ def test_present_piece_declared_missing_is_dropped(safety_folder, incoherences, 
         {"piece": "Avis d'imposition", "motif": "périmée (émise le 01/01/2024)"},
         {"piece": "Pièce d'identité", "motif": "périmée (expirée le 01/01/2026)"},
         {"piece": "Justificatifs de revenus", "motif": "1 sur 3 manquante"},
+        {"piece": "Avis d'imposition", "motif": "trop ancien (émis le 01/01/2024)"},
+        {"piece": "Avis d'imposition", "motif": ""},
+        {"piece": "Avis d'imposition"},
     ],
 )
 def test_outdated_or_really_missing_piece_is_kept(safety_folder, piece) -> None:
     from check_applications import drop_pieces_found_by_code
 
     result = ApplicationResult(folder="jane", statut="incomplet", pieces_manquantes=[piece])
-    drop_pieces_found_by_code(result, *safety_folder)
+    drop_pieces_found_by_code(result, *safety_folder, safety_folder[0].parent / "sorties")
     assert result.pieces_manquantes == [piece] and result.statut == "incomplet"
+
+
+def test_dossier_made_complete_by_safety_net_has_no_point_and_no_relance(safety_folder) -> None:
+    from check_applications import (
+        check_relance,
+        drop_pieces_found_by_code,
+        enforce_complete_status,
+    )
+
+    output_dir = safety_folder[0].parent / "sorties"
+    output_dir.mkdir()
+    (output_dir / "relance_jane.txt").write_text("Bonjour,", encoding="utf-8")
+    result = ApplicationResult(
+        folder="jane", statut="incomplet", pieces_manquantes=[{"piece": "Avis d'imposition", "motif": "manquante"}]
+    )
+    drop_pieces_found_by_code(result, *safety_folder, output_dir)
+    check_relance(result, output_dir)
+    enforce_complete_status(result)
+    assert result.statut == "complet" and result.points_a_verifier == []
+    assert not (output_dir / "relance_jane.txt").exists()

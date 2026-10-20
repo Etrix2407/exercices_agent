@@ -66,8 +66,9 @@ LIST_FIELDS = ("pieces_manquantes", "incoherences", "points_a_verifier", "source
 # (dossier du candidat, grille, dossier de sortie) -> outils de l'agent.
 ToolsFactory = Callable[[Path, Path, Path], list[ToolSpec]]
 
-# Seuls motifs pour lesquels des fichiers présents ne comptent pas : pièce périmée ou expirée.
-OUTDATED_REASON = re.compile(r"p[ée]rim|expir", re.IGNORECASE)
+# Seuls motifs que le filet peut contredire : « manquante » (début du motif) ou un nom différent.
+# Tout autre motif (périmée, expirée, trop ancienne, vide…) garde la pièce : le texte du modèle n'est pas fiable.
+CORRECTABLE_REASON = re.compile(r"^\s*manquant|\bnom\b", re.IGNORECASE)
 
 logger = logging.getLogger(__name__)
 
@@ -273,18 +274,21 @@ def check_application(
     except (LLMError, AgentOutputError) as error:
         logger.error("%s : %s", folder, error)
         result = ApplicationResult(folder=folder, statut="erreur", points_a_verifier=[str(error)])
-    drop_pieces_found_by_code(result, candidate_dir, grid_path)
-    enforce_complete_status(result)
+    drop_pieces_found_by_code(result, candidate_dir, grid_path, output_dir)
     check_relance(result, output_dir)
+    # Après check_relance, qui peut ajouter un point : « complet » n'est gardé que sans aucun point à vérifier.
+    enforce_complete_status(result)
     return result
 
 
-def drop_pieces_found_by_code(result: ApplicationResult, candidate_dir: Path, grid_path: Path) -> None:
+def drop_pieces_found_by_code(
+    result: ApplicationResult, candidate_dir: Path, grid_path: Path, output_dir: Path
+) -> None:
     """Filet de sécurité : retire une pièce déclarée manquante alors que le dossier a assez de fichiers pour elle.
 
-    Une pièce n'est retirée que si son motif n'est ni « périmée » ni « expirée » (seuls cas où des fichiers
-    présents ne comptent pas) ; un nom différent reste une incohérence, pas une pièce manquante.
-    S'il ne reste aucune pièce manquante, le statut est recalculé selon les règles de la grille.
+    Une pièce n'est retirée que si son motif dit « manquante » ou parle d'un nom différent (une incohérence,
+    pas une pièce manquante) ; tout autre motif la garde. S'il ne reste aucune pièce manquante, le statut est
+    recalculé selon les règles de la grille et la relance, écrite à cause de l'erreur corrigée, est supprimée.
     """
     if result.statut != "incomplet":
         return
@@ -298,7 +302,7 @@ def drop_pieces_found_by_code(result: ApplicationResult, candidate_dir: Path, gr
     for piece in result.pieces_manquantes:
         name = str(piece.get("piece", "")) if isinstance(piece, dict) else str(piece)
         reason = str(piece.get("motif", "")) if isinstance(piece, dict) else ""
-        if name.strip().casefold() in present and not OUTDATED_REASON.search(reason):
+        if name.strip().casefold() in present and CORRECTABLE_REASON.search(reason):
             dropped.append(name)
         else:
             kept.append(piece)
@@ -308,6 +312,7 @@ def drop_pieces_found_by_code(result: ApplicationResult, candidate_dir: Path, gr
     previous = result.statut
     if not kept:
         result.statut = "a_verifier" if result.incoherences or result.points_a_verifier else "complet"
+        (output_dir / relance_name(result.folder)).unlink(missing_ok=True)
     logger.warning(
         "%s : pièce(s) déclarée(s) manquante(s) mais présente(s) dans le dossier, retirée(s) : %s (statut %s → %s)",
         result.folder,
