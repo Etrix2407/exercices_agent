@@ -96,8 +96,22 @@ def load_previous_results(output_dir: Path) -> dict[str, RequestResult]:
     return {item.demande_id: item for item in items}
 
 
+def _display(value: Any) -> str:
+    """Valeur lisible pour la synthèse : chambres « 12 double, 2 suite », liste vide « aucune »…"""
+    if value is None or value == []:
+        return "aucune"
+    if isinstance(value, float):
+        return f"{value:.2f} EUR"
+    if isinstance(value, list):
+        return ", ".join(
+            f"{item.get('nombre')} {item.get('type')}" if isinstance(item, dict) and "type" in item else str(item)
+            for item in value
+        )
+    return str(value)
+
+
 def describe_changes(previous: RequestResult | None, current: RequestResult) -> list[str]:
-    """Liste ce qui a changé depuis la dernière analyse de la même demande (statut, dates, effectif…)."""
+    """Liste ce qui a changé depuis la dernière analyse, avec la nouvelle valeur seulement (pas l'ancienne)."""
     if previous is None:
         return []
     old_needs, new_needs = previous.besoins or {}, current.besoins or {}
@@ -110,11 +124,7 @@ def describe_changes(previous: RequestResult | None, current: RequestResult) -> 
         ("devis", previous.devis_total, current.devis_total),
         ("informations manquantes", previous.informations_manquantes, current.informations_manquantes),
     ]
-    return [
-        f"{label} : {json.dumps(old, ensure_ascii=False)} → {json.dumps(new, ensure_ascii=False)}"
-        for label, old, new in compared
-        if old != new
-    ]
+    return [f"{label} : {_display(new)}" for label, old, new in compared if old != new]
 
 
 def merge_result(known: dict[str, RequestResult], result: RequestResult, processed_at: str) -> None:
