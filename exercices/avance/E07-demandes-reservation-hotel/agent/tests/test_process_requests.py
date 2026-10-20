@@ -84,6 +84,23 @@ def test_exhausted_quota_stops_batch_immediately(tmp_path: Path, monkeypatch) ->
     assert "lot arrêté" in pending.points_a_verifier[0]
 
 
+def test_batch_error_after_write_draft_keeps_the_draft(tmp_path: Path, monkeypatch) -> None:
+    from agent.llm_providers.base import LLMQuotaError
+
+    class LateQuotaAgent(ScriptedAgent):
+        def run_agent(self, system: str, user: str, tools: list, max_steps: int = 25) -> str:
+            answer = super().run_agent(system, user, tools, max_steps)
+            if "dem_ok" in user:
+                raise LLMQuotaError("quota épuisé après write_draft")
+            return answer
+
+    monkeypatch.setattr("agent.checks.planning_fingerprint", lambda: "empreinte")
+    ok, *pending = process_all(ListingKit(), LateQuotaAgent(), tmp_path)
+    assert (ok.statut, ok.devis_total, ok.brouillon) == ("proposition", 1980.0, "b001")
+    assert "lot arrêté après write_draft" in ok.points_a_verifier[-1]
+    assert [item.statut for item in pending] == ["non_traitee", "non_traitee"]
+
+
 class PeekingAgent(ScriptedAgent):
     """Faux modèle qui lit la synthèse sur disque au début de chaque demande."""
 

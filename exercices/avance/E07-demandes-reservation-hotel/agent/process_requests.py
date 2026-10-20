@@ -61,6 +61,17 @@ ToolsFactory = Callable[[KitCaller, str], HotelTools]
 logger = logging.getLogger(__name__)
 
 
+class BatchStoppedError(LLMBatchError):
+    """Erreur de lot relancée par process_request, avec le résultat de la demande en cours.
+
+    result vaut None si aucun write_draft n'avait réussi avant l'erreur.
+    """
+
+    def __init__(self, cause: LLMBatchError, result: RequestResult | None) -> None:
+        super().__init__(str(cause))
+        self.result = result
+
+
 def load_system_prompt(reference_date: date) -> str:
     """Lit le prompt, retire le commentaire de tête et insère la date de référence."""
     text = PROMPT_PATH.read_text(encoding="utf-8")
@@ -141,17 +152,29 @@ def process_request(
     tools = tools_factory(kit, request_id)
     try:
         final_text = provider.run_agent(system_prompt, f"Demande : {request_id}", tools.specs(), max_steps=MAX_STEPS)
-    except LLMBatchError:
-        # Quota épuisé ou configuration refusée : le lot entier s'arrête (voir process_all).
-        raise
+    except LLMBatchError as error:
+        # Quota épuisé, configuration refusée ou serveur arrêté : le lot entier s'arrête (voir process_all).
+        # Un write_draft déjà réussi est tout de même pris en compte, et son brouillon remplace l'ancien.
+        result = finish_request(kit, request_id, tools, "") if tools.draft is not None else None
+        if result is not None:
+            result.points_a_verifier.append(f"lot arrêté après write_draft : {error}")
+        raise BatchStoppedError(error, result) from error
     except LLMError as error:
         logger.error("%s : %s", request_id, error)
         if tools.draft is None:
             return RequestResult(demande_id=request_id, statut="erreur", points_a_verifier=[str(error)])
         final_text = ""
+    return finish_request(kit, request_id, tools, final_text)
+
+
+def finish_request(kit: KitCaller, request_id: str, tools: HotelTools, final_text: str) -> RequestResult:
+    """Construit et contrôle le résultat, puis met le nouveau brouillon à la place de l'ancien."""
     result = build_result(request_id, tools, final_text)
     if result.brouillon:
-        result.brouillon = replace_previous_draft(kit, request_id, result.brouillon)
+        try:
+            result.brouillon = replace_previous_draft(kit, request_id, result.brouillon)
+        except (LLMError, ToolError, OSError) as error:
+            result.points_a_verifier.append(f"ancien brouillon non remplacé ({error}) : écarter le doublon à la main")
     return result
 
 
@@ -216,9 +239,11 @@ def process_all(
         logger.info("Demande %d/%d : %s — en cours…", position, len(request_ids), request_id)
         try:
             result = process_request(kit, request_id, provider, system_prompt, tools_factory)
-        except LLMBatchError as error:
+        except BatchStoppedError as error:
             logger.error("Arrêt du lot : %s", error)
-            results.append(RequestResult(demande_id=request_id, statut="erreur", points_a_verifier=[str(error)]))
+            results.append(
+                error.result or RequestResult(demande_id=request_id, statut="erreur", points_a_verifier=[str(error)])
+            )
             results += [
                 RequestResult(demande_id=pending, statut="non_traitee", points_a_verifier=[QUOTA_NOTE])
                 for pending in request_ids[position:]
