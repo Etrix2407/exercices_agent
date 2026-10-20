@@ -5,9 +5,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from llm_providers import LLMError
-from process_requests import format_synthesis, process_all
-from test_mcp_bridge import WEDDING_NEEDS, FakeKit
+from agent.llm_providers import LLMError
+from agent.process_requests import format_synthesis, process_all
+from agent.tests.fakes import WEDDING_NEEDS, FakeKit
 
 
 class ListingKit(FakeKit):
@@ -45,7 +45,7 @@ class ScriptedAgent:
 
 
 def run(tmp_path: Path, monkeypatch) -> list:
-    monkeypatch.setattr("process_requests.planning_fingerprint", lambda: "empreinte")
+    monkeypatch.setattr("agent.process_requests.planning_fingerprint", lambda: "empreinte")
     return process_all(ListingKit(), ScriptedAgent(), tmp_path)
 
 
@@ -69,7 +69,7 @@ def test_synthesis_flags_changed_planning() -> None:
 
 
 def test_alternative_quote_must_cover_first_alternative() -> None:
-    from process_requests import check_alternative_quote
+    from agent.process_requests import check_alternative_quote
 
     quote = {"arrivee": "2027-01-04", "depart": "2027-01-06"}
     assert check_alternative_quote(quote, ["2027-01-04 → 2027-01-06"]) is None
@@ -77,7 +77,7 @@ def test_alternative_quote_must_cover_first_alternative() -> None:
 
 
 def test_exhausted_quota_stops_batch_immediately(tmp_path: Path, monkeypatch) -> None:
-    from llm_providers.base import LLMQuotaError
+    from agent.llm_providers.base import LLMQuotaError
 
     class QuotaAgent(ScriptedAgent):
         def run_agent(self, system: str, user: str, tools: list, max_steps: int = 25) -> str:
@@ -85,7 +85,7 @@ def test_exhausted_quota_stops_batch_immediately(tmp_path: Path, monkeypatch) ->
                 raise LLMQuotaError("quota du jour épuisé")
             return super().run_agent(system, user, tools, max_steps)
 
-    monkeypatch.setattr("process_requests.planning_fingerprint", lambda: "empreinte")
+    monkeypatch.setattr("agent.process_requests.planning_fingerprint", lambda: "empreinte")
     ok, stopped, pending = process_all(ListingKit(), QuotaAgent(), tmp_path)
     assert (ok.statut, stopped.statut, pending.statut) == ("proposition", "erreur", "non_traitee")
     assert "lot arrêté" in pending.points_a_verifier[0]
@@ -104,7 +104,7 @@ class PeekingAgent(ScriptedAgent):
 
 
 def run_peeking(tmp_path: Path, monkeypatch) -> PeekingAgent:
-    monkeypatch.setattr("process_requests.planning_fingerprint", lambda: "empreinte")
+    monkeypatch.setattr("agent.process_requests.planning_fingerprint", lambda: "empreinte")
     agent = PeekingAgent(tmp_path)
     process_all(ListingKit(), agent, tmp_path)
     return agent
@@ -157,7 +157,7 @@ def test_final_outputs_complete_without_tmp_files(tmp_path: Path, monkeypatch) -
 
 
 def test_new_draft_replaces_previous_one_under_same_id(tmp_path: Path) -> None:
-    from process_requests import replace_previous_draft
+    from agent.process_requests import replace_previous_draft
 
     # b001 : ancien brouillon de la demande ; b002 : brouillon d'une autre demande ; b003 : nouveau brouillon.
     for name, text in (("b001", "ancien"), ("b002", "autre demande"), ("b003", "nouveau")):
@@ -173,3 +173,25 @@ def test_new_draft_replaces_previous_one_under_same_id(tmp_path: Path) -> None:
     assert (tmp_path / "b002.eml").read_text(encoding="utf-8") == "autre demande"
     # Deux fichiers restent : le kit numérotera le prochain brouillon b003, sans écraser personne.
     assert sorted(path.stem for path in tmp_path.glob("b*.eml")) == ["b001", "b002"]
+
+
+class ForgetfulAgent(ScriptedAgent):
+    """Faux modèle qui calcule le devis puis répond avec le JSON final sans appeler write_draft."""
+
+    def run_agent(self, system: str, user: str, tools: list, max_steps: int = 25) -> str:
+        handlers = {spec.name: spec.handler for spec in tools}
+        handlers["calc_devis"]({"besoins": WEDDING_NEEDS})
+        if "dem_panne" in user:
+            return "Parfait ! Voici ma réponse, sans JSON."
+        sheet = {"statut": "proposition", "besoins": WEDDING_NEEDS, "brouillon_reponse": "Bonjour,\n\nDevis joint."}
+        return "Parfait ! Je dispose de toutes les informations.\n```json\n" + json.dumps(sheet) + "\n```"
+
+
+def test_script_saves_draft_when_model_forgets_write_draft(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("agent.process_requests.planning_fingerprint", lambda: "empreinte")
+    ok, _, no_json = process_all(ListingKit(), ForgetfulAgent(), tmp_path)
+    # JSON exploitable : fiche et brouillon enregistrés par le script, devis du code joint, note ajoutée.
+    assert (ok.statut, ok.devis_total, ok.brouillon) == ("proposition", 1980.0, "b001")
+    assert "enregistrés par le script" in ok.points_a_verifier[-1]
+    # Aucun JSON : la demande reste en erreur, avec la raison.
+    assert no_json.statut == "erreur" and "aucun JSON exploitable" in no_json.points_a_verifier[0]

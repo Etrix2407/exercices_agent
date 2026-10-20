@@ -10,9 +10,9 @@ from __future__ import annotations
 import os
 from collections.abc import Mapping
 
-from llm_providers.anthropic_provider import AnthropicProvider
-from llm_providers.base import LLMError, LLMProvider
-from llm_providers.gemini_provider import GeminiProvider
+from agent.llm_providers.anthropic_provider import AnthropicProvider
+from agent.llm_providers.base import LLMError, LLMProvider
+from agent.llm_providers.gemini_provider import GeminiProvider
 
 # Nom du fournisseur -> (variable de la clé, classe). L'ordre fixe la priorité du choix automatique.
 PROVIDERS: dict[str, tuple[str, type[AnthropicProvider | GeminiProvider]]] = {

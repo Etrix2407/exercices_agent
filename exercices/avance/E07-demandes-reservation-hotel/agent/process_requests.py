@@ -5,7 +5,7 @@ read_planning, read_grille, calc_devis et write_draft. Contrôle ensuite chaque 
 (devis recalculé, dates alternatives revérifiées, planning inchangé) et écrit une synthèse.
 L'agent ne réserve rien et n'envoie rien : il n'écrit que des fiches et des brouillons.
 
-Usage : python process_requests.py [--reset] [--only demande_01_mariage] [--output output]
+Usage (depuis le dossier du kit E07) : python -m agent [--reset] [--only demande_01_mariage] [--output dossier]
 """
 
 from __future__ import annotations
@@ -29,9 +29,9 @@ from dotenv import load_dotenv
 
 import init_donnees
 import planning
-from llm_providers import LLMError, LLMProvider, get_provider
-from llm_providers.base import LLMBatchError, ToolError
-from mcp_bridge import HotelTools, KitCaller, KitClient, kit_session, quote_arguments, rooms_by_type
+from agent.llm_providers import LLMError, LLMProvider, get_provider
+from agent.llm_providers.base import LLMBatchError, ToolError
+from agent.mcp_bridge import HotelTools, KitCaller, KitClient, kit_session, quote_arguments, rooms_by_type
 
 # Réglages du modèle propres à cet exercice (le .env est partagé par tous les exercices).
 # None : choix automatique selon les clés du .env / modèle et température par défaut.
@@ -43,7 +43,7 @@ LLM_MODEL = "claude-haiku-4-5"
 LLM_TEMPERATURE = None
 
 BASE_DIR = Path(__file__).resolve().parent
-ENV_PATH = BASE_DIR.parents[1] / ".env"
+ENV_PATH = BASE_DIR.parents[2] / ".env"
 PROMPT_PATH = BASE_DIR / "prompt_sys_reservation.md"
 OUTPUT_DIR = BASE_DIR / "output"
 SYNTHESIS_NAME = "synthese.md"
@@ -190,14 +190,45 @@ def check_alternative_quote(quote: dict[str, Any], alternatives: list[str]) -> s
     return f"devis joint ({quote.get('arrivee')} → {quote.get('depart')}) ≠ première date alternative proposée"
 
 
+def extract_json_object(text: str) -> dict[str, Any] | None:
+    """Extrait l'objet JSON le plus externe d'une réponse (tolère texte autour et balises ```json)."""
+    start, end = text.find("{"), text.rfind("}")
+    if start == -1 or end < start:
+        return None
+    try:
+        data = json.loads(text[start : end + 1])
+    except json.JSONDecodeError:
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def save_draft_from_answer(tools: HotelTools, final_text: str) -> str:
+    """Filet de sécurité : le modèle a donné le JSON final sans appeler write_draft, le script l'enregistre.
+
+    Les contrôles de write_draft s'appliquent (statut, brouillon non vide, devis issu de calc_devis).
+    Renvoie une note pour les points à vérifier, ou la raison de l'échec.
+    """
+    sheet = extract_json_object(final_text)
+    if sheet is None:
+        return "write_draft non appelé et aucun JSON exploitable dans la réponse du modèle"
+    try:
+        tools.write_draft({"fiche_json": sheet})
+    except ToolError as error:
+        return f"write_draft non appelé ; JSON de la réponse refusé : {error}"
+    return "write_draft non appelé par le modèle : fiche et brouillon enregistrés par le script à partir de sa réponse"
+
+
 def build_result(request_id: str, tools: HotelTools, final_text: str) -> RequestResult:
     """Construit le résultat à partir de la fiche écrite par write_draft, puis le contrôle en code."""
+    fallback_note = None
     if tools.draft is None:
-        return RequestResult(
-            demande_id=request_id,
-            statut="erreur",
-            points_a_verifier=["aucune fiche ni brouillon écrit (write_draft non appelé)", final_text[:200]],
-        )
+        fallback_note = save_draft_from_answer(tools, final_text)
+        if tools.draft is None:
+            return RequestResult(
+                demande_id=request_id,
+                statut="erreur",
+                points_a_verifier=[f"aucune fiche ni brouillon écrit : {fallback_note}", final_text[:200]],
+            )
     sheet = tools.draft["fiche"]
     quote = tools.draft["devis"]
     needs = sheet.get("besoins") if isinstance(sheet.get("besoins"), dict) else {}
@@ -211,6 +242,8 @@ def build_result(request_id: str, tools: HotelTools, final_text: str) -> Request
         brouillon=str(tools.draft["brouillon"].get("brouillon", "")),
         points_a_verifier=[str(item) for item in sheet.get("points_a_verifier") or []],
     )
+    if fallback_note:
+        result.points_a_verifier.append(fallback_note)
     if result.statut == "proposition" and quote:
         problem = check_quote(needs, quote["total_ttc"])
         if problem:
@@ -430,8 +463,12 @@ def configure_logging(output_dir: Path) -> Path:
 
 def parse_arguments() -> argparse.Namespace:
     """Lit les arguments de la ligne de commande."""
-    parser = argparse.ArgumentParser(description="Traitement des demandes de réservation de groupe (E07).")
-    parser.add_argument("--output", type=Path, default=OUTPUT_DIR, help="Dossier de sortie (par défaut : output).")
+    parser = argparse.ArgumentParser(
+        prog="python -m agent", description="Traitement des demandes de réservation de groupe (E07)."
+    )
+    parser.add_argument(
+        "--output", type=Path, default=OUTPUT_DIR, help="Dossier de sortie (par défaut : agent/output)."
+    )
     parser.add_argument("--only", help="Ne traiter qu'une demande (par exemple demande_01_mariage).")
     parser.add_argument(
         "--reset",
