@@ -305,3 +305,38 @@ def test_subtract_months_clamps_to_month_end() -> None:
 
     assert subtract_months(date(2026, 5, 31), 3) == date(2026, 2, 28)
     assert subtract_months(date(2026, 10, 14), 12) == date(2025, 10, 14)
+
+
+# --- Inventaire des pièces calculé en code ----------------------------------------------------------------------
+
+
+def test_list_folder_ends_with_code_inventory(tmp_path: Path) -> None:
+    import json
+
+    candidate = tmp_path / "candidats" / "jane-doe"
+    (candidate / "garant").mkdir(parents=True)
+    for name in ("identite.txt", "bulletin_2026-08.txt", "bulletin_2026-09.txt", "garant/identite.txt", "lettre.txt"):
+        (candidate / name).write_text("x", encoding="utf-8")
+    grid = tmp_path / "grille.json"
+    inventory_grid = {
+        "pieces_candidat": [
+            {"court": "Pièce d'identité", "motifs": ["identite*"], "nombre_min": 1},
+            {"court": "Justificatifs de revenus", "motifs": ["bulletin_*"], "nombre_min": 3},
+        ],
+        "garant": {
+            "pieces_garant": [
+                {"court": "Garant : pièce d'identité", "motifs": ["garant/identite*"], "nombre_min": 1},
+                {"court": "Garant : avis d'imposition", "motifs": ["garant/avis_imposition*"]},
+            ]
+        },
+    }
+    grid.write_text(json.dumps(inventory_grid), encoding="utf-8")
+    list_folder = {spec.name: spec.handler for spec in build_tools(candidate, grid, tmp_path / "s")}["list_folder"]
+    listing = list_folder({})
+    files, inventory = listing.split("\n\n", 1)
+    assert files.splitlines() == ["bulletin_2026-08.txt", "bulletin_2026-09.txt", "garant/identite.txt", "identite.txt", "lettre.txt"]
+    assert "- Pièce d'identité : identite.txt (1 fichier(s) pour 1 exigé(s))" in inventory
+    assert "- Justificatifs de revenus : bulletin_2026-08.txt, bulletin_2026-09.txt (2 fichier(s) pour 3 exigé(s))" in inventory
+    assert "- Garant : pièce d'identité : garant/identite.txt (1 fichier(s) pour 1 exigé(s))" in inventory
+    assert "- Garant : avis d'imposition : aucun fichier (0 fichier(s) pour 1 exigé(s))" in inventory
+    assert "jamais une pièce manquante" in inventory

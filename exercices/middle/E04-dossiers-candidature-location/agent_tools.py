@@ -63,6 +63,64 @@ EMISSION_DATE_PATTERN = re.compile(r"Date d'[ée]mission\s*:\s*(\d{1,2})/(\d{1,2
 Handler = Callable[[dict], str]
 
 
+# Rappel joint à l'inventaire : les deux erreurs de l'agent sur les pièces présentes.
+INVENTORY_RULE = (
+    "Une pièce qui a ici assez de fichiers n'est pas manquante, sauf verdict PÉRIMÉE de read_file ou pièce "
+    "d'identité expirée. Un nom différent sur une pièce est une incohérence, jamais une pièce manquante. "
+    "Les pièces du garant ne comptent que si le garant est exigé."
+)
+
+
+@dataclass(frozen=True)
+class GridPiece:
+    """Pièce exigée par la grille (candidat ou garant) : libellé court, motifs de fichiers, nombre minimal."""
+
+    label: str
+    patterns: tuple[str, ...]
+    minimum: int
+
+
+def load_grid_pieces(grid_path: Path) -> list[GridPiece]:
+    """Pièces du candidat puis du garant, lues dans la grille ; [] si la grille est absente ou illisible."""
+    try:
+        grid = json.loads(grid_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    if not isinstance(grid, dict):
+        return []
+    guarantor = grid.get("garant") if isinstance(grid.get("garant"), dict) else {}
+    pieces = [*(grid.get("pieces_candidat") or []), *(guarantor.get("pieces_garant") or [])]
+    return [
+        GridPiece(
+            label=str(piece.get("court") or piece.get("id")),
+            patterns=tuple(piece.get("motifs") or []),
+            minimum=int(piece.get("nombre_min") or 1),
+        )
+        for piece in pieces
+        if isinstance(piece, dict)
+    ]
+
+
+def matching_files(piece: GridPiece, files: list[str]) -> list[str]:
+    """Fichiers (chemins relatifs POSIX) qui correspondent à un motif de la pièce, casse ignorée."""
+    return [name for name in files if any(fnmatch(name.lower(), pattern.lower()) for pattern in piece.patterns)]
+
+
+def piece_inventory(files: list[str], pieces: list[GridPiece]) -> str | None:
+    """Inventaire calculé en code : pour chaque pièce de la grille, les fichiers trouvés et leur nombre."""
+    if not pieces:
+        return None
+    lines = ["Inventaire calculé par le code (fichiers associés aux pièces de la grille par leurs motifs) :"]
+    for piece in pieces:
+        found = matching_files(piece, files)
+        lines.append(
+            f"- {piece.label} : {', '.join(found) if found else 'aucun fichier'} "
+            f"({len(found)} fichier(s) pour {piece.minimum} exigé(s))"
+        )
+    lines.append(INVENTORY_RULE)
+    return "\n".join(lines)
+
+
 @dataclass(frozen=True)
 class FreshnessRule:
     """Pièce de la grille soumise à une durée de fraîcheur."""
@@ -285,14 +343,15 @@ def _make_read_grid(grid_path: Path) -> Handler:
     return read_grid
 
 
-def _make_list_folder(candidate_dir: Path) -> Handler:
+def _make_list_folder(candidate_dir: Path, pieces: list[GridPiece]) -> Handler:
     def list_folder(args: dict) -> str:
         if not candidate_dir.is_dir():
             raise ToolError("Le dossier du candidat est introuvable.")
         files = list_candidate_files(candidate_dir)
         if not files:
             return "Le dossier du candidat est vide : aucun fichier fourni."
-        return "\n".join(files)
+        inventory = piece_inventory(files, pieces)
+        return "\n".join(files) + (f"\n\n{inventory}" if inventory else "")
 
     return list_folder
 
@@ -350,6 +409,7 @@ def build_tools(candidate_dir: Path, grid_path: Path, output_dir: Path) -> list[
     """Construit les quatre outils de l'agent, liés au dossier `candidate_dir`."""
     name = candidate_dir.name
     reference, freshness_rules = load_freshness_rules(grid_path)
+    pieces = load_grid_pieces(grid_path)
     specs = [
         (
             "read_grid",
@@ -364,10 +424,10 @@ def build_tools(candidate_dir: Path, grid_path: Path, output_dir: Path) -> list[
             "list_folder",
             (
                 "Liste tous les fichiers du dossier du candidat, y compris les sous-dossiers (ex. garant/), "
-                "un chemin relatif par ligne."
+                "un chemin relatif par ligne, puis l'inventaire des pièces de la grille calculé par le code."
             ),
             NO_ARGS_SCHEMA,
-            _make_list_folder(candidate_dir),
+            _make_list_folder(candidate_dir, pieces),
         ),
         (
             "read_file",
