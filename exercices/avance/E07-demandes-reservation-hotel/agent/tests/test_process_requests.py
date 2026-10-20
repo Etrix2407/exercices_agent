@@ -173,3 +173,25 @@ def test_new_draft_replaces_previous_one_under_same_id(tmp_path: Path) -> None:
     assert (tmp_path / "b002.eml").read_text(encoding="utf-8") == "autre demande"
     # Deux fichiers restent : le kit numérotera le prochain brouillon b003, sans écraser personne.
     assert sorted(path.stem for path in tmp_path.glob("b*.eml")) == ["b001", "b002"]
+
+
+class ForgetfulAgent(ScriptedAgent):
+    """Faux modèle qui calcule le devis puis répond avec le JSON final sans appeler write_draft."""
+
+    def run_agent(self, system: str, user: str, tools: list, max_steps: int = 25) -> str:
+        handlers = {spec.name: spec.handler for spec in tools}
+        handlers["calc_devis"]({"besoins": WEDDING_NEEDS})
+        if "dem_panne" in user:
+            return "Parfait ! Voici ma réponse, sans JSON."
+        sheet = {"statut": "proposition", "besoins": WEDDING_NEEDS, "brouillon_reponse": "Bonjour,\n\nDevis joint."}
+        return "Parfait ! Je dispose de toutes les informations.\n```json\n" + json.dumps(sheet) + "\n```"
+
+
+def test_script_saves_draft_when_model_forgets_write_draft(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("agent.process_requests.planning_fingerprint", lambda: "empreinte")
+    ok, _, no_json = process_all(ListingKit(), ForgetfulAgent(), tmp_path)
+    # JSON exploitable : fiche et brouillon enregistrés par le script, devis du code joint, note ajoutée.
+    assert (ok.statut, ok.devis_total, ok.brouillon) == ("proposition", 1980.0, "b001")
+    assert "enregistrés par le script" in ok.points_a_verifier[-1]
+    # Aucun JSON : la demande reste en erreur, avec la raison.
+    assert no_json.statut == "erreur" and "aucun JSON exploitable" in no_json.points_a_verifier[0]
