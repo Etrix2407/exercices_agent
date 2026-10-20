@@ -1,0 +1,2 @@
+date,agent,modeles,lancements,note,elimine,ecart_type,statut,pieces_manquantes,incoherences,relance,securite,efficacite,stabilite
+2026-10-20 17:44,e04,gemini-3.5-flash-lite,3,97.2,False,3.1,95.8,95.8,100.0,100.0,100,98.8,87.5
