@@ -227,3 +227,10 @@ def test_synthesis_written_after_each_folder(workspace) -> None:
     assert "Lot en cours : 0/3" in seen[0]
     assert "Lot en cours : 2/3" in seen[2] and "| bruno-test |" in seen[2]
     assert "Lot en cours" not in (output / "synthese.md").read_text(encoding="utf-8")
+
+
+def test_default_batch_only_has_the_eight_statement_folders() -> None:
+    from check_applications import CANDIDATES_DIR
+
+    names = [path.name for path in list_candidate_dirs(CANDIDATES_DIR)]
+    assert len(names) == 8 and not {"leroy", "marchal", "pieges"} & set(names)

@@ -5,6 +5,7 @@ Pour chaque dossier de candidat, lance l'agent verification_doc avec ses outils 
 L'agent ne classe pas les candidats et n'envoie aucun courriel : il n'écrit que des brouillons de relance.
 
 Usage : python check_applications.py [--output output] [--only marc-dubois] [--grid grille.json]
+        [--candidates fixtures/candidats]
 """
 
 from __future__ import annotations
@@ -385,6 +386,12 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--output", type=Path, default=OUTPUT_DIR, help="Dossier de sortie (par défaut : output).")
     parser.add_argument("--only", help="Ne traiter qu'un dossier de candidat (par exemple marc-dubois).")
     parser.add_argument("--grid", type=Path, default=GRID_PATH, help="Grille des pièces (par défaut : grille.json).")
+    parser.add_argument(
+        "--candidates",
+        type=Path,
+        default=CANDIDATES_DIR,
+        help="Dossier des candidats (par défaut : candidats ; dossiers de test : fixtures/candidats).",
+    )
     return parser.parse_args()
 
 
@@ -416,7 +423,7 @@ def main() -> None:
         raise SystemExit(str(error)) from error
     logger.info("Modèle utilisé : %s", provider.model)
     try:
-        check_applications(CANDIDATES_DIR, arguments.grid, arguments.output, provider, arguments.only)
+        check_applications(arguments.candidates, arguments.grid, arguments.output, provider, arguments.only)
     except (ValueError, OSError) as error:
         raise SystemExit(str(error)) from error
 
