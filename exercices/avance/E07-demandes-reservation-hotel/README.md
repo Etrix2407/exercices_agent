@@ -105,7 +105,9 @@ L'agent traite chaque demande de la boîte et prépare une fiche et un brouillon
 ```
 agent/
 ├── __main__.py              lancement : python -m agent
-├── process_requests.py      orchestrateur : une session d'agent par demande, contrôles, synthèse
+├── process_requests.py      orchestrateur et ligne de commande : une session d'agent par demande
+├── checks.py                contrôles en code : devis, dates alternatives, brouillon, planning inchangé
+├── synthesis.py             résultats et synthèse : format Markdown, écriture atomique, fusion cumulative
 ├── mcp_bridge.py            les cinq outils de l'agent, branchés sur le serveur MCP du kit
 ├── prompt_sys_reservation.md
 ├── llm_providers/           boucle d'agent Gemini ou Claude (un fichier par SDK)

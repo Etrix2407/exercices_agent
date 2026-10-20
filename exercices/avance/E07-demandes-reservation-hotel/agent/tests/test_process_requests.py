@@ -6,7 +6,8 @@ import json
 from pathlib import Path
 
 from agent.llm_providers import LLMError
-from agent.process_requests import format_synthesis, process_all
+from agent.process_requests import process_all
+from agent.synthesis import format_synthesis
 from agent.tests.fakes import WEDDING_NEEDS, FakeKit
 
 
@@ -45,7 +46,7 @@ class ScriptedAgent:
 
 
 def run(tmp_path: Path, monkeypatch) -> list:
-    monkeypatch.setattr("agent.process_requests.planning_fingerprint", lambda: "empreinte")
+    monkeypatch.setattr("agent.checks.planning_fingerprint", lambda: "empreinte")
     return process_all(ListingKit(), ScriptedAgent(), tmp_path)
 
 
@@ -69,7 +70,7 @@ def test_synthesis_flags_changed_planning() -> None:
 
 
 def test_alternative_quote_must_cover_first_alternative() -> None:
-    from agent.process_requests import check_alternative_quote
+    from agent.checks import check_alternative_quote
 
     quote = {"arrivee": "2027-01-04", "depart": "2027-01-06"}
     assert check_alternative_quote(quote, ["2027-01-04 → 2027-01-06"]) is None
@@ -85,7 +86,7 @@ def test_exhausted_quota_stops_batch_immediately(tmp_path: Path, monkeypatch) ->
                 raise LLMQuotaError("quota du jour épuisé")
             return super().run_agent(system, user, tools, max_steps)
 
-    monkeypatch.setattr("agent.process_requests.planning_fingerprint", lambda: "empreinte")
+    monkeypatch.setattr("agent.checks.planning_fingerprint", lambda: "empreinte")
     ok, stopped, pending = process_all(ListingKit(), QuotaAgent(), tmp_path)
     assert (ok.statut, stopped.statut, pending.statut) == ("proposition", "erreur", "non_traitee")
     assert "lot arrêté" in pending.points_a_verifier[0]
@@ -104,7 +105,7 @@ class PeekingAgent(ScriptedAgent):
 
 
 def run_peeking(tmp_path: Path, monkeypatch) -> PeekingAgent:
-    monkeypatch.setattr("agent.process_requests.planning_fingerprint", lambda: "empreinte")
+    monkeypatch.setattr("agent.checks.planning_fingerprint", lambda: "empreinte")
     agent = PeekingAgent(tmp_path)
     process_all(ListingKit(), agent, tmp_path)
     return agent
@@ -196,7 +197,7 @@ class ForgetfulAgent(ScriptedAgent):
 
 
 def test_script_saves_draft_when_model_forgets_write_draft(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setattr("agent.process_requests.planning_fingerprint", lambda: "empreinte")
+    monkeypatch.setattr("agent.checks.planning_fingerprint", lambda: "empreinte")
     ok, _, no_json = process_all(ListingKit(), ForgetfulAgent(), tmp_path)
     # JSON exploitable : fiche et brouillon enregistrés par le script, devis du code joint, note ajoutée.
     assert (ok.statut, ok.devis_total, ok.brouillon) == ("proposition", 1980.0, "b001")
