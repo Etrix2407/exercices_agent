@@ -5,6 +5,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import re
+import sys
 from datetime import datetime
 from pathlib import Path
 from types import ModuleType
@@ -57,6 +58,15 @@ def tool_journal(path: Path, pattern: re.Pattern[str] = JOURNAL_LINE) -> dict[st
 def folder_files(path: Path) -> list[str]:
     """Noms des fichiers d'un dossier (ex. boîte d'envoi qui doit rester vide)."""
     return sorted(item.name for item in path.iterdir()) if path.is_dir() else []
+
+
+def venv_python(kit_dir: Path) -> str:
+    """Python du venv le plus proche de l'exercice (ex. middle/.venv), sinon celui qui lance le pipeline."""
+    for folder in (kit_dir, *kit_dir.parents):
+        for candidate in (folder / ".venv" / "Scripts" / "python.exe", folder / ".venv" / "bin" / "python"):
+            if candidate.is_file():
+                return str(candidate)
+    return sys.executable
 
 
 def load_module(path: Path, name: str) -> ModuleType:

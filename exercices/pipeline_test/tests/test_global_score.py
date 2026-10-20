@@ -1,23 +1,25 @@
 """Test global : la note de chaque agent, calculée sur ses sorties actuelles, atteint le seuil.
 
-N'appelle aucun modèle et n'écrit aucun rapport : pour relancer l'agent, utiliser python -m pipeline_test --runs N.
+Couvre chaque exercice qui a un dossier evaluation/. N'appelle aucun modèle et n'écrit aucun rapport :
+pour relancer l'agent, utiliser python -m pipeline_test <agent> --runs N.
 """
 
 import pytest
 
-from pipeline_test.__main__ import available_agents, load_adapter, load_expected
 from pipeline_test.engine import evaluate
+from pipeline_test.registry import discover
 
 MIN_SCORE = 80
+EXERCISES = discover()
 
 
-@pytest.mark.parametrize("agent", available_agents())
+@pytest.mark.parametrize("agent", list(EXERCISES))
 def test_global_score_reaches_threshold(agent: str, record_property):
-    adapter = load_adapter(agent)
-    snapshot = adapter.collect()
+    exercise = EXERCISES[agent]
+    snapshot = exercise.adapter.collect()
     if not snapshot["cases"]:
         pytest.skip(f"{agent} : aucune sortie à noter (lancer l'agent d'abord)")
-    evaluation = evaluate(adapter, [snapshot], load_expected(agent))
+    evaluation = evaluate(exercise.adapter, [snapshot], exercise.expected())
     summary = "\n".join(
         f"  {result.label} : {'non mesuré' if result.value is None else f'{100 * result.value:.0f} %'}"
         for result in evaluation.criteria

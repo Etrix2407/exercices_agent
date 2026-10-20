@@ -7,7 +7,7 @@ from pipeline_test.engine import Adapter, Criterion, evaluate
 
 
 def make_adapter(*criteria: Criterion) -> Adapter:
-    return Adapter(name="test", kit_dir=Path("."), run_command=[], collect=dict, criteria=list(criteria))
+    return Adapter(name="test", kit_dir=Path("."), run_commands=[], collect=dict, criteria=list(criteria))
 
 
 def snapshot(statuses: dict[str, str], problems: list[str] | None = None) -> dict:

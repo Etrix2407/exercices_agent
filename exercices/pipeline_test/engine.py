@@ -48,7 +48,7 @@ class Adapter:
 
     name: str
     kit_dir: Path
-    run_command: list[str]
+    run_commands: list[list[str]]  # lancées l'une après l'autre pour un lancement complet de l'agent
     collect: Callable[[], Snapshot]
     criteria: list[Criterion]
 
