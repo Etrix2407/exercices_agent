@@ -22,9 +22,19 @@ Tu es un expert en Python et en développement d'applications évolutives. Tu é
 - Markdown, commentaires et textes affichés aux utilisateurs en français.
 - test uniquement ce qui est necesaire
 
-## Outils de l'agent
+### Outils à exposer (noms fixes, repris par le prompt système)
+- read_email(demande_id) -> str
+- read_planning(date_debut, date_fin, besoins) -> dispo (lecture seule)
+- read_grille() -> grille tarifaire
+- calc_devis(besoins) -> détail chiffré  # calcul en CODE, jamais par le LLM
+- write_draft(fiche_json) -> None
 
-lecture de la boîte de test, consultation du planning, fonction de calcul du devis écrite en code, écriture de brouillons. Exposition possible via un serveur MCP local.
+Exposition via un serveur MCP local.
+
+### Contraintes non négociables
+- Planning en lecture seule : ne jamais réserver ni bloquer.
+- Prix exclusivement issus de la grille, via calc_devis. Aucune remise.
+- calc_devis relit la grille lui-même ; il ne reçoit que les besoins.
 
 ## Revue de code
 
