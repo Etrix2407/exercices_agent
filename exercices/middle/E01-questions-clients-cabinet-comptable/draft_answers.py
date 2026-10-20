@@ -39,6 +39,9 @@ RESERVED_IDS = {Path(RECAP_NAME).stem}
 LABEL_PATTERN = re.compile(r"\*\*Étiquette :\*\*\s*(.+)")
 SECTION_PATTERN = re.compile(r"\*\*Section citée :\*\*\s*(.+)")
 UNKNOWN = "non détectée"
+# Seules étiquettes prévues par le prompt système ; toute autre valeur est signalée.
+ALLOWED_LABELS = ("traitable", "à transmettre au comptable")
+NON_COMPLIANT = "non conforme"
 NOT_PROCESSED = "non_traitee"
 STOPPED_NOTE = "lot arrêté avant cette question (quota ou configuration), relancer plus tard"
 
@@ -87,13 +90,19 @@ def format_question(record: dict[str, str]) -> str:
     return f"{record['identifiant']} · {record['nom']} · {record['numero_dossier']}\n{record['question']}"
 
 
+def normalize_label(raw_label: str) -> str:
+    """Ramène l'étiquette du modèle à une valeur permise, ou à NON_COMPLIANT (gras, espaces, casse tolérés)."""
+    label = " ".join(raw_label.replace("*", " ").split()).lower()
+    return label if label in ALLOWED_LABELS else NON_COMPLIANT
+
+
 def summarize_draft(question_id: str, draft: str) -> DraftSummary:
     """Extrait l'étiquette et la section citée du brouillon produit par le modèle."""
     label = LABEL_PATTERN.search(draft)
     section = SECTION_PATTERN.search(draft)
     return DraftSummary(
         question_id=question_id,
-        label=label.group(1).strip() if label else UNKNOWN,
+        label=normalize_label(label.group(1)) if label else UNKNOWN,
         section=section.group(1).strip() if section else UNKNOWN,
     )
 

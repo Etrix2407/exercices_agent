@@ -9,7 +9,7 @@ import httpx
 import pytest
 from google.genai import errors
 
-from draft_answers import NOT_PROCESSED, UNKNOWN, draft_answers, load_questions, main, summarize_draft
+from draft_answers import NON_COMPLIANT, NOT_PROCESSED, UNKNOWN, draft_answers, load_questions, main, summarize_draft
 from llm_providers import LLMError, LLMQuotaError, get_provider
 from llm_providers.anthropic_provider import AnthropicProvider
 from llm_providers.gemini_provider import GeminiProvider
@@ -100,6 +100,18 @@ def test_main_turns_input_errors_into_clear_exit(monkeypatch, tmp_path, content,
         csv_path.write_bytes(content)
     with pytest.raises(SystemExit, match=message):
         run_main(monkeypatch, tmp_path, csv_path)
+
+
+@pytest.mark.parametrize(
+    ("draft", "expected"),
+    [
+        ("**Étiquette :** **À transmettre  au comptable**", "à transmettre au comptable"),
+        ("**Étiquette :**  Traitable ", "traitable"),
+        ("**Étiquette :** traitable | à transmettre au comptable", NON_COMPLIANT),
+    ],
+)
+def test_summarize_draft_normalizes_label(draft, expected):
+    assert summarize_draft("Q01", draft).label == expected
 
 
 def test_summarize_draft_without_label():
