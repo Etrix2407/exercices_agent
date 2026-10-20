@@ -1,0 +1,59 @@
+{
+  "_aide": "Réponses attendues déduites des pièces de candidats/ (pas des sorties de l'agent), de grille.json et du prompt système. Date de référence : date_reference_controle de la grille, 14/10/2026 ; fraîcheur 3 mois = émis après le 14/07/2026, 12 mois = après le 14/10/2025 ; garant exigé si le net du dernier justificatif de revenus est inférieur à 2850 EUR. pieces_manquantes et incoherences : mots-clés (casse et accents ignorés) cherchés dans « libellé court (motif) » et dans les descriptions ; [] = rien à signaler. candidat : nom de la pièce d'identité, attendu après « Bonjour » dans la relance. null = non évalué.",
+  "ines-claes": {
+    "_motif": "attestation d'employeur émise le 04/05/2026, avant le 14/07/2026 : périmée ; net 3300 EUR, pas de garant.",
+    "statut": "incomplet",
+    "candidat": "Inès Claes",
+    "pieces_manquantes": ["attestation"],
+    "incoherences": []
+  },
+  "karim-benali": {
+    "_motif": "net 2400 EUR < 2850 : garant exigé, aucun sous-dossier garant/ ; toutes les autres pièces sont à jour.",
+    "statut": "incomplet",
+    "candidat": "Karim Benali",
+    "pieces_manquantes": ["garant : piece d'identite", "garant : avis d'imposition"],
+    "incoherences": []
+  },
+  "lea-vanderstraeten": {
+    "_motif": "toutes les pièces présentes et à jour, net 3100 EUR ; lettre_motivation.txt hors grille, ignorée.",
+    "statut": "complet",
+    "candidat": "Léa Vanderstraeten",
+    "pieces_manquantes": [],
+    "incoherences": []
+  },
+  "marc-dubois": {
+    "_motif": "2 bulletins sur 3, aucune attestation d'employeur ; courrier_candidat.txt hors grille.",
+    "statut": "incomplet",
+    "candidat": "Marc Dubois",
+    "pieces_manquantes": ["revenus", "attestation"],
+    "incoherences": []
+  },
+  "nathalie-fontaine": {
+    "_motif": "attestation d'employeur au nom de « Nathalie Fontaine-Roux », identité « Nathalie Fontaine » ; pièces complètes.",
+    "statut": "a_verifier",
+    "candidat": "Nathalie Fontaine",
+    "pieces_manquantes": [],
+    "incoherences": ["roux"]
+  },
+  "olivier-mertens": {
+    "_motif": "avis d'imposition au nom de « Olivier Mertins », identité « Olivier Mertens » ; indépendant, dernier relevé 3050 EUR ; pièces complètes.",
+    "statut": "a_verifier",
+    "candidat": "Olivier Mertens",
+    "pieces_manquantes": [],
+    "incoherences": ["mertins"]
+  },
+  "sophie-lambert": {
+    "_motif": "net 2150 EUR < 2850 : garant exigé ; garant/identite.txt (valide 2029) et garant/avis_imposition_2025.txt (28/05/2026) présents, au nom de Philippe Lambert.",
+    "statut": "complet",
+    "candidat": "Sophie Lambert",
+    "pieces_manquantes": [],
+    "incoherences": []
+  },
+  "thomas-verhoeven": {
+    "_motif": "bulletin de juin émis le 30/06/2026, avant le 14/07/2026 : 2 bulletins recevables sur 3 ; bulletin de juillet absent.",
+    "statut": "incomplet",
+    "candidat": "Thomas Verhoeven",
+    "pieces_manquantes": ["revenus"],
+    "incoherences": []
+  }
+}
