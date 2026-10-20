@@ -183,3 +183,51 @@ def test_gemini_unknown_model_or_bad_key_raises_config_error(code: int, message:
     provider._client = SimpleNamespace(models=FailingModels())
     with pytest.raises(LLMConfigError, match="LLM_MODEL"):
         provider.generate("système", "question")
+
+
+def _quota_429(quota_id: str, retry_delay: str) -> Any:
+    from google.genai import errors
+
+    details = [
+        {"@type": "type.googleapis.com/google.rpc.QuotaFailure", "violations": [{"quotaId": quota_id}]},
+        {"@type": "type.googleapis.com/google.rpc.RetryInfo", "retryDelay": retry_delay},
+    ]
+    return errors.ClientError(429, {"error": {"code": 429, "message": "quota", "details": details}})
+
+
+def test_gemini_daily_quota_stops_without_waiting(monkeypatch: pytest.MonkeyPatch) -> None:
+    from llm_providers.base import LLMQuotaError
+
+    waits: list[float] = []
+    monkeypatch.setattr("llm_providers.gemini_provider.time.sleep", waits.append)
+
+    class DailyQuota:
+        def generate_content(self, **kwargs: Any) -> Any:
+            raise _quota_429("GenerateRequestsPerDayPerProjectPerModel-FreeTier", "71541s")
+
+    provider = GeminiProvider(api_key="x")
+    provider._client = SimpleNamespace(models=DailyQuota())
+    with pytest.raises(LLMQuotaError, match="quota du jour"):
+        provider.generate("système", "question")
+    assert waits == []  # aucune attente : arrêt immédiat
+
+
+def test_gemini_minute_quota_waits_then_succeeds(monkeypatch: pytest.MonkeyPatch) -> None:
+    waits: list[float] = []
+    monkeypatch.setattr("llm_providers.gemini_provider.time.sleep", waits.append)
+
+    class MinuteQuotaThenOk:
+        calls = 0
+
+        def generate_content(self, **kwargs: Any) -> Any:
+            self.calls += 1
+            if self.calls == 1:
+                raise _quota_429("GenerateRequestsPerMinutePerProjectPerModel-FreeTier", "12s")
+            return types.GenerateContentResponse(
+                candidates=[types.Candidate(content=types.Content(role="model", parts=[types.Part(text="OK")]))]
+            )
+
+    provider = GeminiProvider(api_key="x")
+    provider._client = SimpleNamespace(models=MinuteQuotaThenOk())
+    assert provider.generate("système", "question") == "OK"
+    assert waits == [13.0]  # délai annoncé par Google + 1 s
