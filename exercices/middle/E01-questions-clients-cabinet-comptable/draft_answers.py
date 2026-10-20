@@ -131,7 +131,14 @@ def table_cell(text: str) -> str:
     return " ".join(text.split()).replace("|", "\\|")
 
 
-def format_recap(summaries: list[DraftSummary], model: str) -> str:
+def find_orphan_drafts(output_dir: Path, question_ids: list[str]) -> list[str]:
+    """Liste les .md du dossier qui ne correspondent à aucune question du lot (sans rien supprimer)."""
+    # Comparaison sans la casse, comme le système de fichiers Windows.
+    expected = {f"{question_id}.md".lower() for question_id in question_ids} | {RECAP_NAME}
+    return sorted(path.name for path in output_dir.glob("*.md") if path.name.lower() not in expected)
+
+
+def format_recap(summaries: list[DraftSummary], model: str, orphans: list[str] | None = None) -> str:
     """Construit le tableau récapitulatif des étiquettes, au format Markdown."""
     lines = [
         "# Récapitulatif des brouillons",
@@ -143,6 +150,15 @@ def format_recap(summaries: list[DraftSummary], model: str) -> str:
         *(f"| {item.question_id} | {table_cell(item.label)} | {table_cell(item.section)} |" for item in summaries),
         "",
     ]
+    if orphans:
+        lines += [
+            "## Fichiers orphelins",
+            "",
+            "Brouillons du dossier sans question correspondante dans ce lot (conservés, à vérifier) :",
+            "",
+            *(f"- {name}" for name in orphans),
+            "",
+        ]
     return "\n".join(lines)
 
 
@@ -183,7 +199,8 @@ def draft_answers(
         summaries.append(summarize_draft(question_id, draft))
         logger.info("\n%s\n", draft)
 
-    recap = format_recap(summaries, provider.model)
+    orphans = find_orphan_drafts(output_dir, [record["identifiant"] for record in records])
+    recap = format_recap(summaries, provider.model, orphans)
     recap_path = output_dir / RECAP_NAME
     recap_path.write_text(recap, encoding="utf-8")
     logger.info("\n%s", recap)

@@ -158,6 +158,21 @@ def test_draft_answers_continues_after_a_failure(tmp_path):
     assert "| Q01 | erreur | panne \\| simulée sur deux lignes |" in recap
 
 
+def test_recap_lists_orphan_drafts_without_deleting_them(tmp_path):
+    csv_path = write_csv(tmp_path, HEADER + 'Q01,A,DA-1,"Q ?"\n')
+    output_dir = tmp_path / "drafts"
+    output_dir.mkdir()
+    (output_dir / "Q04.md").write_text("ancien brouillon", encoding="utf-8")
+    (output_dir / "notes.txt").write_text("pas un brouillon", encoding="utf-8")
+
+    draft_answers(csv_path, output_dir, FakeProvider())
+
+    recap = (output_dir / "recap.md").read_text(encoding="utf-8")
+    assert "## Fichiers orphelins" in recap and "- Q04.md" in recap
+    assert "Q01.md" not in recap and "recap.md" not in recap and "notes.txt" not in recap
+    assert (output_dir / "Q04.md").exists()
+
+
 def test_exercise_settings_override_env():
     env = {"ANTHROPIC_API_KEY": "a", "GEMINI_API_KEY": "g", "LLM_PROVIDER": "anthropic", "LLM_MODEL": "autre"}
     provider = get_provider(env, provider="gemini", model="gemini-test", temperature=0.2)
