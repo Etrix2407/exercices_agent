@@ -3,7 +3,15 @@
 from __future__ import annotations
 
 import planning
-from agent.checks import check_alternative_quote, check_alternatives, planning_fingerprint, shift_needs
+from agent.checks import (
+    amounts_in,
+    check_alternative_quote,
+    check_alternatives,
+    check_draft_body,
+    planning_fingerprint,
+    review_sheet,
+    shift_needs,
+)
 from agent.mcp_bridge import quote_arguments
 
 # Besoins de la demande 08 : 12 doubles + 8 simples du 11 au 13/12, salle Cèdre le 12/12 (occupée).
@@ -45,6 +53,26 @@ def test_fingerprint_reads_the_kit_base_even_in_a_path_with_spaces(tmp_path, mon
     copy.write_bytes(planning.CHEMIN_BASE.read_bytes())
     monkeypatch.setattr(planning, "CHEMIN_BASE", copy)
     assert planning_fingerprint() == reference
+
+
+def test_amounts_read_in_french_and_english_formats() -> None:
+    text = "Total : 6 680,00 EUR TTC, soit 6680.00 € ; acompte 1.980 euros ; le 12 janvier 2027 ; 20 %."
+    assert amounts_in(text) == [6680.0, 6680.0, 1980.0]
+
+
+def test_draft_body_flags_other_amount_and_discount_words() -> None:
+    assert check_draft_body("Devis indicatif de 1 980,00 EUR TTC.", 1980.0) == []
+    problems = check_draft_body("Total 1 800 EUR, avec une réduction et un geste commercial.", 1980.0)
+    assert len(problems) == 3 and "≠ total du devis joint 1980.00 EUR" in problems[0]
+    assert "« réduction »" in problems[1] and "« geste commercial »" in problems[2]
+    assert "aucun devis" in check_draft_body("Comptez 500 €.", None)[0]
+
+
+def test_precisions_without_missing_information_is_flagged() -> None:
+    assert review_sheet("precisions_requises", {}, None, [], [], "Bonjour") == [
+        "statut « precisions_requises » sans aucune information manquante listée"
+    ]
+    assert review_sheet("precisions_requises", {}, None, [], ["dates"], "Bonjour") == []
 
 
 def test_alternative_quote_required_and_on_first_alternative() -> None:

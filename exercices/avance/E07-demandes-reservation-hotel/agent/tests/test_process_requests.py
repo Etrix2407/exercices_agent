@@ -263,9 +263,12 @@ class ForgetfulAgent(ScriptedAgent):
         return "Parfait ! Je dispose de toutes les informations.\n```json\n" + json.dumps(sheet) + "\n```"
 
 
-def test_script_saves_draft_when_model_forgets_write_draft(tmp_path: Path, monkeypatch) -> None:
+def test_script_saves_draft_when_model_forgets_write_draft(tmp_path: Path, monkeypatch, caplog) -> None:
     monkeypatch.setattr("agent.checks.planning_fingerprint", lambda: "empreinte")
-    ok, _, no_json = process_all(ListingKit(), ForgetfulAgent(), tmp_path)
+    with caplog.at_level("INFO", logger="agent_tools"):
+        ok, _, no_json = process_all(ListingKit(), ForgetfulAgent(), tmp_path)
+    # Le filet de sécurité passe par le handler journalisé, comme un appel du modèle.
+    assert any("[dem_ok] write_draft" in message for message in caplog.messages)
     # JSON exploitable : fiche et brouillon enregistrés par le script, devis du code joint, note ajoutée.
     assert (ok.statut, ok.devis_total, ok.brouillon) == ("proposition", 1980.0, "b001")
     assert "enregistrés par le script" in ok.points_a_verifier[-1]

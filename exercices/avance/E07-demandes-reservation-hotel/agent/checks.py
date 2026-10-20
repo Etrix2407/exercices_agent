@@ -18,6 +18,12 @@ from agent.llm_providers.base import ToolError
 from agent.mcp_bridge import halls_with_dates, quote_arguments, rooms_by_type, same_hall
 
 ALTERNATIVE_PATTERN = re.compile(r"(\d{4}-\d{2}-\d{2})\s*(?:→|->|au|à)\s*(\d{4}-\d{2}-\d{2})")
+# Montant en euros dans un texte : « 6 680,00 EUR », « 6680.00 € », « 1.980 euros »…
+AMOUNT_PATTERN = re.compile(
+    r"(?<![\d.,])(\d{1,3}(?:[   .]\d{3})+|\d+)(?:[.,](\d{1,2}))?\s*(?:€|EUR\b|euros?\b)", re.IGNORECASE
+)
+# Mots qui laissent penser à une remise (comparés sans accents ni casse) -> libellé affiché.
+DISCOUNT_WORDS = {"remise": "remise", "reduction": "réduction", "geste commercial": "geste commercial"}
 
 
 def planning_fingerprint() -> str:
@@ -122,3 +128,51 @@ def check_alternative_quote(needs: dict[str, Any], quote: dict[str, Any] | None,
         gap = f"devis joint {quote['total_ttc']:.2f} EUR ≠ recalcul {expected:.2f} EUR"
         return [f"{gap} à partir des besoins décalés sur la première date alternative"]
     return []
+
+
+def amounts_in(text: str) -> list[float]:
+    """Montants en euros écrits dans un texte (espaces ou points comme séparateurs de milliers)."""
+    amounts = []
+    for match in AMOUNT_PATTERN.finditer(text):
+        units = re.sub(r"[   .]", "", match.group(1))
+        amounts.append(float(f"{units}.{match.group(2) or 0}"))
+    return amounts
+
+
+def check_draft_body(body: str, quote_total: float | None) -> list[str]:
+    """Signale un montant du brouillon différent du devis joint, et toute mention d'une remise."""
+    problems = []
+    for amount in amounts_in(body):
+        if quote_total is None:
+            problems.append(f"montant {amount:.2f} EUR écrit dans le brouillon alors qu'aucun devis n'est joint")
+        elif abs(amount - quote_total) > 0.005:
+            problems.append(
+                f"montant {amount:.2f} EUR écrit dans le brouillon ≠ total du devis joint {quote_total:.2f} EUR"
+            )
+    plain = planning._sans_accent(body)
+    for word, label in DISCOUNT_WORDS.items():
+        if re.search(rf"\b{word}", plain):
+            problems.append(f"le brouillon mentionne « {label} » : vérifier qu'aucune remise n'est promise")
+    return problems
+
+
+def review_sheet(
+    status: str,
+    needs: dict[str, Any],
+    quote: dict[str, Any] | None,
+    alternatives: list[str],
+    missing: list[str],
+    body: str,
+) -> list[str]:
+    """Contrôles d'une fiche enregistrée selon son statut ; renvoie les points à vérifier."""
+    problems = []
+    if status == "proposition" and quote:
+        problems += [problem for problem in [check_quote(needs, quote["total_ttc"])] if problem]
+    if status == "dates_alternatives":
+        if not alternatives:
+            problems.append("statut « dates_alternatives » sans aucune date proposée")
+        problems += check_alternatives(needs, alternatives)
+        problems += check_alternative_quote(needs, quote, alternatives)
+    if status == "precisions_requises" and not missing:
+        problems.append("statut « precisions_requises » sans aucune information manquante listée")
+    return problems + check_draft_body(body, quote["total_ttc"] if quote else None)

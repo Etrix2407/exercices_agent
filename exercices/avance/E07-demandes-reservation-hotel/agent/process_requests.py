@@ -105,8 +105,10 @@ def save_draft_from_answer(tools: HotelTools, final_text: str) -> str:
     sheet = extract_json_object(final_text)
     if sheet is None:
         return "write_draft non appelé et aucun JSON exploitable dans la réponse du modèle"
+    # Même handler que celui du modèle : l'appel est journalisé dans journal_outils.txt.
+    write_draft = {spec.name: spec.handler for spec in tools.specs()}["write_draft"]
     try:
-        tools.write_draft({"fiche_json": sheet})
+        write_draft({"fiche_json": sheet})
     except ToolError as error:
         return f"write_draft non appelé ; JSON de la réponse refusé : {error}"
     return "write_draft non appelé par le modèle : fiche et brouillon enregistrés par le script à partir de sa réponse"
@@ -138,15 +140,14 @@ def build_result(request_id: str, tools: HotelTools, final_text: str) -> Request
     )
     if fallback_note:
         result.points_a_verifier.append(fallback_note)
-    if result.statut == "proposition" and quote:
-        problem = checks.check_quote(needs, quote["total_ttc"])
-        if problem:
-            result.points_a_verifier.append(problem)
-    if result.statut == "dates_alternatives":
-        if not result.dates_alternatives:
-            result.points_a_verifier.append("statut « dates_alternatives » sans aucune date proposée")
-        result.points_a_verifier += checks.check_alternatives(needs, result.dates_alternatives)
-        result.points_a_verifier += checks.check_alternative_quote(needs, quote, result.dates_alternatives)
+    result.points_a_verifier += checks.review_sheet(
+        result.statut,
+        needs,
+        quote,
+        result.dates_alternatives,
+        result.informations_manquantes,
+        str(sheet.get("brouillon_reponse") or ""),
+    )
     return result
 
 
