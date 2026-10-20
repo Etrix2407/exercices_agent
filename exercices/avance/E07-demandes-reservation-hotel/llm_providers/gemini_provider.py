@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import time
 
 from google import genai
 from google.genai import errors, types
@@ -10,11 +11,15 @@ from google.genai import errors, types
 from llm_providers.base import LLMConfigError, LLMError, LLMQuotaError, ToolError, ToolSpec
 
 DEFAULT_MODEL = "gemini-3.5-flash"
-# Le SDK ne réessaie pas par défaut : on réessaie sur saturation (429, 503) et erreurs serveur.
-# Le quota gratuit est compté par minute : les attentes (4, 8, 16, 32, 60, 60 s) couvrent une fenêtre entière.
+# Le SDK ne réessaie que les erreurs serveur passagères. Le quota (429) est traité par _generate :
+# Google y indique le délai à attendre, ce qui permet de s'arrêter tout de suite sur le quota du jour.
 RETRY_OPTIONS = types.HttpRetryOptions(
-    attempts=7, initial_delay=4.0, max_delay=60.0, http_status_codes=[429, 500, 502, 503, 504]
+    attempts=4, initial_delay=4.0, max_delay=30.0, http_status_codes=[500, 502, 503, 504]
 )
+# Au-delà de ce délai demandé par Google (quota du jour, par exemple), attendre ne sert à rien : on s'arrête.
+MAX_QUOTA_WAIT_S = 90
+# Nombre de nouveaux essais après un quota par minute atteint.
+MAX_QUOTA_RETRIES = 3
 # Délai maximal d'une requête (en millisecondes) : une connexion bloquée lève une erreur au lieu de pendre.
 REQUEST_TIMEOUT_MS = 120_000
 
@@ -60,19 +65,62 @@ class GeminiProvider:
     def _generate(
         self, contents: str | list[types.Content], config: types.GenerateContentConfig
     ) -> types.GenerateContentResponse:
-        """Appelle generate_content et convertit les erreurs d'API en LLMError."""
-        try:
-            return self._client.models.generate_content(model=self.model, contents=contents, config=config)
-        except errors.APIError as error:
-            raise _classify(error) from error
+        """Appelle generate_content ; attend sur un quota par minute, s'arrête net sur un quota plus long."""
+        for attempt in range(MAX_QUOTA_RETRIES + 1):
+            try:
+                return self._client.models.generate_content(model=self.model, contents=contents, config=config)
+            except errors.APIError as error:
+                if error.code != 429:
+                    raise _classify(error) from error
+                delay = _retry_delay(error)
+                if _is_daily_quota(error) or delay is None or delay > MAX_QUOTA_WAIT_S:
+                    raise _quota_error(error, delay) from error
+                if attempt == MAX_QUOTA_RETRIES:
+                    raise _quota_error(error, delay) from error
+                logger.warning("Quota par minute atteint : nouvel essai dans %d s…", round(delay))
+                time.sleep(delay + 1)
+        raise LLMError("Boucle de nouvel essai Gemini terminée sans résultat.")  # inaccessible, par sûreté
+
+
+def _error_details(error: errors.APIError) -> list[dict]:
+    """Détails structurés renvoyés par Google avec l'erreur (RetryInfo, QuotaFailure…)."""
+    details = error.details if isinstance(error.details, dict) else {}
+    items = details.get("error", {}).get("details", [])
+    return [item for item in items if isinstance(item, dict)]
+
+
+def _retry_delay(error: errors.APIError) -> float | None:
+    """Délai d'attente demandé par Google (champ RetryInfo.retryDelay, par exemple « 71541s »), en secondes."""
+    for item in _error_details(error):
+        delay = str(item.get("retryDelay", ""))
+        if delay.endswith("s"):
+            try:
+                return float(delay[:-1])
+            except ValueError:
+                return None
+    return None
+
+
+def _is_daily_quota(error: errors.APIError) -> bool:
+    """Vrai si le quota dépassé est un quota journalier (quotaId « …PerDay… »)."""
+    return any(
+        "PerDay" in str(violation.get("quotaId", ""))
+        for item in _error_details(error)
+        for violation in item.get("violations", [])
+        if isinstance(violation, dict)
+    )
+
+
+def _quota_error(error: errors.APIError, delay: float | None) -> LLMQuotaError:
+    """Erreur de quota avec le délai annoncé par Google, lisible par un humain."""
+    kind = "quota du jour" if _is_daily_quota(error) else "quota"
+    wait = f" : nouvel essai possible dans {delay / 3600:.1f} h" if delay and delay >= 3600 else ""
+    return LLMQuotaError(f"Gemini : {kind} épuisé pour le modèle{wait}. Changer LLM_MODEL ou réessayer plus tard.")
 
 
 def _classify(error: errors.APIError) -> LLMError:
-    """Traduit une erreur Gemini : quota (429) et configuration (clé, modèle) arrêtent tout le lot."""
+    """Traduit une erreur Gemini hors quota : une erreur de configuration (clé, modèle) arrête tout le lot."""
     message = f"Gemini a renvoyé l'erreur {error.code} : {error.message}"
-    # Un 429 qui persiste après tous les réessais signifie un quota épuisé (souvent le quota du jour).
-    if error.code == 429:
-        return LLMQuotaError(message)
     # Gemini signale une clé invalide par un 400 « API key not valid ».
     if error.code in (401, 403, 404) or (error.code == 400 and "api key" in str(error.message).lower()):
         return LLMConfigError(f"{message}. Vérifier GEMINI_API_KEY et LLM_MODEL (python list_model.py).")
