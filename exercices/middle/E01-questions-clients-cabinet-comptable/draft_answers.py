@@ -32,7 +32,10 @@ SYSTEM_PROMPT_PATH = BASE_DIR / "prompt-systeme.md"
 FAQ_PATH = BASE_DIR / "faq-cabinet-derval.md"
 REQUIRED_COLUMNS = ("identifiant", "nom", "numero_dossier", "question")
 # Identifiant utilisé comme nom de fichier : on refuse tout ce qui pourrait sortir du dossier.
-SAFE_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]+$")
+SAFE_ID_PATTERN = re.compile(r"[A-Za-z0-9_-]+")
+RECAP_NAME = "recap.md"
+# Identifiants qui écraseraient un fichier produit par le script (comparés en minuscules).
+RESERVED_IDS = {Path(RECAP_NAME).stem}
 LABEL_PATTERN = re.compile(r"\*\*Étiquette :\*\*\s*(.+)")
 SECTION_PATTERN = re.compile(r"\*\*Section citée :\*\*\s*(.+)")
 UNKNOWN = "non détectée"
@@ -65,10 +68,15 @@ def load_questions(csv_path: Path) -> pd.DataFrame:
     if missing:
         raise ValueError(f"Colonnes manquantes dans {csv_path.name} : {', '.join(missing)}")
 
-    invalid_ids = [value for value in questions["identifiant"] if not SAFE_ID_PATTERN.match(value)]
+    invalid_ids = [
+        value
+        for value in questions["identifiant"]
+        if not SAFE_ID_PATTERN.fullmatch(value) or value.lower() in RESERVED_IDS
+    ]
     if invalid_ids:
         raise ValueError(f"Identifiants invalides dans {csv_path.name} : {', '.join(map(repr, invalid_ids))}")
-    duplicates = questions["identifiant"][questions["identifiant"].duplicated()].tolist()
+    # Windows ne distingue pas Q01.md de q01.md : les doublons se comparent sans la casse.
+    duplicates = questions["identifiant"][questions["identifiant"].str.lower().duplicated()].tolist()
     if duplicates:
         raise ValueError(f"Identifiants en double dans {csv_path.name} : {', '.join(duplicates)}")
     return questions
@@ -153,7 +161,7 @@ def draft_answers(
         logger.info("\n%s\n", draft)
 
     recap = format_recap(summaries, provider.model)
-    recap_path = output_dir / "recap.md"
+    recap_path = output_dir / RECAP_NAME
     recap_path.write_text(recap, encoding="utf-8")
     logger.info("\n%s", recap)
     logger.info("Brouillons et récapitulatif écrits dans %s", output_dir)
@@ -196,7 +204,16 @@ def main() -> None:
     except LLMError as error:
         raise SystemExit(str(error)) from error
     logger.info("Modèle utilisé : %s", provider.model)
-    draft_answers(arguments.csv_path, arguments.output, provider, arguments.limit)
+    try:
+        draft_answers(arguments.csv_path, arguments.output, provider, arguments.limit)
+    except FileNotFoundError as error:
+        raise SystemExit(f"Fichier introuvable : {error.filename}") from error
+    except pd.errors.EmptyDataError as error:
+        raise SystemExit(f"Le fichier {arguments.csv_path} est vide.") from error
+    except UnicodeDecodeError as error:
+        raise SystemExit(f"Le fichier {arguments.csv_path} n'est pas encodé en UTF-8.") from error
+    except ValueError as error:
+        raise SystemExit(str(error)) from error
 
 
 if __name__ == "__main__":

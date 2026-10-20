@@ -9,7 +9,7 @@ import httpx
 import pytest
 from google.genai import errors
 
-from draft_answers import NOT_PROCESSED, UNKNOWN, draft_answers, load_questions, summarize_draft
+from draft_answers import NOT_PROCESSED, UNKNOWN, draft_answers, load_questions, main, summarize_draft
 from llm_providers import LLMError, LLMQuotaError, get_provider
 from llm_providers.anthropic_provider import AnthropicProvider
 from llm_providers.gemini_provider import GeminiProvider
@@ -61,6 +61,45 @@ def test_load_questions_rejects_unsafe_identifier(tmp_path):
     csv_path = write_csv(tmp_path, HEADER + '../Q01,Nom,DA-1,"Question ?"\n')
     with pytest.raises(ValueError, match="Identifiants invalides"):
         load_questions(csv_path)
+
+
+@pytest.mark.parametrize(
+    ("rows", "message"),
+    [
+        ('"Q01\n",A,DA-1,"Q ?"\n', "Identifiants invalides"),
+        ('Recap,A,DA-1,"Q ?"\n', "Identifiants invalides"),
+        ('Q01,A,DA-1,"Q ?"\nq01,B,DA-2,"Q ?"\n', "Identifiants en double"),
+    ],
+)
+def test_load_questions_rejects_bad_identifiers(tmp_path, rows, message):
+    csv_path = write_csv(tmp_path, HEADER + rows)
+    with pytest.raises(ValueError, match=message):
+        load_questions(csv_path)
+
+
+def run_main(monkeypatch, tmp_path: Path, csv_path: Path) -> None:
+    """Lance main() sur csv_path avec un fournisseur factice, sans .env ni réseau."""
+    monkeypatch.setattr("draft_answers.load_dotenv", lambda *args: None)
+    monkeypatch.setattr("draft_answers.get_provider", lambda **kwargs: FakeProvider())
+    monkeypatch.setattr("sys.argv", ["draft_answers.py", str(csv_path), "--output", str(tmp_path / "out")])
+    main()
+
+
+@pytest.mark.parametrize(
+    ("content", "message"),
+    [
+        (None, "Fichier introuvable"),
+        (b"", "est vide"),
+        ("identifiant,nom,numero_dossier,question\nQ01,Hélène,DA-1,Q\n".encode("latin-1"), "UTF-8"),
+        (b"identifiant,nom\nQ01,A\n", "Colonnes manquantes"),
+    ],
+)
+def test_main_turns_input_errors_into_clear_exit(monkeypatch, tmp_path, content, message):
+    csv_path = tmp_path / "questions.csv"
+    if content is not None:
+        csv_path.write_bytes(content)
+    with pytest.raises(SystemExit, match=message):
+        run_main(monkeypatch, tmp_path, csv_path)
 
 
 def test_summarize_draft_without_label():
