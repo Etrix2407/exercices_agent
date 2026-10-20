@@ -5,23 +5,35 @@ from __future__ import annotations
 import logging
 import time
 
+import httpx
 from google import genai
 from google.genai import errors, types
+
+try:
+    import httpx2
+except ImportError:  # anciennes versions du SDK : httpx seulement
+    httpx2 = None
 
 from llm_providers.base import LLMConfigError, LLMError, LLMQuotaError, ToolError, ToolSpec
 
 DEFAULT_MODEL = "gemini-3.5-flash"
-# Le SDK ne réessaie que les erreurs serveur passagères. Le quota (429) est traité par _generate :
-# Google y indique le délai à attendre, ce qui permet de s'arrêter tout de suite sur le quota du jour.
-RETRY_OPTIONS = types.HttpRetryOptions(
-    attempts=4, initial_delay=4.0, max_delay=30.0, http_status_codes=[500, 502, 503, 504]
-)
+# Aucun nouvel essai silencieux du SDK : c'est _generate qui décide, avec un message visible.
+RETRY_OPTIONS = types.HttpRetryOptions(attempts=1)
+# Erreurs serveur passagères : nouvel essai après ces attentes (en secondes), puis abandon.
+TRANSIENT_STATUS = (500, 502, 503, 504)
+SERVER_RETRY_DELAYS_S = (5, 15, 30)
 # Au-delà de ce délai demandé par Google (quota du jour, par exemple), attendre ne sert à rien : on s'arrête.
 MAX_QUOTA_WAIT_S = 90
 # Nombre de nouveaux essais après un quota par minute atteint.
 MAX_QUOTA_RETRIES = 3
-# Délai maximal d'une requête (en millisecondes) : une connexion bloquée lève une erreur au lieu de pendre.
-REQUEST_TIMEOUT_MS = 120_000
+# Le palier gratuit répond parfois en plus d'une minute et demie : 5 minutes avant d'abandonner (sans relancer).
+REQUEST_TIMEOUT_MS = 300_000
+# Erreurs réseau du client HTTP utilisé par le SDK (httpx, ou httpx2 selon les versions).
+TIMEOUT_ERRORS: tuple[type[Exception], ...] = (httpx.TimeoutException,)
+CONNECT_ERRORS: tuple[type[Exception], ...] = (httpx.ConnectError,)
+if httpx2 is not None:
+    TIMEOUT_ERRORS += (httpx2.TimeoutException,)
+    CONNECT_ERRORS += (httpx2.ConnectError,)
 
 logger = logging.getLogger(__name__)
 
@@ -65,21 +77,41 @@ class GeminiProvider:
     def _generate(
         self, contents: str | list[types.Content], config: types.GenerateContentConfig
     ) -> types.GenerateContentResponse:
-        """Appelle generate_content ; attend sur un quota par minute, s'arrête net sur un quota plus long."""
-        for attempt in range(MAX_QUOTA_RETRIES + 1):
+        """Appelle generate_content avec des nouveaux essais visibles et bornés.
+
+        Quota par minute ou erreur serveur passagère : attente annoncée puis nouvel essai. Quota du jour,
+        délai dépassé ou autre erreur : arrêt immédiat avec un message clair.
+        """
+        quota_retries = server_retries = 0
+        while True:
+            started = time.monotonic()
             try:
-                return self._client.models.generate_content(model=self.model, contents=contents, config=config)
+                response = self._client.models.generate_content(model=self.model, contents=contents, config=config)
+            except TIMEOUT_ERRORS as error:
+                raise LLMError(
+                    f"Gemini n'a pas répondu en {REQUEST_TIMEOUT_MS // 1000} s : modèle saturé, réessayer plus tard."
+                ) from error
+            except CONNECT_ERRORS as error:
+                raise LLMError(f"Connexion à Gemini impossible : {error}") from error
             except errors.APIError as error:
+                if error.code in TRANSIENT_STATUS and server_retries < len(SERVER_RETRY_DELAYS_S):
+                    wait = SERVER_RETRY_DELAYS_S[server_retries]
+                    server_retries += 1
+                    logger.warning("Gemini indisponible (%d) : nouvel essai dans %d s…", error.code, wait)
+                    time.sleep(wait)
+                    continue
                 if error.code != 429:
                     raise _classify(error) from error
                 delay = _retry_delay(error)
-                if _is_daily_quota(error) or delay is None or delay > MAX_QUOTA_WAIT_S:
+                too_long = _is_daily_quota(error) or delay is None or delay > MAX_QUOTA_WAIT_S
+                if too_long or quota_retries == MAX_QUOTA_RETRIES:
                     raise _quota_error(error, delay) from error
-                if attempt == MAX_QUOTA_RETRIES:
-                    raise _quota_error(error, delay) from error
+                quota_retries += 1
                 logger.warning("Quota par minute atteint : nouvel essai dans %d s…", round(delay))
                 time.sleep(delay + 1)
-        raise LLMError("Boucle de nouvel essai Gemini terminée sans résultat.")  # inaccessible, par sûreté
+                continue
+            logger.info("Réponse du modèle en %d s.", round(time.monotonic() - started))
+            return response
 
 
 def _error_details(error: errors.APIError) -> list[dict]:
