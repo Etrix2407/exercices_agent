@@ -231,3 +231,52 @@ def test_gemini_minute_quota_waits_then_succeeds(monkeypatch: pytest.MonkeyPatch
     provider._client = SimpleNamespace(models=MinuteQuotaThenOk())
     assert provider.generate("système", "question") == "OK"
     assert waits == [13.0]  # délai annoncé par Google + 1 s
+
+
+def _ok_response() -> Any:
+    return types.GenerateContentResponse(
+        candidates=[types.Candidate(content=types.Content(role="model", parts=[types.Part(text="OK")]))]
+    )
+
+
+def test_gemini_timeout_fails_once_without_silent_retry(monkeypatch: pytest.MonkeyPatch) -> None:
+    import httpx
+
+    waits: list[float] = []
+    monkeypatch.setattr("llm_providers.gemini_provider.time.sleep", waits.append)
+
+    class SlowModels:
+        calls = 0
+
+        def generate_content(self, **kwargs: Any) -> Any:
+            self.calls += 1
+            raise httpx.ReadTimeout("trop lent")
+
+    provider = GeminiProvider(api_key="x")
+    provider._client = SimpleNamespace(models=SlowModels())
+    with pytest.raises(LLMError, match="n'a pas répondu"):
+        provider.generate("système", "question")
+    assert provider._client.models.calls == 1 and waits == []
+
+
+def test_gemini_server_error_retried_with_visible_wait(monkeypatch: pytest.MonkeyPatch) -> None:
+    from google.genai import errors
+
+    waits: list[float] = []
+    monkeypatch.setattr("llm_providers.gemini_provider.time.sleep", waits.append)
+
+    class BusyThenOk:
+        calls = 0
+
+        def generate_content(self, **kwargs: Any) -> Any:
+            self.calls += 1
+            if self.calls == 1:
+                raise errors.ServerError(
+                    503, {"error": {"code": 503, "message": "overloaded", "status": "UNAVAILABLE"}}
+                )
+            return _ok_response()
+
+    provider = GeminiProvider(api_key="x")
+    provider._client = SimpleNamespace(models=BusyThenOk())
+    assert provider.generate("système", "question") == "OK"
+    assert waits == [5]
