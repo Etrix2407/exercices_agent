@@ -70,19 +70,18 @@ def test_missing_or_wrong_argument(tools: dict, args: object) -> None:
         tools["read_file"](args)
 
 
-def test_write_file_rules(tools: dict) -> None:
+def test_write_file_only_writes_the_folder_relance(tools: dict) -> None:
     out_dir = tools["_root"] / "sorties" / "jane-doe"
-    for bad_name in ["../evil.txt", "Relance.TXT", "a/b.txt"]:
-        with pytest.raises(ToolError):
-            tools["write_file"]({"filename": bad_name, "content": "x"})
     with pytest.raises(ToolError):
-        tools["write_file"]({"filename": "relance.txt", "content": "   "})
+        tools["write_file"]({"content": "   "})
     with pytest.raises(ToolError):
-        tools["write_file"]({"filename": "relance.txt"})
-    message = tools["write_file"]({"filename": "relance.txt", "content": "Bonjour"})
-    assert "relance.txt" in message
-    assert (out_dir / "relance.txt").read_text(encoding="utf-8") == "Bonjour"
-    assert not (tools["_root"] / "sorties" / "evil.txt").exists()
+        tools["write_file"]({})
+    # Un nom proposé par le modèle est ignoré : seule relance_<dossier>.txt peut être écrite.
+    for other_name in ("relance_autre.txt", "journal_outils.txt", "../evil.txt"):
+        message = tools["write_file"]({"filename": other_name, "content": "Bonjour"})
+        assert "relance_jane-doe.txt" in message
+    assert (out_dir / "relance_jane-doe.txt").read_text(encoding="utf-8") == "Bonjour"
+    assert sorted(path.name for path in out_dir.iterdir()) == ["relance_jane-doe.txt"]
 
 
 def test_os_error_becomes_tool_error(tools: dict, monkeypatch: pytest.MonkeyPatch) -> None:

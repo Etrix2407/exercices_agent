@@ -21,6 +21,7 @@ from typing import Any
 
 from dotenv import load_dotenv
 
+from agent_tools import build_tools, relance_name
 from llm_providers import LLMError, LLMProvider, get_provider
 from llm_providers.base import ToolSpec
 
@@ -72,11 +73,6 @@ class ApplicationResult:
     points_a_verifier: list[str] = field(default_factory=list)
     sources: list[str] = field(default_factory=list)
     transmission_fichier: str = ""
-
-
-def relance_name(folder: str) -> str:
-    """Nom du fichier de relance attendu pour un dossier."""
-    return f"relance_{folder}.txt"
 
 
 def transmission_name(folder: str) -> str:
@@ -214,13 +210,6 @@ def check_relance(result: ApplicationResult, output_dir: Path) -> None:
     result.relance_fichier = expected if written else ""
 
 
-def default_tools_factory() -> ToolsFactory:
-    """Renvoie la fabrique d'outils réelle (import local : les tests peuvent s'en passer)."""
-    from agent_tools import build_tools
-
-    return build_tools
-
-
 def check_application(
     candidate_dir: Path,
     grid_path: Path,
@@ -303,7 +292,7 @@ def check_applications(
     tools_factory: ToolsFactory | None = None,
 ) -> list[ApplicationResult]:
     """Contrôle chaque dossier, puis écrit la synthèse et les résultats bruts."""
-    tools_factory = tools_factory or default_tools_factory()
+    tools_factory = tools_factory or build_tools
     folders = list_candidate_dirs(candidates_dir, only)
     system_prompt = PROMPT_PATH.read_text(encoding="utf-8")
     grid = json.loads(grid_path.read_text(encoding="utf-8"))
