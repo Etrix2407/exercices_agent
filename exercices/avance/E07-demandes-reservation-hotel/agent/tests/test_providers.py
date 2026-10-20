@@ -8,9 +8,9 @@ from typing import Any
 import pytest
 from google.genai import types
 
-from llm_providers.anthropic_provider import AnthropicProvider
-from llm_providers.base import LLMError, ToolError, ToolSpec
-from llm_providers.gemini_provider import GeminiProvider
+from agent.llm_providers.anthropic_provider import AnthropicProvider
+from agent.llm_providers.base import LLMError, ToolError, ToolSpec
+from agent.llm_providers.gemini_provider import GeminiProvider
 
 SCHEMA = {"type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]}
 
@@ -144,8 +144,8 @@ def test_gemini_max_steps() -> None:
 
 
 def test_exercise_settings_override_env_and_set_temperature() -> None:
-    from llm_providers import get_provider
-    from llm_providers.gemini_provider import _agent_config
+    from agent.llm_providers import get_provider
+    from agent.llm_providers.gemini_provider import _agent_config
 
     env = {"ANTHROPIC_API_KEY": "a", "GEMINI_API_KEY": "g", "LLM_PROVIDER": "anthropic", "LLM_MODEL": "autre"}
     provider = get_provider(env, provider="gemini", model="gemini-test", temperature=0.2)
@@ -157,7 +157,7 @@ def test_exercise_settings_override_env_and_set_temperature() -> None:
 def test_gemini_persistent_429_raises_quota_error() -> None:
     from google.genai import errors
 
-    from llm_providers.base import LLMQuotaError
+    from agent.llm_providers.base import LLMQuotaError
 
     class QuotaModels:
         def generate_content(self, **kwargs: Any) -> Any:
@@ -173,7 +173,7 @@ def test_gemini_persistent_429_raises_quota_error() -> None:
 def test_gemini_unknown_model_or_bad_key_raises_config_error(code: int, message: str) -> None:
     from google.genai import errors
 
-    from llm_providers.base import LLMConfigError
+    from agent.llm_providers.base import LLMConfigError
 
     class FailingModels:
         def generate_content(self, **kwargs: Any) -> Any:
@@ -196,10 +196,10 @@ def _quota_429(quota_id: str, retry_delay: str) -> Any:
 
 
 def test_gemini_daily_quota_stops_without_waiting(monkeypatch: pytest.MonkeyPatch) -> None:
-    from llm_providers.base import LLMQuotaError
+    from agent.llm_providers.base import LLMQuotaError
 
     waits: list[float] = []
-    monkeypatch.setattr("llm_providers.gemini_provider.time.sleep", waits.append)
+    monkeypatch.setattr("agent.llm_providers.gemini_provider.time.sleep", waits.append)
 
     class DailyQuota:
         def generate_content(self, **kwargs: Any) -> Any:
@@ -214,7 +214,7 @@ def test_gemini_daily_quota_stops_without_waiting(monkeypatch: pytest.MonkeyPatc
 
 def test_gemini_minute_quota_waits_then_succeeds(monkeypatch: pytest.MonkeyPatch) -> None:
     waits: list[float] = []
-    monkeypatch.setattr("llm_providers.gemini_provider.time.sleep", waits.append)
+    monkeypatch.setattr("agent.llm_providers.gemini_provider.time.sleep", waits.append)
 
     class MinuteQuotaThenOk:
         calls = 0
@@ -243,7 +243,7 @@ def test_gemini_timeout_fails_once_without_silent_retry(monkeypatch: pytest.Monk
     import httpx
 
     waits: list[float] = []
-    monkeypatch.setattr("llm_providers.gemini_provider.time.sleep", waits.append)
+    monkeypatch.setattr("agent.llm_providers.gemini_provider.time.sleep", waits.append)
 
     class SlowModels:
         calls = 0
@@ -263,7 +263,7 @@ def test_gemini_server_error_retried_with_visible_wait(monkeypatch: pytest.Monke
     from google.genai import errors
 
     waits: list[float] = []
-    monkeypatch.setattr("llm_providers.gemini_provider.time.sleep", waits.append)
+    monkeypatch.setattr("agent.llm_providers.gemini_provider.time.sleep", waits.append)
 
     class BusyThenOk:
         calls = 0

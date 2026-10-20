@@ -5,7 +5,7 @@ read_planning, read_grille, calc_devis et write_draft. Contrôle ensuite chaque 
 (devis recalculé, dates alternatives revérifiées, planning inchangé) et écrit une synthèse.
 L'agent ne réserve rien et n'envoie rien : il n'écrit que des fiches et des brouillons.
 
-Usage : python process_requests.py [--reset] [--only demande_01_mariage] [--output output]
+Usage (depuis le dossier du kit E07) : python -m agent [--reset] [--only demande_01_mariage] [--output dossier]
 """
 
 from __future__ import annotations
@@ -29,9 +29,9 @@ from dotenv import load_dotenv
 
 import init_donnees
 import planning
-from llm_providers import LLMError, LLMProvider, get_provider
-from llm_providers.base import LLMBatchError, ToolError
-from mcp_bridge import HotelTools, KitCaller, KitClient, kit_session, quote_arguments, rooms_by_type
+from agent.llm_providers import LLMError, LLMProvider, get_provider
+from agent.llm_providers.base import LLMBatchError, ToolError
+from agent.mcp_bridge import HotelTools, KitCaller, KitClient, kit_session, quote_arguments, rooms_by_type
 
 # Réglages du modèle propres à cet exercice (le .env est partagé par tous les exercices).
 # None : choix automatique selon les clés du .env / modèle et température par défaut.
@@ -43,7 +43,7 @@ LLM_MODEL = "gemini-3.8-flash"
 LLM_TEMPERATURE = None
 
 BASE_DIR = Path(__file__).resolve().parent
-ENV_PATH = BASE_DIR.parents[1] / ".env"
+ENV_PATH = BASE_DIR.parents[2] / ".env"
 PROMPT_PATH = BASE_DIR / "prompt_sys_reservation.md"
 OUTPUT_DIR = BASE_DIR / "output"
 SYNTHESIS_NAME = "synthese.md"
@@ -430,8 +430,12 @@ def configure_logging(output_dir: Path) -> Path:
 
 def parse_arguments() -> argparse.Namespace:
     """Lit les arguments de la ligne de commande."""
-    parser = argparse.ArgumentParser(description="Traitement des demandes de réservation de groupe (E07).")
-    parser.add_argument("--output", type=Path, default=OUTPUT_DIR, help="Dossier de sortie (par défaut : output).")
+    parser = argparse.ArgumentParser(
+        prog="python -m agent", description="Traitement des demandes de réservation de groupe (E07)."
+    )
+    parser.add_argument(
+        "--output", type=Path, default=OUTPUT_DIR, help="Dossier de sortie (par défaut : agent/output)."
+    )
     parser.add_argument("--only", help="Ne traiter qu'une demande (par exemple demande_01_mariage).")
     parser.add_argument(
         "--reset",
