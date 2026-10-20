@@ -154,6 +154,7 @@ def test_exercise_settings_override_env_and_set_temperature() -> None:
     assert _agent_config("système", [], provider.temperature).temperature == 0.2
 
 
+@pytest.mark.parametrize(("code", "message"), [(404, "This model is no longer available"), (400, "API key not valid")])
 def test_gemini_unknown_model_or_bad_key_raises_config_error(code: int, message: str) -> None:
     from google.genai import errors
 
