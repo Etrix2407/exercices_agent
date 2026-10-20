@@ -87,3 +87,46 @@ def test_exhausted_quota_stops_batch_immediately(tmp_path: Path, monkeypatch) ->
     ok, stopped, pending = process_all(ListingKit(), QuotaAgent(), tmp_path)
     assert (ok.statut, stopped.statut, pending.statut) == ("proposition", "erreur", "non_traitee")
     assert "lot arrêté" in pending.points_a_verifier[0]
+
+
+class PeekingAgent(ScriptedAgent):
+    """Faux modèle qui lit la synthèse sur disque au début de chaque demande."""
+
+    def __init__(self, output_dir: Path) -> None:
+        self.output_dir = output_dir
+        self.seen: list[str] = []
+
+    def run_agent(self, system: str, user: str, tools: list, max_steps: int = 25) -> str:
+        self.seen.append((self.output_dir / "synthese.md").read_text(encoding="utf-8"))
+        return super().run_agent(system, user, tools, max_steps)
+
+
+def run_peeking(tmp_path: Path, monkeypatch) -> PeekingAgent:
+    monkeypatch.setattr("process_requests.planning_fingerprint", lambda: "empreinte")
+    agent = PeekingAgent(tmp_path)
+    process_all(ListingKit(), agent, tmp_path)
+    return agent
+
+
+def test_synthesis_updated_during_batch(tmp_path: Path, monkeypatch) -> None:
+    # Avant chaque demande, la synthèse reflète les demandes déjà traitées.
+    agent = run_peeking(tmp_path, monkeypatch)
+    for done, content in enumerate(agent.seen):
+        assert f"Avancement : {done}/3 demandes traitées (lot en cours)" in content
+    assert len(agent.seen) == 3
+
+
+def test_old_synthesis_overwritten_at_start(tmp_path: Path, monkeypatch) -> None:
+    # Un fichier d'un ancien lancement ne doit plus être visible dès la 1re demande.
+    (tmp_path / "synthese.md").write_text("ANCIEN LANCEMENT", encoding="utf-8")
+    agent = run_peeking(tmp_path, monkeypatch)
+    assert "ANCIEN LANCEMENT" not in agent.seen[0]
+    assert "0/3" in agent.seen[0]
+
+
+def test_final_outputs_complete_without_tmp_files(tmp_path: Path, monkeypatch) -> None:
+    # À la fin : plus de mention « lot en cours », 3 résultats et aucun fichier temporaire.
+    run(tmp_path, monkeypatch)
+    assert "lot en cours" not in (tmp_path / "synthese.md").read_text(encoding="utf-8")
+    assert len(json.loads((tmp_path / "resultats.json").read_text(encoding="utf-8"))) == 3
+    assert not list(tmp_path.glob("*.tmp"))

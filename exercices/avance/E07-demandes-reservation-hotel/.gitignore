@@ -1,2 +1,6 @@
 # Sorties générées par process_requests.py
 output/
+
+# Fiches et brouillons générés par l'agent dans la boîte du kit
+boite/brouillons/
+boite/fiches/

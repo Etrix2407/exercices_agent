@@ -145,6 +145,10 @@ Depuis le dossier du kit :
 - `output\journal_outils.txt` : chaque appel d'outil et chaque refus ;
 - `boite\fiches\` : fiches JSON ; `boite\brouillons\` : brouillons, avec `devis.md` joint le cas échéant.
 
+`synthese.md` et `resultats.json` sont réécrits après chaque demande ; tant que le lot n'est pas fini, la synthèse porte la ligne « Avancement : n/N demandes traitées (lot en cours) ».
+Ils sont écrasés dès le début d'un lancement (aucun fichier périmé ne subsiste) et un Ctrl+C conserve les demandes déjà traitées.
+L'écriture passe par un fichier temporaire : un fichier ouvert dans l'éditeur n'est jamais à moitié écrit.
+
 Statuts possibles : `proposition`, `precisions_requises`, `dates_alternatives`, `hors_perimetre`, `erreur`.
 
 ### Contrôles automatiques
