@@ -197,9 +197,11 @@ def test_owner_draft_skipped_when_points_to_check(workspace) -> None:
     points = ["identite.pdf : PDF sans texte extractible (document scanné ?)"]
     answers = {"alice-test": answer("complet", candidat="Alice Test", points_a_verifier=points)}
     alice = run(workspace, answers, only="alice-test")[0]
+    # « complet » avec un point à vérifier est ramené à « à vérifier » : aucune transmission au propriétaire.
+    assert alice.statut == "a_verifier"
     assert alice.transmission_fichier == ""
     assert not (output / "transmission_alice-test.txt").exists()
-    assert alice.points_a_verifier == [*points, "transmission non écrite : points à vérifier"]
+    assert alice.points_a_verifier[0] == points[0] and "ramené" in alice.points_a_verifier[1]
 
 
 def test_quota_error_stops_batch_and_still_writes_synthesis(workspace) -> None:
@@ -263,3 +265,11 @@ def test_default_batch_only_has_the_eight_statement_folders() -> None:
 
     names = [path.name for path in list_candidate_dirs(CANDIDATES_DIR)]
     assert len(names) == 8 and not {"leroy", "marchal", "pieges"} & set(names)
+
+
+def test_complete_with_points_to_check_becomes_to_verify() -> None:
+    from check_applications import ApplicationResult, enforce_complete_status
+
+    result = ApplicationResult(folder="x", statut="complet", points_a_verifier=["bulletin.pdf illisible"])
+    enforce_complete_status(result)
+    assert result.statut == "a_verifier" and "ramené" in result.points_a_verifier[-1]

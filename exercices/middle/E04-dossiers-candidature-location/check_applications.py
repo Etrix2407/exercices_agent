@@ -263,8 +263,16 @@ def check_application(
     except (LLMError, AgentOutputError) as error:
         logger.error("%s : %s", folder, error)
         result = ApplicationResult(folder=folder, statut="erreur", points_a_verifier=[str(error)])
+    enforce_complete_status(result)
     check_relance(result, output_dir)
     return result
+
+
+def enforce_complete_status(result: ApplicationResult) -> None:
+    """« complet » exige l'absence de point à vérifier (pièce illisible…) : sinon le dossier passe à vérifier."""
+    if result.statut == "complet" and result.points_a_verifier:
+        result.statut = "a_verifier"
+        result.points_a_verifier.append("statut « complet » ramené à « à vérifier » : des points restent à vérifier")
 
 
 def table_cell(text: str) -> str:

@@ -311,3 +311,28 @@ def test_anthropic_batch_errors(error_class: str, status: int, expected: str) ->
     provider._client = FailingClient()
     with pytest.raises(getattr(base, expected)):
         provider.generate("système", "question")
+
+
+def test_gemini_429_without_delay_waits_then_stops(monkeypatch: pytest.MonkeyPatch) -> None:
+    from types import SimpleNamespace
+
+    from google.genai import errors
+
+    from llm_providers.base import LLMQuotaError
+    from llm_providers.gemini_provider import GeminiProvider
+
+    waits: list[float] = []
+    monkeypatch.setattr("llm_providers.gemini_provider.time.sleep", waits.append)
+
+    class Saturated:
+        calls = 0
+
+        def generate_content(self, **kwargs: object) -> None:
+            self.calls += 1
+            raise errors.ClientError(429, {"error": {"code": 429, "message": "saturé", "status": "RESOURCE_EXHAUSTED"}})
+
+    provider = GeminiProvider(api_key="x")
+    provider._client = SimpleNamespace(models=Saturated())
+    with pytest.raises(LLMQuotaError):
+        provider.generate("système", "question")
+    assert provider._client.models.calls == 4 and waits == [31, 31, 31]
