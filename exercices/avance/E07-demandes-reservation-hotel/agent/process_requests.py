@@ -27,7 +27,7 @@ import init_donnees
 from agent import checks
 from agent.llm_providers import LLMError, LLMProvider, get_provider
 from agent.llm_providers.base import LLMBatchError, ToolError
-from agent.mcp_bridge import HotelTools, KitCaller, KitClient, kit_session
+from agent.mcp_bridge import HotelTools, KitCaller, KitClient, kit_session, mailbox_dir
 from agent.synthesis import (
     RESULTS_NAME,
     SYNTHESIS_NAME,
@@ -54,7 +54,9 @@ TOOL_JOURNAL_NAME = "journal_outils.txt"
 # Nombre maximal d'appels au modèle (tours) par demande : au-delà, LLMError plutôt qu'une boucle sans fin.
 # La même valeur est insérée dans le prompt ({max_tours}) : le modèle connaît la limite réelle.
 MAX_STEPS = 20
-QUOTA_NOTE = "non traitée : lot arrêté (quota épuisé ou configuration refusée), relancer avec --only"
+QUOTA_NOTE = (
+    "non traitée : lot arrêté (quota épuisé, configuration refusée ou serveur MCP arrêté), relancer avec --only"
+)
 
 # (outils du kit, identifiant de la demande) -> outils de l'agent pour cette demande.
 ToolsFactory = Callable[[KitCaller, str], HotelTools]
@@ -187,7 +189,7 @@ def replace_previous_draft(kit: KitCaller, request_id: str, new_id: str, drafts_
     un numéro existant. Le nouveau fichier prend donc la place de l'ancien (os.replace), ce qui garde
     un numéro stable par demande et un nombre de fichiers cohérent.
     """
-    drafts_dir = drafts_dir or init_donnees.BOITE / "brouillons"
+    drafts_dir = drafts_dir or mailbox_dir() / "brouillons"
     previous = sorted(
         draft["id"]
         for draft in kit.call("lister_brouillons", {})["brouillons"]

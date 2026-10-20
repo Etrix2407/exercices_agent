@@ -7,9 +7,11 @@ from typing import Any
 
 import anyio
 import pytest
+from mcp import MCPError
+from mcp_types import CONNECTION_CLOSED
 
 from agent.llm_providers.base import ToolError
-from agent.mcp_bridge import HotelTools, KitClient, kit_session
+from agent.mcp_bridge import HotelTools, KitClient, KitConnectionError, kit_session
 from agent.tests.fakes import REQUEST, WEDDING_NEEDS, FakeKit
 
 
@@ -123,3 +125,45 @@ def test_unresponsive_mcp_server_raises_tool_error(monkeypatch) -> None:
 
     with pytest.raises(ToolError, match="pas répondu"):
         anyio.run(scenario)
+
+
+class BrokenClient:
+    """Faux client MCP : la grille ne répond pas, les outils lèvent l'erreur choisie."""
+
+    def __init__(self, error: Exception) -> None:
+        self.error = error
+
+    async def read_resource(self, uri: str) -> Any:
+        await anyio.sleep(10)
+
+    async def call_tool(self, name: str, arguments: dict) -> Any:
+        raise self.error
+
+
+def in_worker(function, *args) -> Any:
+    async def scenario() -> Any:
+        return await anyio.to_thread.run_sync(function, *args)
+
+    return anyio.run(scenario)
+
+
+def test_read_grid_has_a_timeout(monkeypatch) -> None:
+    from agent import mcp_bridge
+
+    monkeypatch.setattr(mcp_bridge, "MCP_TIMEOUT_S", 0.2)
+    with pytest.raises(ToolError, match="grille"):
+        in_worker(KitClient(BrokenClient(RuntimeError())).read_grid)
+
+
+@pytest.mark.parametrize(
+    ("error", "expected"),
+    [
+        (MCPError(code=CONNECTION_CLOSED, message="Connection closed"), KitConnectionError),
+        (anyio.ClosedResourceError(), KitConnectionError),
+        (anyio.BrokenResourceError(), KitConnectionError),
+        (MCPError(code=-32602, message="paramètres invalides"), ToolError),
+    ],
+)
+def test_mcp_transport_errors_become_clear_errors(error: Exception, expected: type[Exception]) -> None:
+    with pytest.raises(expected, match="(?i)serveur MCP"):
+        in_worker(KitClient(BrokenClient(error)).call, "lire_demande", {"identifiant": "x"})

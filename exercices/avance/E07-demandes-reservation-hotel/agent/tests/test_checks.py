@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import planning
-from agent.checks import check_alternative_quote, check_alternatives, shift_needs
+from agent.checks import check_alternative_quote, check_alternatives, planning_fingerprint, shift_needs
 from agent.mcp_bridge import quote_arguments
 
 # Besoins de la demande 08 : 12 doubles + 8 simples du 11 au 13/12, salle Cèdre le 12/12 (occupée).
@@ -36,6 +36,15 @@ def test_alternative_quote_recomputed_on_shifted_needs() -> None:
     # Devis sous-dimensionné : une seule chambre double au lieu de 12 doubles + 8 simples.
     undersized = quote_for({**shifted, "chambres": [{"type": "double", "nombre": 1}]})
     assert "≠ recalcul" in check_alternative_quote(REGIONAL_NEEDS, undersized, alternatives)[0]
+
+
+def test_fingerprint_reads_the_kit_base_even_in_a_path_with_spaces(tmp_path, monkeypatch) -> None:
+    reference = planning_fingerprint()
+    copy = tmp_path / "dossier avec espace#1" / "hotel.db"
+    copy.parent.mkdir()
+    copy.write_bytes(planning.CHEMIN_BASE.read_bytes())
+    monkeypatch.setattr(planning, "CHEMIN_BASE", copy)
+    assert planning_fingerprint() == reference
 
 
 def test_alternative_quote_required_and_on_first_alternative() -> None:

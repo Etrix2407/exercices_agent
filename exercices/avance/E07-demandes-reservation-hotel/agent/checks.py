@@ -13,10 +13,9 @@ from contextlib import closing
 from datetime import date
 from typing import Any
 
-import init_donnees
 import planning
 from agent.llm_providers.base import ToolError
-from agent.mcp_bridge import halls_with_dates, quote_arguments, rooms_by_type
+from agent.mcp_bridge import halls_with_dates, quote_arguments, rooms_by_type, same_hall
 
 ALTERNATIVE_PATTERN = re.compile(r"(\d{4}-\d{2}-\d{2})\s*(?:→|->|au|à)\s*(\d{4}-\d{2}-\d{2})")
 
@@ -24,7 +23,9 @@ ALTERNATIVE_PATTERN = re.compile(r"(\d{4}-\d{2}-\d{2})\s*(?:→|->|au|à)\s*(\d{
 def planning_fingerprint() -> str:
     """Empreinte du contenu du planning et des pré-réservations : prouve que rien n'a été réservé ni déplacé."""
     digest = hashlib.sha256()
-    with closing(sqlite3.connect(f"file:{init_donnees.BASE}?mode=ro", uri=True)) as connection:
+    # Même base que le serveur MCP (planning.CHEMIN_BASE respecte KIT_BASE), ouverte en lecture seule.
+    uri = planning.CHEMIN_BASE.resolve().as_uri() + "?mode=ro"
+    with closing(sqlite3.connect(uri, uri=True)) as connection:
         for table in ("occupation_chambres", "occupation_salles", "pre_reservations"):
             for row in connection.execute(f"SELECT * FROM {table} ORDER BY 1, 2, 3"):
                 digest.update(repr((table, row)).encode("utf-8"))
@@ -68,7 +69,7 @@ def busy_halls(needs: dict[str, Any]) -> list[str]:
     for hall, days in halls_with_dates(needs):
         for day in days:
             free = planning.disponibilites_salles(day, day)[0]["libres"]
-            if not any(planning._sans_accent(name) == planning._sans_accent(hall) for name in free):
+            if not any(same_hall(name, hall) for name in free):
                 busy.append(f"{hall} le {day}")
     return busy
 
