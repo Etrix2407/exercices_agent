@@ -167,3 +167,19 @@ def test_gemini_persistent_429_raises_quota_error() -> None:
     provider._client = SimpleNamespace(models=QuotaModels())
     with pytest.raises(LLMQuotaError):
         provider.generate("système", "question")
+
+
+@pytest.mark.parametrize(("code", "message"), [(404, "This model is no longer available"), (400, "API key not valid")])
+def test_gemini_unknown_model_or_bad_key_raises_config_error(code: int, message: str) -> None:
+    from google.genai import errors
+
+    from llm_providers.base import LLMConfigError
+
+    class FailingModels:
+        def generate_content(self, **kwargs: Any) -> Any:
+            raise errors.ClientError(code, {"error": {"code": code, "message": message, "status": "X"}})
+
+    provider = GeminiProvider(api_key="x")
+    provider._client = SimpleNamespace(models=FailingModels())
+    with pytest.raises(LLMConfigError, match="LLM_MODEL"):
+        provider.generate("système", "question")

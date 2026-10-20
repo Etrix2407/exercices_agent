@@ -7,7 +7,7 @@ import logging
 from google import genai
 from google.genai import errors, types
 
-from llm_providers.base import LLMError, LLMQuotaError, ToolError, ToolSpec
+from llm_providers.base import LLMConfigError, LLMError, LLMQuotaError, ToolError, ToolSpec
 
 DEFAULT_MODEL = "gemini-3.5-flash"
 # Le SDK ne réessaie pas par défaut : on réessaie sur saturation (429, 503) et erreurs serveur.
@@ -64,9 +64,19 @@ class GeminiProvider:
         try:
             return self._client.models.generate_content(model=self.model, contents=contents, config=config)
         except errors.APIError as error:
-            message = f"Gemini a renvoyé l'erreur {error.code} : {error.message}"
-            # Un 429 qui persiste après tous les réessais signifie un quota épuisé (souvent le quota du jour).
-            raise (LLMQuotaError if error.code == 429 else LLMError)(message) from error
+            raise _classify(error) from error
+
+
+def _classify(error: errors.APIError) -> LLMError:
+    """Traduit une erreur Gemini : quota (429) et configuration (clé, modèle) arrêtent tout le lot."""
+    message = f"Gemini a renvoyé l'erreur {error.code} : {error.message}"
+    # Un 429 qui persiste après tous les réessais signifie un quota épuisé (souvent le quota du jour).
+    if error.code == 429:
+        return LLMQuotaError(message)
+    # Gemini signale une clé invalide par un 400 « API key not valid ».
+    if error.code in (401, 403, 404) or (error.code == 400 and "api key" in str(error.message).lower()):
+        return LLMConfigError(f"{message}. Vérifier GEMINI_API_KEY et LLM_MODEL (python list_model.py).")
+    return LLMError(message)
 
 
 def _agent_config(system: str, tools: list[ToolSpec], temperature: float | None) -> types.GenerateContentConfig:

@@ -11,8 +11,16 @@ class LLMError(Exception):
     """Erreur d'appel au modèle (configuration, réseau, refus, réponse vide, boucle trop longue)."""
 
 
-class LLMQuotaError(LLMError):
-    """Quota de l'API épuisé malgré les réessais : inutile de continuer le lot, il faut s'arrêter."""
+class LLMBatchError(LLMError):
+    """Erreur qui touchera toutes les demandes suivantes : le lot doit s'arrêter tout de suite."""
+
+
+class LLMQuotaError(LLMBatchError):
+    """Quota de l'API épuisé malgré les réessais."""
+
+
+class LLMConfigError(LLMBatchError):
+    """Configuration refusée par l'API : modèle introuvable, clé invalide ou sans droits."""
 
 
 class ToolError(Exception):
