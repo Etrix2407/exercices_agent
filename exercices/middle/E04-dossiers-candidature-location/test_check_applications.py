@@ -9,6 +9,7 @@ import pytest
 
 from check_applications import ApplicationResult, check_applications, list_candidate_dirs, parse_agent_output
 from llm_providers import LLMError
+from llm_providers.base import LLMQuotaError
 
 GRID = {"date_reference_controle": "2026-10-14", "pieces_candidat": []}
 
@@ -18,10 +19,17 @@ class FakeProvider:
 
     model = "factice"
 
-    def __init__(self, output_dir: Path, answers: dict[str, str | Exception], write_relance: set[str]) -> None:
+    def __init__(
+        self,
+        output_dir: Path,
+        answers: dict[str, str | Exception],
+        write_relance: set[str],
+        relance_text: str = "Bonjour,\n",
+    ) -> None:
         self.output_dir = output_dir
         self.answers = answers
         self.write_relance = write_relance
+        self.relance_text = relance_text
 
     def generate(self, system: str, user: str) -> str:
         raise NotImplementedError
@@ -32,7 +40,7 @@ class FakeProvider:
         if isinstance(answer, Exception):
             raise answer
         if folder in self.write_relance:
-            (self.output_dir / f"relance_{folder}.txt").write_text("Bonjour,\n", encoding="utf-8")
+            (self.output_dir / f"relance_{folder}.txt").write_text(self.relance_text, encoding="utf-8")
         return answer
 
 
@@ -63,11 +71,17 @@ def workspace(tmp_path: Path) -> tuple[Path, Path, Path]:
     return candidates, grid, tmp_path / "output"
 
 
-def run(workspace: tuple[Path, Path, Path], answers: dict, write_relance: set[str] = frozenset(), only=None):
+def run(
+    workspace: tuple[Path, Path, Path],
+    answers: dict,
+    write_relance: set[str] = frozenset(),
+    only=None,
+    relance_text: str = "Bonjour,\n",
+):
     """Lance l'orchestrateur avec le fournisseur factice et sans outils réels."""
     candidates, grid, output = workspace
     output.mkdir(parents=True, exist_ok=True)
-    provider = FakeProvider(output, answers, set(write_relance))
+    provider = FakeProvider(output, answers, set(write_relance), relance_text)
     return check_applications(candidates, grid, output, provider, only=only, tools_factory=lambda *_: [])
 
 
@@ -157,6 +171,9 @@ def test_owner_draft_only_for_complete_dossier(workspace) -> None:
     # Brouillon d'une exécution précédente : il doit disparaître si le dossier n'est plus complet.
     (output / "transmission_bruno-test.txt").write_text("ancien", encoding="utf-8")
     sources = ["identite_carte.pdf", "bulletin_2026-09.pdf", "bulletin_2026-08.pdf", "garant/identite.txt"]
+    for source in sources:
+        (workspace[0] / "alice-test" / source).parent.mkdir(exist_ok=True)
+        (workspace[0] / "alice-test" / source).write_text("pièce", encoding="utf-8")
     answers = {
         "alice-test": answer("complet", candidat="Alice Test", sources=sources),
         "bruno-test": answer("a_verifier", candidat="Bruno Test"),
@@ -173,3 +190,86 @@ def test_owner_draft_only_for_complete_dossier(workspace) -> None:
     assert "- Garant : pièce d'identité : garant/identite.txt" in draft
     assert bruno.transmission_fichier == ""
     assert not (output / "transmission_bruno-test.txt").exists()
+
+
+def test_owner_draft_skipped_when_points_to_check(workspace) -> None:
+    output = workspace[2]
+    points = ["identite.pdf : PDF sans texte extractible (document scanné ?)"]
+    answers = {"alice-test": answer("complet", candidat="Alice Test", points_a_verifier=points)}
+    alice = run(workspace, answers, only="alice-test")[0]
+    # « complet » avec un point à vérifier est ramené à « à vérifier » : aucune transmission au propriétaire.
+    assert alice.statut == "a_verifier"
+    assert alice.transmission_fichier == ""
+    assert not (output / "transmission_alice-test.txt").exists()
+    assert alice.points_a_verifier[0] == points[0] and "ramené" in alice.points_a_verifier[1]
+
+
+def test_quota_error_stops_batch_and_still_writes_synthesis(workspace) -> None:
+    _, _, output = workspace
+    output.mkdir(parents=True)
+    # Brouillon d'une exécution précédente pour un dossier qui ne sera pas traité : il doit disparaître.
+    (output / "relance_carla-test.txt").write_text("ancienne", encoding="utf-8")
+    answers = {"alice-test": answer("complet"), "bruno-test": LLMQuotaError("quota du jour épuisé")}
+    results = run(workspace, answers)
+    assert [item.statut for item in results] == ["complet", "erreur", "non_traite"]
+    assert results[1].points_a_verifier == ["quota du jour épuisé"]
+    assert "lot arrêté" in results[2].points_a_verifier[0]
+    assert not (output / "relance_carla-test.txt").exists()
+    synthesis = (output / "synthese.md").read_text(encoding="utf-8")
+    assert "| carla-test | — | non traité |" in synthesis
+    assert not list(output.glob("*.tmp"))
+
+
+def test_unexpected_exception_only_fails_current_folder(workspace, caplog: pytest.LogCaptureFixture) -> None:
+    answers = {"alice-test": RuntimeError("bogue"), "bruno-test": answer("complet"), "carla-test": answer("complet")}
+    results = run(workspace, answers)
+    assert [item.statut for item in results] == ["erreur", "complet", "complet"]
+    assert "RuntimeError" in results[0].points_a_verifier[0]
+    assert "erreur inattendue" in caplog.text
+
+
+def test_synthesis_written_after_each_folder(workspace) -> None:
+    output = workspace[2]
+    seen: list[str] = []
+
+    class SpyProvider(FakeProvider):
+        def run_agent(self, system: str, user: str, tools: list, max_steps: int = 25) -> str:
+            seen.append((output / "synthese.md").read_text(encoding="utf-8"))
+            return super().run_agent(system, user, tools, max_steps)
+
+    output.mkdir(parents=True)
+    answers = {name: answer("complet") for name in ("alice-test", "bruno-test", "carla-test")}
+    check_applications(
+        workspace[0], workspace[1], output, SpyProvider(output, answers, set()), tools_factory=lambda *_: []
+    )
+    assert "Lot en cours : 0/3" in seen[0]
+    assert "Lot en cours : 2/3" in seen[2] and "| bruno-test |" in seen[2]
+    assert "Lot en cours" not in (output / "synthese.md").read_text(encoding="utf-8")
+
+
+def test_unknown_sources_and_long_relance_are_flagged(workspace) -> None:
+    answers = {
+        "alice-test": answer("complet", sources=["identite.txt", "bulletin_invente.pdf"]),
+        "bruno-test": answer("incomplet", sources=["identite.txt"]),
+    }
+    alice = run(workspace, answers, only="alice-test")[0]
+    bruno = run(workspace, answers, write_relance={"bruno-test"}, only="bruno-test", relance_text="mot " * 121)[0]
+    assert alice.points_a_verifier[0] == "sources absentes du dossier : bulletin_invente.pdf"
+    assert alice.transmission_fichier == ""
+    assert bruno.points_a_verifier == ["relance trop longue : 121 mots (limite 120)"]
+    assert bruno.relance_fichier == "relance_bruno-test.txt"
+
+
+def test_default_batch_only_has_the_eight_statement_folders() -> None:
+    from check_applications import CANDIDATES_DIR
+
+    names = [path.name for path in list_candidate_dirs(CANDIDATES_DIR)]
+    assert len(names) == 8 and not {"leroy", "marchal", "pieges"} & set(names)
+
+
+def test_complete_with_points_to_check_becomes_to_verify() -> None:
+    from check_applications import ApplicationResult, enforce_complete_status
+
+    result = ApplicationResult(folder="x", statut="complet", points_a_verifier=["bulletin.pdf illisible"])
+    enforce_complete_status(result)
+    assert result.statut == "a_verifier" and "ramené" in result.points_a_verifier[-1]

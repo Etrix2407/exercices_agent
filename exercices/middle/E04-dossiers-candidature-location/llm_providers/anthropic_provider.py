@@ -7,7 +7,7 @@ from typing import Any
 
 import anthropic
 
-from llm_providers.base import LLMError, ToolError, ToolSpec
+from llm_providers.base import LLMConfigError, LLMError, LLMQuotaError, ToolError, ToolSpec
 
 DEFAULT_MODEL = "claude-opus-5-5"
 # Modèles qui acceptent le repli automatique côté serveur en cas de refus.
@@ -62,6 +62,14 @@ class AnthropicProvider:
                 **fallback_options,
                 **extra,
             )
+        except (anthropic.AuthenticationError, anthropic.PermissionDeniedError, anthropic.NotFoundError) as error:
+            raise LLMConfigError(
+                f"Configuration refusée par Anthropic ({error.status_code}) : {error.message}. "
+                "Vérifier ANTHROPIC_API_KEY et LLM_MODEL."
+            ) from error
+        except anthropic.RateLimitError as error:
+            # Le SDK a déjà réessayé : la limite persiste, inutile de continuer le lot.
+            raise LLMQuotaError(f"Limite d'utilisation Anthropic atteinte : {error.message}") from error
         except anthropic.APIStatusError as error:
             raise LLMError(f"Anthropic a renvoyé l'erreur {error.status_code} : {error.message}") from error
         except anthropic.APIConnectionError as error:
