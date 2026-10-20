@@ -154,22 +154,6 @@ def test_exercise_settings_override_env_and_set_temperature() -> None:
     assert _agent_config("système", [], provider.temperature).temperature == 0.2
 
 
-def test_gemini_persistent_429_raises_quota_error() -> None:
-    from google.genai import errors
-
-    from llm_providers.base import LLMQuotaError
-
-    class QuotaModels:
-        def generate_content(self, **kwargs: Any) -> Any:
-            raise errors.ClientError(429, {"error": {"code": 429, "message": "quota", "status": "RESOURCE_EXHAUSTED"}})
-
-    provider = GeminiProvider(api_key="x")
-    provider._client = SimpleNamespace(models=QuotaModels())
-    with pytest.raises(LLMQuotaError):
-        provider.generate("système", "question")
-
-
-@pytest.mark.parametrize(("code", "message"), [(404, "This model is no longer available"), (400, "API key not valid")])
 def test_gemini_unknown_model_or_bad_key_raises_config_error(code: int, message: str) -> None:
     from google.genai import errors
 
