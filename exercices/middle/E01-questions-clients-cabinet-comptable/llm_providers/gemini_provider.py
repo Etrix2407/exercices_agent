@@ -26,6 +26,8 @@ SERVER_RETRY_DELAYS_S = (5, 15, 30)
 MAX_QUOTA_WAIT_S = 90
 # Nombre de nouveaux essais après un quota par minute atteint.
 MAX_QUOTA_RETRIES = 3
+# Attente quand Google renvoie un 429 sans indiquer de délai (capacité saturée), en secondes.
+DEFAULT_QUOTA_WAIT_S = 30
 # Le palier gratuit répond parfois en plus d'une minute et demie : 5 minutes avant d'abandonner (sans relancer).
 REQUEST_TIMEOUT_MS = 300_000
 # Erreurs réseau du client HTTP utilisé par le SDK (httpx, ou httpx2 selon les versions).
@@ -80,12 +82,14 @@ class GeminiProvider:
                     continue
                 if error.code != 429:
                     raise _classify(error) from error
-                delay = _retry_delay(error)
-                too_long = _is_daily_quota(error) or delay is None or delay > MAX_QUOTA_WAIT_S
+                announced = _retry_delay(error)
+                # Sans délai annoncé (saturation passagère), on attend un délai fixe au lieu d'arrêter le lot.
+                delay = DEFAULT_QUOTA_WAIT_S if announced is None else announced
+                too_long = _is_daily_quota(error) or delay > MAX_QUOTA_WAIT_S
                 if too_long or quota_retries == MAX_QUOTA_RETRIES:
-                    raise _quota_error(error, delay) from error
+                    raise _quota_error(error, announced) from error
                 quota_retries += 1
-                logger.warning("Quota par minute atteint : nouvel essai dans %d s…", round(delay))
+                logger.warning("Quota ou capacité Gemini atteint : nouvel essai dans %d s…", round(delay))
                 time.sleep(delay + 1)
                 continue
             logger.info("Réponse du modèle en %d s.", round(time.monotonic() - started))

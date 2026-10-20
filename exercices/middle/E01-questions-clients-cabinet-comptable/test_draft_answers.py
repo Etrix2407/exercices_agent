@@ -292,9 +292,39 @@ def test_draft_answers_stops_batch_on_batch_error(tmp_path):
     output_dir = tmp_path / "drafts"
     provider = FakeProvider(failing_id="Q02", error=LLMQuotaError("quota du jour épuisé"))
 
+    output_dir.mkdir()
+    (output_dir / "Q03.md").write_text("brouillon d'un lancement précédent", encoding="utf-8")
+
     summaries = draft_answers(csv_path, output_dir, provider)
 
     assert [item.label for item in summaries] == ["traitable", "erreur", NOT_PROCESSED]
     assert provider.calls == 2
+    # Le brouillon périmé d'une question sautée ne doit pas passer pour actuel.
+    assert not (output_dir / "Q03.md").exists()
     recap = (output_dir / "recap.md").read_text(encoding="utf-8")
     assert "| Q03 | non_traitee |" in recap
+
+
+def test_gemini_429_without_delay_waits_then_stops_after_retries(monkeypatch):
+    from google.genai import errors
+
+    waits: list[float] = []
+    monkeypatch.setattr("llm_providers.gemini_provider.time.sleep", waits.append)
+    saturated = errors.ClientError(429, {"error": {"code": 429, "message": "saturé", "status": "RESOURCE_EXHAUSTED"}})
+    models = FailingModels(saturated)
+
+    with pytest.raises(LLMQuotaError):
+        gemini_with(models).generate("système", "question")
+    # Saturation sans délai annoncé : 3 nouveaux essais après une attente fixe, pas d'arrêt immédiat.
+    assert models.calls == 4 and waits == [31, 31, 31]
+
+
+def test_limit_does_not_flag_other_csv_questions_as_orphans(tmp_path):
+    csv_path = write_csv(tmp_path, HEADER + 'Q01,A,DA-1,"Q ?"\nQ02,B,DA-2,"Q ?"\nQ03,C,DA-3,"Q ?"\n')
+    output_dir = tmp_path / "drafts"
+    output_dir.mkdir()
+    (output_dir / "Q03.md").write_text("brouillon d'un lot complet", encoding="utf-8")
+
+    draft_answers(csv_path, output_dir, FakeProvider(), limit=1)
+
+    assert "Q03.md" not in (output_dir / "recap.md").read_text(encoding="utf-8")

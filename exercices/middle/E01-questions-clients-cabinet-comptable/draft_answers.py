@@ -180,6 +180,8 @@ def draft_answers(
 ) -> list[DraftSummary]:
     """Produit un brouillon par question et renvoie le résumé de chacun."""
     questions = load_questions(csv_path)
+    # Les orphelins se comparent à tout le CSV : --limit ne doit pas faire passer les autres questions pour orphelines.
+    all_ids = questions["identifiant"].tolist()
     if limit is not None:
         questions = questions.head(limit)
     system_prompt = build_system_prompt()
@@ -200,6 +202,9 @@ def draft_answers(
             draft_path.unlink(missing_ok=True)
             summaries.append(DraftSummary(question_id, "erreur", str(error)))
             summaries.extend(skipped_summaries(records[position:]))
+            # Les brouillons d'un lancement précédent des questions sautées ne doivent pas passer pour actuels.
+            for skipped in records[position:]:
+                (output_dir / f"{skipped['identifiant']}.md").unlink(missing_ok=True)
             break
         except LLMError as error:
             # Une question en échec ne bloque pas le lot : elle apparaît en erreur dans le récapitulatif.
@@ -212,7 +217,7 @@ def draft_answers(
         summaries.append(summarize_draft(question_id, draft))
         logger.info("\n%s\n", draft)
 
-    orphans = find_orphan_drafts(output_dir, [record["identifiant"] for record in records])
+    orphans = find_orphan_drafts(output_dir, all_ids)
     recap = format_recap(summaries, provider.model, orphans)
     recap_path = output_dir / RECAP_NAME
     recap_path.write_text(recap, encoding="utf-8")
