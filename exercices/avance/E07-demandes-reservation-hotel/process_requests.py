@@ -35,8 +35,8 @@ from mcp_bridge import HotelTools, KitCaller, KitClient, kit_session, quote_argu
 
 # Réglages du modèle propres à cet exercice (le .env est partagé par tous les exercices).
 # None : choix automatique selon les clés du .env / modèle et température par défaut.
-LLM_PROVIDER = "gemini"
-LLM_MODEL = "gemini-3.8-flash"
+LLM_PROVIDER = "anthropic"
+LLM_MODEL = "claude-haiku-4-5"
 # Température : None garde la valeur par défaut du modèle (recommandé pour Gemini 3).
 # Plages acceptées : Gemini de 0 à 2 ; Claude de 0 à 1, mais les modèles Claude actuels (Opus 5.5)
 # la refusent : elle est alors ignorée avec un avertissement.
