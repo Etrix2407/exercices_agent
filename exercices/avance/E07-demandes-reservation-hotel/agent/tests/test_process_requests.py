@@ -65,6 +65,15 @@ def test_synthesis_and_raw_results_written(tmp_path: Path, monkeypatch) -> None:
     assert len(json.loads((tmp_path / "resultats.json").read_text(encoding="utf-8"))) == 3
 
 
+def test_prompt_states_the_real_turn_limit() -> None:
+    from datetime import date
+
+    from agent.process_requests import MAX_STEPS, load_system_prompt
+
+    prompt = load_system_prompt(date(2026, 10, 20))
+    assert f"au plus {MAX_STEPS} tours" in prompt and "{max_tours}" not in prompt and "20/10/2026" in prompt
+
+
 def test_synthesis_flags_changed_planning() -> None:
     assert "NON" in format_synthesis([], "factice", planning_unchanged=False)
 

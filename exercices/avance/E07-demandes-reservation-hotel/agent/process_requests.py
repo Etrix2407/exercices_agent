@@ -51,7 +51,8 @@ ENV_PATH = BASE_DIR.parents[2] / ".env"
 PROMPT_PATH = BASE_DIR / "prompt_sys_reservation.md"
 OUTPUT_DIR = BASE_DIR / "output"
 TOOL_JOURNAL_NAME = "journal_outils.txt"
-# Nombre maximal d'appels au modèle par demande : au-delà, LLMError plutôt qu'une boucle sans fin.
+# Nombre maximal d'appels au modèle (tours) par demande : au-delà, LLMError plutôt qu'une boucle sans fin.
+# La même valeur est insérée dans le prompt ({max_tours}) : le modèle connaît la limite réelle.
 MAX_STEPS = 20
 QUOTA_NOTE = "non traitée : lot arrêté (quota épuisé ou configuration refusée), relancer avec --only"
 
@@ -73,9 +74,10 @@ class BatchStoppedError(LLMBatchError):
 
 
 def load_system_prompt(reference_date: date) -> str:
-    """Lit le prompt, retire le commentaire de tête et insère la date de référence."""
+    """Lit le prompt, retire le commentaire de tête et insère la date de référence et la limite de tours."""
     text = PROMPT_PATH.read_text(encoding="utf-8")
     text = re.sub(r"^\s*<!--.*?-->\s*", "", text, flags=re.DOTALL)
+    text = text.replace("{max_tours}", str(MAX_STEPS))
     return text.replace("{date_reference}", reference_date.strftime("%d/%m/%Y"))
 
 
