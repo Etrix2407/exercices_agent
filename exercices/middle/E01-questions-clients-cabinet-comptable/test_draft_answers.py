@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -10,15 +11,22 @@ import pytest
 from google.genai import errors
 
 from draft_answers import (
+    EXPECTED_LABELS_PATH,
     NON_COMPLIANT,
     NOT_PROCESSED,
     QUESTION_END,
     QUESTION_START,
     UNKNOWN,
+    DraftSummary,
+    check_labels,
     draft_answers,
+    format_label_check,
     format_question,
+    format_recap,
+    load_expected_labels,
     load_questions,
     main,
+    read_recap_labels,
     summarize_draft,
 )
 from llm_providers import LLMError, LLMQuotaError, get_provider
@@ -171,6 +179,55 @@ def test_recap_lists_orphan_drafts_without_deleting_them(tmp_path):
     assert "## Fichiers orphelins" in recap and "- Q04.md" in recap
     assert "Q01.md" not in recap and "recap.md" not in recap and "notes.txt" not in recap
     assert (output_dir / "Q04.md").exists()
+
+
+def test_expected_labels_cover_q01_to_q30():
+    expected = load_expected_labels(EXPECTED_LABELS_PATH)
+    to_forward = {question_id for question_id, label in expected.items() if label != "traitable"}
+
+    assert list(expected) == [f"Q{number:02d}" for number in range(1, 31)]
+    assert to_forward == {"Q16", "Q17", "Q18", "Q19", "Q20", "Q28", "Q29", "Q30"}
+    assert set(expected.values()) == {"traitable", "à transmettre au comptable"}
+
+
+def test_check_labels_reports_gaps_from_recap(tmp_path):
+    summaries = [
+        DraftSummary("Q01", "traitable", "§ 1.1"),
+        DraftSummary("Q16", "traitable", "§ 3.2 \\| § 5.3"),
+        DraftSummary("Q17", "erreur", "panne | réseau"),
+    ]
+    recap_path = tmp_path / "recap.md"
+    recap_path.write_text(format_recap(summaries, "factice", ["Q99.md"]), encoding="utf-8")
+    expected = {"Q01": "traitable", "Q16": "à transmettre au comptable", "Q17": "à transmettre au comptable"}
+
+    report = format_label_check(check_labels(read_recap_labels(recap_path), expected))
+
+    assert report.splitlines()[0] == "1/3 étiquettes conformes"
+    assert "- Q16 : « traitable » au lieu de « à transmettre au comptable »" in report
+    assert "- Q17 : « erreur » au lieu de « à transmettre au comptable »" in report
+
+
+def test_check_only_reads_existing_recap_without_provider(monkeypatch, tmp_path, caplog):
+    output_dir = tmp_path / "drafts"
+    output_dir.mkdir()
+    summaries = [DraftSummary("Q01", "traitable", "§ 1.1"), DraftSummary("Q16", "traitable", "§ 3.2")]
+    (output_dir / "recap.md").write_text(format_recap(summaries, "factice"), encoding="utf-8")
+
+    def no_provider(**kwargs):
+        raise AssertionError("--check-only ne doit pas créer de fournisseur")
+
+    monkeypatch.setattr("draft_answers.get_provider", no_provider)
+    monkeypatch.setattr("sys.argv", ["draft_answers.py", "--output", str(output_dir), "--check-only"])
+    with caplog.at_level(logging.INFO, logger="draft_answers"):
+        main()
+
+    assert "1/2 étiquettes conformes" in caplog.text
+
+
+def test_check_only_without_recap_exits_clearly(monkeypatch, tmp_path):
+    monkeypatch.setattr("sys.argv", ["draft_answers.py", "--output", str(tmp_path), "--check-only"])
+    with pytest.raises(SystemExit, match="Fichier introuvable"):
+        main()
 
 
 def test_exercise_settings_override_env():

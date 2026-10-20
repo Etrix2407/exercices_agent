@@ -3,7 +3,7 @@
 Lit un lot de questions au format CSV, envoie chaque question au modèle avec le prompt
 système et la FAQ, puis écrit un brouillon Markdown par question et un récapitulatif.
 
-Usage : python draft_answers.py questions-clients.csv [--output drafts] [--limit 3]
+Usage : python draft_answers.py questions-clients.csv [--output drafts] [--limit 3] [--check | --check-only]
 """
 
 from __future__ import annotations
@@ -49,6 +49,10 @@ ALLOWED_LABELS = ("traitable", "à transmettre au comptable")
 NON_COMPLIANT = "non conforme"
 NOT_PROCESSED = "non_traitee"
 STOPPED_NOTE = "lot arrêté avant cette question (quota ou configuration), relancer plus tard"
+# Étiquettes attendues (Q01 à Q30), pour vérifier le critère « même étiquetage » avec --check.
+EXPECTED_LABELS_PATH = BASE_DIR / "expected_labels.csv"
+EXPECTED_COLUMNS = ("identifiant", "etiquette")
+UNESCAPED_PIPE_PATTERN = re.compile(r"(?<!\\)\|")
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +64,15 @@ class DraftSummary:
     question_id: str
     label: str
     section: str
+
+
+@dataclass(frozen=True)
+class LabelCheck:
+    """Comparaison des étiquettes du récapitulatif avec les étiquettes attendues."""
+
+    compliant: int
+    total: int
+    gaps: list[str]
 
 
 def build_system_prompt() -> str:
@@ -208,6 +221,49 @@ def draft_answers(
     return summaries
 
 
+def read_recap_labels(recap_path: Path) -> dict[str, str]:
+    """Lit les étiquettes du tableau de recap.md : identifiant -> étiquette."""
+    labels = {}
+    for line in recap_path.read_text(encoding="utf-8").splitlines():
+        # Les « | » échappés (\|) appartiennent au contenu d'une cellule, pas au tableau.
+        cells = [cell.strip() for cell in UNESCAPED_PIPE_PATTERN.split(line.strip())]
+        if len(cells) < 4 or cells[1] in ("Identifiant", "---"):
+            continue
+        labels[cells[1]] = cells[2]
+    if not labels:
+        raise ValueError(f"Aucune étiquette trouvée dans {recap_path}.")
+    return labels
+
+
+def load_expected_labels(expected_path: Path) -> dict[str, str]:
+    """Charge les étiquettes attendues : identifiant -> étiquette."""
+    expected = pd.read_csv(expected_path, dtype=str, encoding="utf-8", keep_default_na=False)
+    missing = [column for column in EXPECTED_COLUMNS if column not in expected.columns]
+    if missing:
+        raise ValueError(f"Colonnes manquantes dans {expected_path.name} : {', '.join(missing)}")
+    return dict(zip(expected["identifiant"].str.strip(), expected["etiquette"].str.strip(), strict=True))
+
+
+def check_labels(actual: dict[str, str], expected: dict[str, str]) -> LabelCheck:
+    """Compare chaque étiquette du récapitulatif à l'étiquette attendue pour le même identifiant."""
+    gaps = []
+    for question_id, label in actual.items():
+        wanted = expected.get(question_id)
+        if wanted is None:
+            gaps.append(f"{question_id} : « {label} », aucune étiquette attendue")
+        elif label != wanted:
+            gaps.append(f"{question_id} : « {label} » au lieu de « {wanted} »")
+    return LabelCheck(compliant=len(actual) - len(gaps), total=len(actual), gaps=gaps)
+
+
+def format_label_check(check: LabelCheck) -> str:
+    """Met le résultat de la comparaison sous une forme lisible."""
+    lines = [f"{check.compliant}/{check.total} étiquettes conformes"]
+    if check.gaps:
+        lines += ["Écarts :", *(f"- {gap}" for gap in check.gaps)]
+    return "\n".join(lines)
+
+
 def positive_int(value: str) -> int:
     """Convertit l'argument en entier strictement positif."""
     number = int(value)
@@ -228,16 +284,19 @@ def parse_arguments() -> argparse.Namespace:
     )
     parser.add_argument("--output", type=Path, default=BASE_DIR / "drafts", help="Dossier des brouillons.")
     parser.add_argument("--limit", type=positive_int, help="Ne traiter que les N premières questions (pour tester).")
+    parser.add_argument(
+        "--check", action="store_true", help="Après le lot, comparer les étiquettes du récapitulatif aux attendues."
+    )
+    parser.add_argument(
+        "--check-only",
+        action="store_true",
+        help="Sans appeler le modèle, comparer les étiquettes du recap.md existant aux attendues.",
+    )
     return parser.parse_args()
 
 
-def main() -> None:
-    """Point d'entrée du script."""
-    logging.basicConfig(level=logging.INFO, format="%(message)s")
-    # Les SDK journalisent chaque requête HTTP : on ne garde que leurs avertissements et erreurs.
-    for library_logger in ("httpx", "google_genai", "anthropic"):
-        logging.getLogger(library_logger).setLevel(logging.WARNING)
-    arguments = parse_arguments()
+def run_batch(arguments: argparse.Namespace) -> None:
+    """Crée le fournisseur et traite le lot, en traduisant les erreurs d'entrée en messages clairs."""
     load_dotenv(ENV_PATH)
     try:
         provider = get_provider(provider=LLM_PROVIDER, model=LLM_MODEL, temperature=LLM_TEMPERATURE)
@@ -254,6 +313,30 @@ def main() -> None:
         raise SystemExit(f"Le fichier {arguments.csv_path} n'est pas encodé en UTF-8.") from error
     except ValueError as error:
         raise SystemExit(str(error)) from error
+
+
+def run_check(recap_path: Path) -> None:
+    """Affiche la comparaison des étiquettes du récapitulatif avec les étiquettes attendues."""
+    try:
+        check = check_labels(read_recap_labels(recap_path), load_expected_labels(EXPECTED_LABELS_PATH))
+    except FileNotFoundError as error:
+        raise SystemExit(f"Fichier introuvable : {error.filename}") from error
+    except ValueError as error:
+        raise SystemExit(str(error)) from error
+    logger.info("\n%s", format_label_check(check))
+
+
+def main() -> None:
+    """Point d'entrée du script."""
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
+    # Les SDK journalisent chaque requête HTTP : on ne garde que leurs avertissements et erreurs.
+    for library_logger in ("httpx", "google_genai", "anthropic"):
+        logging.getLogger(library_logger).setLevel(logging.WARNING)
+    arguments = parse_arguments()
+    if not arguments.check_only:
+        run_batch(arguments)
+    if arguments.check or arguments.check_only:
+        run_check(arguments.output / RECAP_NAME)
 
 
 if __name__ == "__main__":
