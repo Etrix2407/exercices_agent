@@ -1,4 +1,4 @@
-"""Adaptateur de l'agent E07 (demandes de réservation de groupe, hôtel Le Grand Cèdre).
+"""Évaluation de l'agent E07 (demandes de réservation de groupe, hôtel Le Grand Cèdre) : partie propre à l'exercice.
 
 Relève les sorties de l'agent (output/resultats.json, fiches, journal des outils, boîte d'envoi, hotel.db)
 et compose les critères génériques avec les contrôles propres à l'hôtel (recalcul du devis, dates libres).
@@ -9,7 +9,6 @@ from __future__ import annotations
 import csv
 import re
 import sqlite3
-import sys
 from contextlib import closing
 from pathlib import Path
 
@@ -29,7 +28,7 @@ from pipeline_test.criteria import (
 )
 from pipeline_test.engine import Adapter, Criterion, Score, Snapshot
 
-KIT_DIR = Path(__file__).resolve().parents[2] / "E07-demandes-reservation-hotel"
+KIT_DIR = Path(__file__).resolve().parents[1]
 OUTPUT_DIR = KIT_DIR / "agent" / "output"
 SHEETS_DIR = KIT_DIR / "boite" / "fiches"
 OUTBOX_DIR = KIT_DIR / "boite" / "outbox"
@@ -202,7 +201,7 @@ DRAFT_RULES = [
 ADAPTER = Adapter(
     name="e07",
     kit_dir=KIT_DIR,
-    run_command=[sys.executable, "-m", "agent", "--reset"],
+    run_commands=[[collectors.venv_python(KIT_DIR), "-m", "agent", "--reset"]],
     collect=collect,
     criteria=[
         Criterion("decision", "Décision (statut)", 25, exact_match("statut", extra=status_with_alternatives)),
