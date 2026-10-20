@@ -32,6 +32,8 @@ Fichier `.env` à la racine de `exercices/` :
 - `LLM_PROVIDER` (facultatif) : `anthropic` ou `gemini` ; sans valeur, le premier fournisseur dont la clé est présente.
 - `LLM_MODEL` (facultatif) : modèle à utiliser ; sans valeur, le modèle par défaut du fournisseur.
 
+Le fournisseur, le modèle et la température de cet exercice se règlent plutôt en tête de `check_applications.py` (`LLM_PROVIDER`, `LLM_MODEL`, `LLM_TEMPERATURE`) : ces constantes priment sur le `.env`, qui est partagé par tous les exercices. `None` rend la main au `.env` ou à la valeur par défaut.
+
 Commandes (depuis ce dossier) :
 
 ```
@@ -45,5 +47,8 @@ Sorties dans `output/` (ignoré par git) :
 
 - `synthese.md` : tableau Dossier, Candidat, Statut (complet, incomplet, à vérifier), Pièces manquantes, Incohérences, Relance.
 - `relance_<dossier>.txt` : un brouillon de relance par dossier incomplet, à relire par le gestionnaire.
+- `transmission_<dossier>.txt` : pour chaque dossier complet, un brouillon de courriel au propriétaire qui liste les pièces par rubrique de la grille. Le nom du propriétaire est à compléter (`[à compléter]`).
 - `resultats.json` : réponse JSON de l'agent pour chaque dossier, pour la traçabilité.
 - `journal_outils.txt` : chaque appel d'outil de l'agent (heure, dossier, outil, argument), réécrit à chaque exécution.
+
+Pièces PDF : `read_file` lit aussi les `.pdf` (texte extrait page par page avec pypdf, 5 Mo maximum). Un PDF sans texte extractible (scan), protégé ou corrompu n'est pas compté comme manquant : il est signalé dans les points à vérifier.

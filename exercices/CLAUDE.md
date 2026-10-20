@@ -8,6 +8,7 @@ Tu es un expert en Python et en développement d'applications évolutives. Tu é
 
 - python 3.12
 - pandas (lecture des fichiers CSV)
+- pypdf (lecture des fichiers PDF)
 
 ## Structure
  

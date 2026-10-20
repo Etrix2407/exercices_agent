@@ -8,14 +8,24 @@ from __future__ import annotations
 
 import logging
 import re
+import struct
 from collections.abc import Callable
 from pathlib import Path
+
+from pypdf import PdfReader
+from pypdf.errors import PyPdfError
 
 from llm_providers.base import ToolError, ToolSpec
 
 logger = logging.getLogger(__name__)
 
 MAX_FILE_SIZE = 100 * 1024
+# Un PDF pèse plus lourd qu'un texte (polices, images) : limite propre et texte extrait plafonné.
+MAX_PDF_SIZE = 5 * 1024 * 1024
+MAX_PDF_TEXT_CHARS = 20_000
+READABLE_SUFFIXES = {".txt": MAX_FILE_SIZE, ".pdf": MAX_PDF_SIZE}
+# Sur un PDF mal formé, pypdf lève aussi des erreurs Python ordinaires, pas seulement PyPdfError.
+PDF_PARSE_ERRORS = (PyPdfError, ValueError, KeyError, IndexError, TypeError, struct.error, RecursionError)
 OUTPUT_NAME_PATTERN = re.compile(r"^[a-z0-9_-]+\.txt$")
 NO_ARGS_SCHEMA: dict = {"type": "object", "properties": {}}
 
@@ -79,7 +89,7 @@ def _list_files(candidate_dir: Path) -> list[str]:
 
 
 def _resolve_candidate_file(candidate_dir: Path, raw_path: str) -> Path:
-    """Résout un chemin relatif et vérifie qu'il désigne un .txt lisible du dossier candidat."""
+    """Résout un chemin relatif et vérifie qu'il désigne un .txt ou un .pdf lisible du dossier candidat."""
     if not raw_path.strip():
         raise ToolError("Le chemin est vide.")
     relative = Path(raw_path)
@@ -89,13 +99,31 @@ def _resolve_candidate_file(candidate_dir: Path, raw_path: str) -> Path:
     target = (root / relative).resolve()
     if not target.is_relative_to(root):
         raise ToolError("Accès refusé : le fichier est en dehors du dossier du candidat.")
-    if target.suffix.lower() != ".txt":
-        raise ToolError("Seuls les fichiers .txt peuvent être lus.")
+    max_size = READABLE_SUFFIXES.get(target.suffix.lower())
+    if max_size is None:
+        raise ToolError("Seuls les fichiers .txt et .pdf peuvent être lus.")
     if not target.is_file():
         raise ToolError(f"Fichier introuvable : {raw_path}. Utilise list_folder pour voir les fichiers.")
-    if target.stat().st_size > MAX_FILE_SIZE:
-        raise ToolError(f"Fichier trop volumineux (limite : {MAX_FILE_SIZE // 1024} Ko).")
+    if target.stat().st_size > max_size:
+        raise ToolError(f"Fichier trop volumineux (limite : {max_size // 1024} Ko).")
     return target
+
+
+def _read_pdf_text(target: Path) -> str:
+    """Extrait le texte d'un PDF, page par page, ou lève ToolError s'il est illisible."""
+    try:
+        reader = PdfReader(target)
+        if reader.is_encrypted:
+            raise ToolError("PDF protégé par un mot de passe : impossible de le lire.")
+        pages = [page.extract_text() or "" for page in reader.pages]
+    except PDF_PARSE_ERRORS as exc:
+        raise ToolError(f"PDF illisible ou corrompu : {exc}") from exc
+    text = "\n".join(f"--- Page {number} ---\n{content.strip()}" for number, content in enumerate(pages, start=1))
+    if not any(content.strip() for content in pages):
+        raise ToolError("PDF sans texte extractible (document scanné ?) : à vérifier par le gestionnaire.")
+    if len(text) > MAX_PDF_TEXT_CHARS:
+        text = text[:MAX_PDF_TEXT_CHARS] + "\n[Texte tronqué : document trop long.]"
+    return text
 
 
 def _make_read_grid(grid_path: Path) -> Handler:
@@ -123,6 +151,8 @@ def _make_list_folder(candidate_dir: Path) -> Handler:
 def _make_read_file(candidate_dir: Path) -> Handler:
     def read_file(args: dict) -> str:
         target = _resolve_candidate_file(candidate_dir, _get_str_arg(args, "path"))
+        if target.suffix.lower() == ".pdf":
+            return _read_pdf_text(target)
         try:
             return target.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError) as exc:
@@ -177,8 +207,9 @@ def build_tools(candidate_dir: Path, grid_path: Path, output_dir: Path) -> list[
         (
             "read_file",
             (
-                "Lit le contenu d'un fichier .txt du dossier du candidat. Le chemin doit être relatif, "
-                "exactement tel que renvoyé par list_folder (ex. 'identite.txt' ou 'garant/identite.txt')."
+                "Lit le contenu d'un fichier .txt ou .pdf du dossier du candidat (pour un PDF : le texte extrait, "
+                "page par page). Le chemin doit être relatif, exactement tel que renvoyé par list_folder "
+                "(ex. 'identite.txt', 'identite.pdf' ou 'garant/identite.txt')."
             ),
             {
                 "type": "object",

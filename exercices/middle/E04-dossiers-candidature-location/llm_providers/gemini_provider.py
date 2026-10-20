@@ -22,19 +22,22 @@ logger = logging.getLogger(__name__)
 class GeminiProvider:
     """Génère les réponses avec un modèle Gemini."""
 
-    def __init__(self, api_key: str, model: str | None = None) -> None:
+    def __init__(self, api_key: str, model: str | None = None, temperature: float | None = None) -> None:
         self._client = genai.Client(api_key=api_key, http_options=types.HttpOptions(retry_options=RETRY_OPTIONS))
         self.model = model or DEFAULT_MODEL
+        # None : valeur par défaut du modèle.
+        self.temperature = temperature
 
     def generate(self, system: str, user: str) -> str:
         """Envoie la question au modèle et renvoie le texte de la réponse."""
-        response = self._generate(user, types.GenerateContentConfig(system_instruction=system))
+        config = types.GenerateContentConfig(system_instruction=system, temperature=self.temperature)
+        response = self._generate(user, config)
         return _final_text(response)
 
     def run_agent(self, system: str, user: str, tools: list[ToolSpec], max_steps: int = 25) -> str:
         """Fait tourner une boucle d'appels d'outils jusqu'à la réponse finale du modèle."""
         tools_by_name = {tool.name: tool for tool in tools}
-        config = _agent_config(system, tools)
+        config = _agent_config(system, tools, self.temperature)
         contents: list[types.Content] = [types.Content(role="user", parts=[types.Part.from_text(text=user)])]
         for step in range(1, max_steps + 1):
             response = self._generate(contents, config)
@@ -61,7 +64,7 @@ class GeminiProvider:
             raise LLMError(f"Gemini a renvoyé l'erreur {error.code} : {error.message}") from error
 
 
-def _agent_config(system: str, tools: list[ToolSpec]) -> types.GenerateContentConfig:
+def _agent_config(system: str, tools: list[ToolSpec], temperature: float | None) -> types.GenerateContentConfig:
     """Construit la configuration avec les déclarations d'outils, appel automatique désactivé."""
     declarations = [
         types.FunctionDeclaration(name=t.name, description=t.description, parameters_json_schema=t.parameters)
@@ -69,6 +72,7 @@ def _agent_config(system: str, tools: list[ToolSpec]) -> types.GenerateContentCo
     ]
     return types.GenerateContentConfig(
         system_instruction=system,
+        temperature=temperature,
         tools=[types.Tool(function_declarations=declarations)],
         automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
     )
