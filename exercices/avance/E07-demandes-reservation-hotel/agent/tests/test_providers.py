@@ -154,6 +154,12 @@ def test_exercise_settings_override_env_and_set_temperature() -> None:
     assert _agent_config("système", [], provider.temperature).temperature == 0.2
 
 
+def test_gemini_key_read_from_standard_name() -> None:
+    from agent.llm_providers import get_provider
+
+    assert get_provider({"GEMINI_API_KEY": "g"}, provider="gemini").model
+
+
 def test_gemini_persistent_429_raises_quota_error() -> None:
     from google.genai import errors
 

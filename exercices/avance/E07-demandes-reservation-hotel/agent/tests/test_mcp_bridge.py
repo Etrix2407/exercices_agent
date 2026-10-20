@@ -95,12 +95,6 @@ def test_real_mcp_server_reads_email_and_quotes() -> None:
     assert quote["total_ttc"] == 1980.0
 
 
-def test_gemini_key_read_from_standard_name() -> None:
-    from agent.llm_providers import get_provider
-
-    assert get_provider({"GEMINI_API_KEY": "g"}, provider="gemini").model
-
-
 def test_hall_without_dates_or_malformed_is_refused() -> None:
     tools = handlers(HotelTools(FakeKit(), REQUEST))
     for halls in (["Cèdre"], [{"salle": "Cèdre"}]):
