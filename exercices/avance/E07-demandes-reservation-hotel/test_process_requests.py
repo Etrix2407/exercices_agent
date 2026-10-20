@@ -16,6 +16,8 @@ class ListingKit(FakeKit):
     def call(self, name: str, arguments: dict):
         if name == "lister_demandes":
             return {"nombre": 3, "demandes": [{"id": "dem_ok"}, {"id": "dem_ecart"}, {"id": "dem_panne"}]}
+        if name == "lister_brouillons":
+            return {"nombre": 0, "brouillons": []}
         return super().call(name, arguments)
 
 
@@ -116,12 +118,34 @@ def test_synthesis_updated_during_batch(tmp_path: Path, monkeypatch) -> None:
     assert len(agent.seen) == 3
 
 
-def test_old_synthesis_overwritten_at_start(tmp_path: Path, monkeypatch) -> None:
-    # Un fichier d'un ancien lancement ne doit plus être visible dès la 1re demande.
-    (tmp_path / "synthese.md").write_text("ANCIEN LANCEMENT", encoding="utf-8")
-    agent = run_peeking(tmp_path, monkeypatch)
-    assert "ANCIEN LANCEMENT" not in agent.seen[0]
-    assert "0/3" in agent.seen[0]
+def test_previous_results_kept_and_updated(tmp_path: Path, monkeypatch) -> None:
+    # Une demande d'un ancien lancement reste ; une demande traitée à nouveau est mise à jour.
+    old = [
+        {"demande_id": "dem_ancienne", "statut": "proposition", "devis_total": 500.0, "traite_le": "2026-10-19 10:00"},
+        {
+            "demande_id": "dem_ok",
+            "statut": "precisions_requises",
+            "besoins": {"date_arrivee": None, "date_depart": None},
+            "informations_manquantes": ["dates"],
+        },
+    ]
+    (tmp_path / "resultats.json").write_text(json.dumps(old), encoding="utf-8")
+    run(tmp_path, monkeypatch)
+    saved = {item["demande_id"]: item for item in json.loads((tmp_path / "resultats.json").read_text(encoding="utf-8"))}
+    assert saved["dem_ancienne"]["devis_total"] == 500.0
+    assert saved["dem_ok"]["statut"] == "proposition"
+    changes = " ".join(saved["dem_ok"]["changements"])
+    assert "statut" in changes and "arrivée" in changes and "informations manquantes" in changes
+
+
+def test_failure_does_not_replace_previous_valid_result(tmp_path: Path, monkeypatch) -> None:
+    # dem_panne échoue (LLMError) : son résultat valide précédent est conservé, avec une note.
+    old = [{"demande_id": "dem_panne", "statut": "proposition", "devis_total": 750.0}]
+    (tmp_path / "resultats.json").write_text(json.dumps(old), encoding="utf-8")
+    run(tmp_path, monkeypatch)
+    saved = {item["demande_id"]: item for item in json.loads((tmp_path / "resultats.json").read_text(encoding="utf-8"))}
+    assert saved["dem_panne"]["statut"] == "proposition" and saved["dem_panne"]["devis_total"] == 750.0
+    assert "résultat précédent conservé" in saved["dem_panne"]["points_a_verifier"][-1]
 
 
 def test_final_outputs_complete_without_tmp_files(tmp_path: Path, monkeypatch) -> None:
@@ -130,3 +154,22 @@ def test_final_outputs_complete_without_tmp_files(tmp_path: Path, monkeypatch) -
     assert "lot en cours" not in (tmp_path / "synthese.md").read_text(encoding="utf-8")
     assert len(json.loads((tmp_path / "resultats.json").read_text(encoding="utf-8"))) == 3
     assert not list(tmp_path.glob("*.tmp"))
+
+
+def test_new_draft_replaces_previous_one_under_same_id(tmp_path: Path) -> None:
+    from process_requests import replace_previous_draft
+
+    # b001 : ancien brouillon de la demande ; b002 : brouillon d'une autre demande ; b003 : nouveau brouillon.
+    for name, text in (("b001", "ancien"), ("b002", "autre demande"), ("b003", "nouveau")):
+        (tmp_path / f"{name}.eml").write_text(text, encoding="utf-8")
+
+    class DraftsKit:
+        def call(self, name: str, arguments: dict) -> dict:
+            drafts = [{"id": "b001", "pour": "dem"}, {"id": "b002", "pour": "autre"}, {"id": "b003", "pour": "dem"}]
+            return {"nombre": 3, "brouillons": drafts}
+
+    assert replace_previous_draft(DraftsKit(), "dem", "b003", tmp_path) == "b001"
+    assert (tmp_path / "b001.eml").read_text(encoding="utf-8") == "nouveau"
+    assert (tmp_path / "b002.eml").read_text(encoding="utf-8") == "autre demande"
+    # Deux fichiers restent : le kit numérotera le prochain brouillon b003, sans écraser personne.
+    assert sorted(path.stem for path in tmp_path.glob("b*.eml")) == ["b001", "b002"]
