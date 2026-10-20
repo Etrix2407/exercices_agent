@@ -161,3 +161,43 @@ def test_read_grid_has_a_timeout(monkeypatch) -> None:
 def test_mcp_transport_errors_become_clear_errors(error: Exception, expected: type[Exception]) -> None:
     with pytest.raises(expected, match="(?i)serveur MCP"):
         in_worker(KitClient(BrokenClient(error)).call, "lire_demande", {"identifiant": "x"})
+
+
+def test_server_and_client_use_the_same_copied_kit(tmp_path, monkeypatch) -> None:
+    """KIT_BASE et KIT_BOITE vers une copie : le vrai serveur et l'agent voient les mêmes demandes et planning."""
+    import shutil
+    import sqlite3
+    from contextlib import closing
+
+    import planning
+    from agent.checks import planning_fingerprint
+    from agent.mcp_bridge import KIT_DIR, mailbox_dir
+
+    reference = planning_fingerprint()
+    free_suites = planning.disponibilites_chambres("2026-12-20", "2026-12-21")["libres_sur_toute_la_periode"]["suite"]
+    mailbox = tmp_path / "boite copie"
+    shutil.copytree(KIT_DIR / "boite", mailbox)
+    (mailbox / "inbox" / "demande_01_mariage.eml").unlink()
+    database = tmp_path / "hotel copie.db"
+    shutil.copyfile(KIT_DIR / "hotel.db", database)
+    with closing(sqlite3.connect(database)) as connection, connection:
+        connection.execute("INSERT INTO occupation_chambres VALUES ('2026-12-20', 'suite', 'test', 1)")
+    monkeypatch.setenv("KIT_BOITE", str(mailbox))
+    monkeypatch.setenv("KIT_BASE", str(database))
+    # kit_session réaligne planning.CHEMIN_BASE : monkeypatch le remet en place après le test.
+    monkeypatch.setattr(planning, "CHEMIN_BASE", planning.CHEMIN_BASE)
+
+    def compare(kit: KitClient) -> None:
+        listed = sorted(item["id"] for item in kit.call("lister_demandes", {})["demandes"])
+        assert listed == sorted(path.stem for path in (mailbox_dir() / "inbox").glob("*.eml"))
+        assert "demande_01_mariage" not in listed and len(listed) == 9
+        server = kit.call("disponibilites_chambres", {"arrivee": "2026-12-20", "depart": "2026-12-21"})
+        assert server == planning.disponibilites_chambres("2026-12-20", "2026-12-21")
+        assert server["libres_sur_toute_la_periode"]["suite"] == free_suites - 1
+
+    async def scenario() -> None:
+        async with kit_session() as client:
+            await anyio.to_thread.run_sync(compare, KitClient(client))
+
+    anyio.run(scenario)
+    assert planning_fingerprint() != reference

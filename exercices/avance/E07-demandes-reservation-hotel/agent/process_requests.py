@@ -171,7 +171,11 @@ def process_request(
         if tools.draft is None:
             return RequestResult(demande_id=request_id, statut="erreur", points_a_verifier=[str(error)])
         final_text = ""
-    return finish_request(kit, request_id, tools, final_text)
+    try:
+        return finish_request(kit, request_id, tools, final_text)
+    except LLMBatchError as error:
+        # Serveur MCP perdu pendant le filet write_draft : rien n'a été enregistré, le lot s'arrête.
+        raise BatchStoppedError(error, None) from error
 
 
 def finish_request(kit: KitCaller, request_id: str, tools: HotelTools, final_text: str) -> RequestResult:
@@ -343,6 +347,9 @@ def main() -> None:
     logger.info("Journal des appels d'outils : %s", journal_path)
     load_dotenv(ENV_PATH)
     if arguments.reset:
+        # init_donnees réinitialise toujours hotel.db et boite/ du kit, sans lire KIT_BASE ni KIT_BOITE.
+        if os.environ.get("KIT_BASE") or os.environ.get("KIT_BOITE"):
+            raise SystemExit("--reset ne réinitialise que hotel.db et boite/ du kit : retirer KIT_BASE et KIT_BOITE.")
         init_donnees.initialiser()
         # Boîte et brouillons réinitialisés : les résultats cumulés ne correspondent plus à rien.
         for name in (SYNTHESIS_NAME, RESULTS_NAME):

@@ -51,7 +51,8 @@ def test_fingerprint_reads_the_kit_base_even_in_a_path_with_spaces(tmp_path, mon
     copy = tmp_path / "dossier avec espace#1" / "hotel.db"
     copy.parent.mkdir()
     copy.write_bytes(planning.CHEMIN_BASE.read_bytes())
-    monkeypatch.setattr(planning, "CHEMIN_BASE", copy)
+    # La base est lue dans KIT_BASE au moment de l'appel (après load_dotenv), pas figée à l'import.
+    monkeypatch.setenv("KIT_BASE", str(copy))
     assert planning_fingerprint() == reference
 
 
@@ -66,6 +67,20 @@ def test_draft_body_flags_other_amount_and_discount_words() -> None:
     assert len(problems) == 3 and "≠ total du devis joint 1980.00 EUR" in problems[0]
     assert "« réduction »" in problems[1] and "« geste commercial »" in problems[2]
     assert "aucun devis" in check_draft_body("Comptez 500 €.", None)[0]
+
+
+def test_draft_body_ignores_harmless_remise_but_flags_real_discounts() -> None:
+    harmless = "Tarif sans remise, aucune remise possible. Remise des clés à 15 h ; remise de la clé au départ."
+    assert check_draft_body(harmless, None) == []
+    for text, label in [
+        ("Nous vous accordons une remise de 10 % sur les chambres.", "« remise de X % »"),
+        ("Sans remise de 5,5 % cette fois.", "« remise de X % »"),
+        ("Une remise exceptionnelle est envisageable.", "« remise »"),
+        ("Une réduction est possible.", "« réduction »"),
+        ("Un geste commercial sera fait.", "« geste commercial »"),
+    ]:
+        problems = check_draft_body(text, None)
+        assert len(problems) == 1 and label in problems[0], text
 
 
 def test_precisions_without_missing_information_is_flagged() -> None:

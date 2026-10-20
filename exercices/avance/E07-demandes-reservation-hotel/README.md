@@ -153,7 +153,7 @@ Depuis le dossier du kit :
 ```
 
 `--reset` recrée la boîte et le planning avant le traitement et repart d'une synthèse vide ; `--only` limite à une demande (identifiant vérifié avant le démarrage du serveur) ; `--output` change le dossier de sortie (par défaut `agent\output`).
-Comme le serveur MCP, l'agent respecte les variables `KIT_BASE` (base du planning) et `KIT_BOITE` (boîte et brouillons).
+Comme le serveur MCP, l'agent respecte les variables `KIT_BASE` (base du planning) et `KIT_BOITE` (boîte et brouillons), lues après le `.env` : il les transmet explicitement au serveur (le SDK MCP ne transmet qu'une liste blanche de variables), si bien que l'agent, ses contrôles et le serveur lisent toujours les mêmes fichiers. `--reset` les refuse : `init_donnees.py` ne réinitialise que `hotel.db` et `boite\` du kit.
 
 ### Sorties
 
@@ -174,9 +174,9 @@ Statuts possibles : `proposition`, `precisions_requises`, `dates_alternatives`, 
 - chaque date alternative revérifiée dans le planning : chambres libres, et salles libres aux dates décalées d'autant que le séjour ;
 - `dates_alternatives` : devis exigé, sur la première date alternative, et recalculé à partir des besoins décalés (mêmes chambres, salles décalées, repas inchangés) ;
 - `precisions_requises` sans aucune information manquante listée ;
-- corps du brouillon : montant différent du total du devis joint, mots « remise », « réduction » ou « geste commercial » ;
+- corps du brouillon : montant différent du total du devis joint, mention d'une remise (« remise de X % », « remise » hors « sans remise », « aucune remise » et « remise des clés », « réduction », « geste commercial ») ;
 - empreinte SHA-256 du contenu du planning et des pré-réservations comparée avant et après : « Planning inchangé » dans la synthèse.
 
 Les écarts sont ajoutés aux points à vérifier de la synthèse.
 
-Le quota gratuit de Gemini est limité (requêtes par minute et par jour) : lancer par étapes avec `--only`.
+Le quota gratuit de Gemini est limité (requêtes par minute et par jour) : lancer par étapes avec `--only`. Un 429 sans délai annoncé (capacité saturée) est réessayé après 30 s, au plus trois fois.

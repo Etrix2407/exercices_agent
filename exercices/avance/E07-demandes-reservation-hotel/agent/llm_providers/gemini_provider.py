@@ -24,8 +24,10 @@ TRANSIENT_STATUS = (500, 502, 503, 504)
 SERVER_RETRY_DELAYS_S = (5, 15, 30)
 # Au-delà de ce délai demandé par Google (quota du jour, par exemple), attendre ne sert à rien : on s'arrête.
 MAX_QUOTA_WAIT_S = 90
-# Nombre de nouveaux essais après un quota par minute atteint.
+# Nombre de nouveaux essais après un quota par minute (ou une capacité saturée) atteint.
 MAX_QUOTA_RETRIES = 3
+# 429 sans délai annoncé (pas de RetryInfo, capacité du modèle saturée) : attente par défaut, en secondes.
+DEFAULT_QUOTA_WAIT_S = 30
 # Le palier gratuit répond parfois en plus d'une minute et demie : 5 minutes avant d'abandonner (sans relancer).
 REQUEST_TIMEOUT_MS = 300_000
 # Erreurs réseau du client HTTP utilisé par le SDK (httpx, ou httpx2 selon les versions).
@@ -79,7 +81,8 @@ class GeminiProvider:
     ) -> types.GenerateContentResponse:
         """Appelle generate_content avec des nouveaux essais visibles et bornés.
 
-        Quota par minute ou erreur serveur passagère : attente annoncée puis nouvel essai. Quota du jour,
+        Quota par minute, capacité saturée (429 sans délai) ou erreur serveur passagère : attente annoncée
+        puis nouvel essai. Quota du jour,
         délai dépassé ou autre erreur : arrêt immédiat avec un message clair.
         """
         quota_retries = server_retries = 0
@@ -103,12 +106,14 @@ class GeminiProvider:
                 if error.code != 429:
                     raise _classify(error) from error
                 delay = _retry_delay(error)
-                too_long = _is_daily_quota(error) or delay is None or delay > MAX_QUOTA_WAIT_S
+                too_long = _is_daily_quota(error) or (delay is not None and delay > MAX_QUOTA_WAIT_S)
                 if too_long or quota_retries == MAX_QUOTA_RETRIES:
+                    # Le message garde le délai annoncé par Google (None s'il n'en a pas donné).
                     raise _quota_error(error, delay) from error
                 quota_retries += 1
-                logger.warning("Quota par minute atteint : nouvel essai dans %d s…", round(delay))
-                time.sleep(delay + 1)
+                wait = DEFAULT_QUOTA_WAIT_S if delay is None else delay
+                logger.warning("Quota ou capacité Gemini atteint : nouvel essai dans %d s…", round(wait))
+                time.sleep(wait + 1)
                 continue
             logger.info("Réponse du modèle en %d s.", round(time.monotonic() - started))
             return response

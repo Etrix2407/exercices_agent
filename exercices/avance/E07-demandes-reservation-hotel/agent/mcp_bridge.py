@@ -19,6 +19,7 @@ from typing import Any, Protocol
 
 import anyio
 from mcp import Client, MCPError, StdioServerParameters
+from mcp.client.stdio import get_default_environment
 from mcp_types import CONNECTION_CLOSED
 
 import planning
@@ -153,14 +154,32 @@ class KitClient:
 
 @asynccontextmanager
 async def kit_session() -> AsyncIterator[Client]:
-    """Démarre le serveur MCP du kit (stdio) le temps du traitement."""
-    async with Client(StdioServerParameters(command=sys.executable, args=[str(SERVER_PATH)])) as client:
+    """Démarre le serveur MCP du kit (stdio) le temps du traitement, sur la même base et la même boîte."""
+    # planning fige CHEMIN_BASE à son import (avant load_dotenv) : on l'aligne sur la base du serveur,
+    # pour que les contrôles de checks.py relisent le même planning.
+    planning.CHEMIN_BASE = database_path()
+    parameters = StdioServerParameters(command=sys.executable, args=[str(SERVER_PATH)], env=kit_environment())
+    async with Client(parameters) as client:
         yield client
+
+
+def kit_environment() -> dict[str, str]:
+    """Environnement du serveur MCP : le SDK ne transmet qu'une liste blanche de variables.
+
+    KIT_BASE et KIT_BOITE sont donc passées explicitement, en chemins absolus (avec les mêmes défauts
+    que le kit) : le serveur et l'agent travaillent toujours sur les mêmes fichiers.
+    """
+    return get_default_environment() | {"KIT_BASE": str(database_path()), "KIT_BOITE": str(mailbox_dir())}
+
+
+def database_path() -> Path:
+    """Base du planning, lue au moment de l'appel (après load_dotenv) : KIT_BASE, sinon hotel.db du kit."""
+    return Path(os.environ.get("KIT_BASE", KIT_DIR / "hotel.db")).resolve()
 
 
 def mailbox_dir() -> Path:
     """Dossier de la boîte du kit, au même endroit que serveur_mcp.py (variable KIT_BOITE, sinon boite/)."""
-    return Path(os.environ.get("KIT_BOITE", KIT_DIR / "boite"))
+    return Path(os.environ.get("KIT_BOITE", KIT_DIR / "boite")).resolve()
 
 
 def same_hall(first: str, second: str) -> bool:

@@ -274,3 +274,20 @@ def test_script_saves_draft_when_model_forgets_write_draft(tmp_path: Path, monke
     assert "enregistrés par le script" in ok.points_a_verifier[-1]
     # Aucun JSON : la demande reste en erreur, avec la raison.
     assert no_json.statut == "erreur" and "aucun JSON exploitable" in no_json.points_a_verifier[0]
+
+
+def test_server_lost_during_write_draft_fallback_stops_batch(tmp_path: Path, monkeypatch) -> None:
+    from agent.mcp_bridge import KitConnectionError
+
+    class ClosingKit(ListingKit):
+        """Faux kit dont la connexion se ferme quand le script enregistre le brouillon à la place du modèle."""
+
+        def call(self, name: str, arguments: dict):
+            if name == "enregistrer_fiche_besoins":
+                raise KitConnectionError("Connexion au serveur MCP du kit fermée (l'outil enregistrer_fiche_besoins).")
+            return super().call(name, arguments)
+
+    monkeypatch.setattr("agent.checks.planning_fingerprint", lambda: "empreinte")
+    stopped, *pending = process_all(ClosingKit(), ForgetfulAgent(), tmp_path)
+    assert stopped.statut == "erreur" and "serveur MCP" in stopped.points_a_verifier[0]
+    assert [item.statut for item in pending] == ["non_traitee", "non_traitee"]

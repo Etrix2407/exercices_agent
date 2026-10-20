@@ -15,22 +15,29 @@ from typing import Any
 
 import planning
 from agent.llm_providers.base import ToolError
-from agent.mcp_bridge import halls_with_dates, quote_arguments, rooms_by_type, same_hall
+from agent.mcp_bridge import database_path, halls_with_dates, quote_arguments, rooms_by_type, same_hall
 
 ALTERNATIVE_PATTERN = re.compile(r"(\d{4}-\d{2}-\d{2})\s*(?:→|->|au|à)\s*(\d{4}-\d{2}-\d{2})")
 # Montant en euros dans un texte : « 6 680,00 EUR », « 6680.00 € », « 1.980 euros »…
 AMOUNT_PATTERN = re.compile(
     r"(?<![\d.,])(\d{1,3}(?:[   .]\d{3})+|\d+)(?:[.,](\d{1,2}))?\s*(?:€|EUR\b|euros?\b)", re.IGNORECASE
 )
-# Mots qui laissent penser à une remise (comparés sans accents ni casse) -> libellé affiché.
-DISCOUNT_WORDS = {"remise": "remise", "reduction": "réduction", "geste commercial": "geste commercial"}
+# Mentions d'une remise (cherchées dans le texte sans accents ni casse) -> libellé affiché, dans l'ordre.
+# « remise de X % » est toujours signalée ; « remise » seule ne l'est pas après « sans » ou « aucune »,
+# ni dans « remise des clés ».
+DISCOUNT_PATTERNS = (
+    (re.compile(r"\bremises?\s+de\s+\d+(?:[.,]\d+)?\s*%"), "remise de X %"),
+    (re.compile(r"(?<!\bsans )(?<!\baucune )\bremises?\b(?!\s+(?:des|de la|de vos|de votre)\s+cle)"), "remise"),
+    (re.compile(r"\breductions?\b"), "réduction"),
+    (re.compile(r"\bgestes?\s+commercia(?:l|ux)\b"), "geste commercial"),
+)
 
 
 def planning_fingerprint() -> str:
     """Empreinte du contenu du planning et des pré-réservations : prouve que rien n'a été réservé ni déplacé."""
     digest = hashlib.sha256()
-    # Même base que le serveur MCP (planning.CHEMIN_BASE respecte KIT_BASE), ouverte en lecture seule.
-    uri = planning.CHEMIN_BASE.resolve().as_uri() + "?mode=ro"
+    # Même base que le serveur MCP (KIT_BASE lue après load_dotenv), ouverte en lecture seule.
+    uri = database_path().as_uri() + "?mode=ro"
     with closing(sqlite3.connect(uri, uri=True)) as connection:
         for table in ("occupation_chambres", "occupation_salles", "pre_reservations"):
             for row in connection.execute(f"SELECT * FROM {table} ORDER BY 1, 2, 3"):
@@ -150,9 +157,11 @@ def check_draft_body(body: str, quote_total: float | None) -> list[str]:
                 f"montant {amount:.2f} EUR écrit dans le brouillon ≠ total du devis joint {quote_total:.2f} EUR"
             )
     plain = planning._sans_accent(body)
-    for word, label in DISCOUNT_WORDS.items():
-        if re.search(rf"\b{word}", plain):
-            problems.append(f"le brouillon mentionne « {label} » : vérifier qu'aucune remise n'est promise")
+    labels = [label for pattern, label in DISCOUNT_PATTERNS if pattern.search(plain)]
+    if "remise de X %" in labels and "remise" in labels:
+        labels.remove("remise")  # même mention, déjà signalée avec son pourcentage
+    for label in labels:
+        problems.append(f"le brouillon mentionne « {label} » : vérifier qu'aucune remise n'est promise")
     return problems
 
 
