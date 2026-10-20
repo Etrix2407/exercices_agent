@@ -125,21 +125,22 @@ Architecture : une boucle d'agent (`agent/llm_providers/`, Gemini ou Claude) app
 | `calc_devis(besoins)` | devis calculé en code d'après la grille (aucun montant fixé par le modèle) | `calculer_devis` |
 | `write_draft(fiche_json)` | fiche et brouillon ; un seul appel par demande | `enregistrer_fiche_besoins`, `enregistrer_brouillon` |
 
-Le devis du dernier `calc_devis` est joint par le code (`devis.md`) pour les statuts `proposition` et `dates_alternatives`, jamais pour `precisions_requises`, `hors_perimetre` ou `erreur`. `pre_reserver` n'est jamais exposé à l'agent : le planning reste inchangé.
+Le devis du dernier `calc_devis` est joint par le code (`devis.md`) pour les statuts `proposition` et `dates_alternatives`, jamais pour `precisions_requises`, `hors_perimetre` ou `erreur`. Avec le statut `erreur`, `write_draft` n'écrit ni fiche ni brouillon : un brouillon valide d'un traitement précédent n'est jamais écrasé. `pre_reserver` n'est jamais exposé à l'agent : le planning reste inchangé.
 
 ### Installation
 
-Le `requirements.txt` du dossier `avance\` contient tout : SDK MCP, SDK des fournisseurs (`google-genai`, `anthropic`) et `python-dotenv`.
+Le `requirements.txt` du dossier `avance\` contient tout : SDK MCP, SDK des fournisseurs (`google-genai`, `anthropic`), `python-dotenv` et `pytest`.
 
 ```powershell
 .venv\Scripts\python -m pip install -r requirements.txt
 ```
 
-Clés lues dans le fichier partagé `exercices\.env` : `GEMINI_API_KEY` ou `ANTHROPIC_API_KEY`.
+Clés lues dans le fichier partagé `exercices\.env` : `GEMINI_API_KEY` ou `ANTHROPIC_API_KEY`. Avec les réglages actuels (`LLM_PROVIDER = "anthropic"`, `LLM_MODEL = "claude-haiku-4-5"`), `ANTHROPIC_API_KEY` est requise ; passer `LLM_PROVIDER` à `"gemini"` (et `LLM_MODEL` à un modèle Gemini) pour utiliser `GEMINI_API_KEY`.
 
 ### Réglages
 
 Trois constantes en tête de `agent/process_requests.py` : `LLM_PROVIDER` (`"gemini"` ou `"anthropic"`), `LLM_MODEL` et `LLM_TEMPERATURE` (`None` : valeur par défaut du modèle ; ignorée par Claude). Elles priment sur les variables `LLM_PROVIDER` et `LLM_MODEL` du `.env` ; avec `None`, le choix se fait selon les clés présentes.
+`MAX_STEPS` fixe le nombre maximal de tours du modèle par demande ; la même valeur est insérée dans le prompt.
 
 ### Lancer
 
@@ -151,7 +152,8 @@ Depuis le dossier du kit :
 ..\.venv\Scripts\python -m pytest          # tests de l'agent (pytest.ini : agent/tests)
 ```
 
-`--reset` recrée la boîte et le planning avant le traitement et repart d'une synthèse vide ; `--only` limite à une demande ; `--output` change le dossier de sortie (par défaut `output`).
+`--reset` recrée la boîte et le planning avant le traitement et repart d'une synthèse vide ; `--only` limite à une demande (identifiant vérifié avant le démarrage du serveur) ; `--output` change le dossier de sortie (par défaut `agent\output`).
+Comme le serveur MCP, l'agent respecte les variables `KIT_BASE` (base du planning) et `KIT_BOITE` (boîte et brouillons).
 
 ### Sorties
 
@@ -164,13 +166,16 @@ Depuis le dossier du kit :
 La synthèse est cumulative : les demandes analysées lors des lancements précédents restent ; une demande traitée à nouveau est mise à jour (colonnes « Traité le » et « Changements » : statut, dates, effectif, chambres, devis, informations manquantes). Un échec ne remplace pas un résultat valide déjà enregistré : il est seulement signalé. Le nouveau brouillon d'une demande traitée à nouveau remplace l'ancien sous le même numéro (`bNNN`), et sa fiche JSON est réécrite. Un Ctrl+C conserve les demandes déjà traitées.
 L'écriture passe par un fichier temporaire : un fichier ouvert dans l'éditeur n'est jamais à moitié écrit.
 
-Statuts possibles : `proposition`, `precisions_requises`, `dates_alternatives`, `hors_perimetre`, `erreur`.
+Statuts possibles : `proposition`, `precisions_requises`, `dates_alternatives`, `hors_perimetre`, `erreur`, et `non_traitee` (demande non traitée parce que le lot s'est arrêté : quota épuisé, configuration refusée ou serveur MCP arrêté ; relancer avec `--only`). Si le lot s'arrête juste après un `write_draft` réussi, la fiche et le brouillon de la demande en cours sont conservés.
 
 ### Contrôles automatiques
 
 - devis `proposition` recalculé à partir des besoins de la fiche et comparé au total joint ;
-- chaque date alternative revérifiée dans le planning (assez de chambres libres) ;
-- nombre de lignes d'occupation du planning comparé avant et après : « Planning inchangé » dans la synthèse.
+- chaque date alternative revérifiée dans le planning : chambres libres, et salles libres aux dates décalées d'autant que le séjour ;
+- `dates_alternatives` : devis exigé, sur la première date alternative, et recalculé à partir des besoins décalés (mêmes chambres, salles décalées, repas inchangés) ;
+- `precisions_requises` sans aucune information manquante listée ;
+- corps du brouillon : montant différent du total du devis joint, mots « remise », « réduction » ou « geste commercial » ;
+- empreinte SHA-256 du contenu du planning et des pré-réservations comparée avant et après : « Planning inchangé » dans la synthèse.
 
 Les écarts sont ajoutés aux points à vérifier de la synthèse.
 
