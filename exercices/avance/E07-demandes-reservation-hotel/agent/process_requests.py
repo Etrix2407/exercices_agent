@@ -36,6 +36,7 @@ from agent.synthesis import (
     RequestResult,
     load_previous_results,
     merge_result,
+    model_texts,
     write_outputs,
 )
 
@@ -59,6 +60,7 @@ MAX_STEPS = 20
 QUOTA_NOTE = (
     "non traitée : lot arrêté (quota épuisé, configuration refusée ou serveur MCP arrêté), relancer avec --only"
 )
+UNREADABLE_NOTE = "courriel illisible, non traité par le modèle : {} (vérifier l'en-tête Date et le charset du .eml)"
 
 # (outils du kit, identifiant de la demande) -> outils de l'agent pour cette demande.
 ToolsFactory = Callable[[KitCaller, str], HotelTools]
@@ -133,12 +135,14 @@ def build_result(request_id: str, tools: HotelTools, final_text: str) -> Request
         demande_id=request_id,
         statut=sheet["statut"],
         besoins=needs,
-        informations_manquantes=[str(item) for item in sheet.get("informations_manquantes") or []],
-        dates_alternatives=[str(item) for item in sheet.get("dates_alternatives") or []],
+        informations_manquantes=model_texts(sheet.get("informations_manquantes")),
+        dates_alternatives=model_texts(sheet.get("dates_alternatives")),
         devis_total=quote["total_ttc"] if quote else None,
         brouillon=str(tools.draft["brouillon"].get("brouillon", "")),
-        points_a_verifier=[str(item) for item in sheet.get("points_a_verifier") or []],
+        points_a_verifier=model_texts(sheet.get("points_a_verifier")),
     )
+    # Notes du code (fiche non enregistrée…) : ajoutées après la troncature des textes du modèle.
+    result.points_a_verifier += tools.draft.get("notes", [])
     if fallback_note:
         result.points_a_verifier.append(fallback_note)
     result.points_a_verifier += checks.review_sheet(
@@ -157,6 +161,15 @@ def process_request(
 ) -> RequestResult:
     """Lance l'agent sur une demande ; une erreur de modèle donne le statut « erreur » sans bloquer le lot."""
     tools = tools_factory(kit, request_id)
+    try:
+        # Courriel relu par le code avant tout appel au modèle : un .eml illisible (en-tête Date ou charset
+        # invalide) met cette seule demande en erreur, avec la raison, sans consommer d'appel au modèle.
+        kit.call("lire_demande", {"identifiant": request_id})
+    except ToolError as error:
+        logger.error("%s : courriel illisible (%s)", request_id, error)
+        return RequestResult(demande_id=request_id, statut="erreur", points_a_verifier=[UNREADABLE_NOTE.format(error)])
+    except LLMBatchError as error:
+        raise BatchStoppedError(error, None) from error
     try:
         final_text = provider.run_agent(system_prompt, f"Demande : {request_id}", tools.specs(), max_steps=MAX_STEPS)
     except LLMBatchError as error:
@@ -197,11 +210,18 @@ def replace_previous_draft(kit: KitCaller, request_id: str, new_id: str, drafts_
     un numéro stable par demande et un nombre de fichiers cohérent.
     """
     drafts_dir = drafts_dir or mailbox_dir() / "brouillons"
-    previous = sorted(
-        draft["id"]
-        for draft in kit.call("lister_brouillons", {})["brouillons"]
-        if draft.get("pour") == request_id and draft["id"] != new_id
-    )
+    drafts = kit.call("lister_brouillons", {})["brouillons"]
+    owner = next((draft.get("pour") for draft in drafts if draft.get("id") == new_id), None)
+    if owner != request_id:
+        # Le nouveau brouillon ne porte pas sur cette demande (ou n'est pas listé) : rien n'est remplacé.
+        logger.warning(
+            "Brouillon %s attendu pour %s mais rattaché à %s : aucun ancien brouillon remplacé.",
+            new_id,
+            request_id,
+            owner or "aucune demande",
+        )
+        return new_id
+    previous = sorted(draft["id"] for draft in drafts if draft.get("pour") == request_id and draft["id"] != new_id)
     if not previous:
         return new_id
     target, *duplicates = previous
@@ -210,6 +230,21 @@ def replace_previous_draft(kit: KitCaller, request_id: str, new_id: str, drafts_
     if duplicates:
         logger.warning("Anciens brouillons en double pour %s : %s (à écarter à la main).", request_id, duplicates)
     return target
+
+
+def list_requests(kit: KitCaller) -> list[str]:
+    """Identifiants des demandes de la boîte, dans l'ordre du kit.
+
+    Si le kit ne sait pas lister la boîte (un seul .eml à l'en-tête Date illisible suffit), les demandes
+    sont lues dans le dossier inbox, par nom de fichier : le lot continue et le courriel fautif passe
+    en erreur (voir process_request).
+    """
+    try:
+        return [item["id"] for item in kit.call("lister_demandes", {})["demandes"]]
+    except ToolError as error:
+        inbox = mailbox_dir() / "inbox"
+        logger.warning("Liste des demandes refusée par le kit (%s) : demandes lues dans %s.", error, inbox)
+        return sorted(path.stem for path in inbox.glob("*.eml"))
 
 
 def process_all(
@@ -225,7 +260,7 @@ def process_all(
     et une demande traitée à nouveau voit sa ligne mise à jour (avec la liste des changements).
     Renvoie les résultats du lancement en cours uniquement.
     """
-    request_ids = [item["id"] for item in kit.call("lister_demandes", {})["demandes"]]
+    request_ids = list_requests(kit)
     if only is not None:
         if only not in request_ids:
             raise ValueError(f"Demande inconnue : « {only} ». Demandes disponibles : {', '.join(request_ids)}")

@@ -45,13 +45,16 @@ Sans argument, le script lit `questions-clients.csv` et écrit dans `drafts/` (c
 Options :
 
 - `--limit N` : ne traiter que les N premières questions (pour tester).
-- `--check` : après le lot, compare les étiquettes de `recap.md` à `expected_labels.csv` (Q01 à Q30) et affiche « n/N étiquettes conformes » puis la liste des écarts.
+- `--check` : après le lot, compare les étiquettes de `recap.md` à `expected_labels.csv` (Q01 à Q30) et affiche « n/N étiquettes conformes » puis la liste des écarts, y compris les questions du lot absentes de `recap.md`.
 - `--check-only` : même comparaison sur le `recap.md` existant du dossier `--output`, sans appeler le modèle (aucune clé requise).
 
 ### Erreurs et arrêt du lot
 
-- Une erreur ponctuelle (réponse vide, refus, délai de 5 minutes dépassé, erreur serveur persistante) met la question en `erreur` dans `recap.md` ; le lot continue.
+- Une erreur ponctuelle (réponse vide, refus, délai de 5 minutes dépassé, erreur serveur persistante) met la question en `erreur` dans `recap.md` ; le lot continue. `recap.md` ne contient qu'un message court par type d'erreur, le détail est dans les logs.
 - Un quota épuisé (par exemple le quota du jour de Gemini) ou une configuration refusée (clé invalide, modèle introuvable) **arrête le lot tout de suite** : la question en cours est en `erreur`, les suivantes en `non_traitee`, et `recap.md` est quand même écrit. Relancer plus tard ou changer `LLM_MODEL`.
 - Une étiquette autre que « traitable » ou « à transmettre au comptable » apparaît en `non conforme` dans `recap.md`.
+- Un brouillon qui cite un montant (chiffres ou lettres, devise avant ou après, `k€`, `HTVA`, `,-`, `$`, `CHF`…), un pourcentage (même repris de la question : `%`, `pour cent`, `p.c.`, `pct`…) ou un geste commercial (remise, rabais, « à titre gracieux », « offert », « non facturé »…), ou dont l'en-tête `### <identifiant> · <nom> · <numéro de dossier>` ne correspond pas à la ligne traitée, ou qui est « à transmettre au comptable » mais répond sur le fond (plus de 3 phrases ou un délai cité), est gardé mais apparaît en `à vérifier` dans `recap.md`, avec l'étiquette proposée et la raison (colonne « Remarque »).
+- Une ligne hors format (nom vide, sur plusieurs lignes, de plus de 80 caractères, avec caractère de contrôle ou balise `< > [ ]`, numéro de dossier hors format `DA-AAAA-NNNN`, question vide, de plus de 2 000 caractères, avec caractère de contrôle ou qui contient la ligne suivante du CSV à cause d'un guillemet non fermé) n'est pas envoyée au modèle : elle apparaît en `refusée` dans `recap.md` avec la raison (colonne « Remarque ») et le reste du lot est traité.
+- Si une question est en `erreur`, `refusée` ou `non_traitee`, le script se termine avec un code de sortie non nul.
 - Les brouillons `.md` du dossier de sortie qui ne correspondent à aucune question du lot sont listés en « Fichiers orphelins » dans `recap.md` (rien n'est supprimé).
-- Fichier introuvable, CSV vide, mauvais encodage (UTF-8 attendu), colonnes manquantes ou identifiants invalides (caractères autres que lettres, chiffres, `-` et `_`, doublons même à la casse près, identifiant `recap`) : arrêt avec un message clair, avant tout appel au modèle.
+- Fichier introuvable, CSV vide, mauvais encodage (UTF-8 attendu), colonnes manquantes ou identifiants invalides (autre chose que `Q` suivi de 1 à 4 chiffres, ou doublons), guillemet non fermé en fin de fichier, `--output` égal au dossier de l'exercice ou à l'un de ses parents : arrêt avec un message clair, avant tout appel au modèle.

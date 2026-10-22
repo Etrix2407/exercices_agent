@@ -14,7 +14,13 @@ try:
 except ImportError:  # anciennes versions du SDK : httpx seulement
     httpx2 = None
 
-from agent.llm_providers.base import LLMConfigError, LLMError, LLMQuotaError, ToolError, ToolSpec
+from agent.llm_providers.base import (
+    LLMConfigError,
+    LLMError,
+    LLMQuotaError,
+    ToolError,
+    ToolSpec,
+)
 
 DEFAULT_MODEL = "gemini-3.5-flash"
 # Aucun nouvel essai silencieux du SDK : c'est _generate qui décide, avec un message visible.

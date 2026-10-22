@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from agent import pricing
+from agent import pricing, text_checks
 from agent.llm_providers import LLMProvider, get_provider
 from agent.llm_providers.base import ToolError, ToolSpec
 from agent.mcp_bridge import (
@@ -26,7 +26,8 @@ from agent.mcp_bridge import (
 # None : choix automatique selon les clés du .env / modèle et effort par défaut.
 LLM_PROVIDER = "anthropic"
 LLM_MODEL = "claude-haiku-5-5"
-# Effort de raisonnement : low, medium, high, xhigh, max (traduit pour Gemini) ; ignoré par claude-haiku-4-5.
+# Effort de raisonnement : low, medium, high, xhigh, max (traduit pour Gemini) ;
+# ignoré par les modèles qui ne le prennent pas en charge (ex. claude-haiku-4-5).
 LLM_EFFORT = "medium"
 # Longueur maximale d'une réponse du modèle (réflexion comprise chez Gemini) ; None : défaut du fournisseur.
 LLM_MAX_TOKENS = 8000
@@ -34,6 +35,13 @@ LLM_MAX_TOKENS = 8000
 AGENT_NAME = "retour"
 PROMPT_PATH = Path(__file__).resolve().parent / "prompt_retour.md"
 MAX_STEPS = 15
+# Taille maximale de la cible d'un brouillon (référence de contrat ou de machine).
+MAX_TARGET_CHARS = 100
+
+
+def return_fee_amounts() -> set[float]:
+    """Montants HT des forfaits de retour de la grille (nettoyage lourd, carburant)."""
+    return {pricing.return_fee(code)["tarif_ht_eur"] for code in pricing.RETURN_FEE_CODES}
 
 
 class ReturnTools:
@@ -62,11 +70,27 @@ class ReturnTools:
             raise ToolError(str(error)) from error
 
     def _draft(self, draft_type: str, args: dict) -> str:
+        content, justification = require_str(args, "content"), require_str(args, "justification")
+        target = require_str(args, "target")
+        for name, text, limit in (("content", content, text_checks.MAX_TEXT_CHARS),
+                                  ("justification", justification, text_checks.MAX_TEXT_CHARS),
+                                  ("target", target, MAX_TARGET_CHARS)):
+            too_long = text_checks.length_problem(text, limit)
+            if too_long:
+                raise ToolError(f"Brouillon refusé : '{name}' trop long ({too_long}).")
+        # Seuls les forfaits de la grille peuvent être proposés : une réparation reste « non chiffré ».
+        # La justification reprend les faits des pièces (ex. dommage estimé par l'atelier) : non contrôlée.
+        problem = text_checks.amount_problem(content, return_fee_amounts())
+        if problem:
+            raise ToolError(
+                f"Brouillon refusé : {problem}. Seuls les forfaits de grid_fee peuvent être cités ; "
+                "une réparation reste « non chiffré »."
+            )
         arguments = {
             "type_brouillon": draft_type,
-            "cible": require_str(args, "target"),
-            "contenu": require_str(args, "content"),
-            "justification": require_str(args, "justification"),
+            "cible": target,
+            "contenu": content,
+            "justification": justification,
             "sources": require_sources(args),
         }
         result = self.kit.call("creer_brouillon", arguments)
