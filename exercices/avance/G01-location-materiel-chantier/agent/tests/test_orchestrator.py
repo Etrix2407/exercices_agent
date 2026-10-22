@@ -85,12 +85,12 @@ class UnknownMailKit:
 def test_failing_agent_is_retried_once_then_sent_to_humans(tmp_path: Path) -> None:
     calls: list[str] = []
 
-    def flaky(provider, kit, event_id: str, drafts: list[str]) -> str:
+    def flaky(provider, kit, event_id: str, trace) -> str:
         calls.append(event_id)
         if event_id == "CR-2026-1041":
             raise LLMError("réponse invalide")
         if event_id == "CR-2026-1042":
-            drafts.append("alerte#1")
+            trace.drafts.append("alerte#1")
             raise LLMError("coupé après un brouillon")
         return 'Fini. {"statut": "rien_a_signaler", "resume": "RAS {aucun dommage}"}'
 

@@ -14,6 +14,7 @@ from agent.llm_providers import LLMProvider, get_provider
 from agent.llm_providers.base import ToolError, ToolSpec
 from agent.mcp_bridge import (
     KitCaller,
+    Trace,
     logged_spec,
     require_sources,
     require_str,
@@ -22,10 +23,13 @@ from agent.mcp_bridge import (
 )
 
 # Modèle de l'agent retour (le .env est partagé par tous les exercices).
-# None : choix automatique selon les clés du .env / modèle et température par défaut.
-LLM_PROVIDER = "gemini"
-LLM_MODEL = "gemini-3.5-flash"
-LLM_TEMPERATURE = None
+# None : choix automatique selon les clés du .env / modèle et effort par défaut.
+LLM_PROVIDER = "anthropic"
+LLM_MODEL = "claude-haiku-5-5"
+# Effort de raisonnement : low, medium, high, xhigh, max (traduit pour Gemini) ; ignoré par claude-haiku-4-5.
+LLM_EFFORT = "medium"
+# Longueur maximale d'une réponse du modèle (réflexion comprise chez Gemini) ; None : défaut du fournisseur.
+LLM_MAX_TOKENS = 8000
 
 AGENT_NAME = "retour"
 PROMPT_PATH = Path(__file__).resolve().parent / "prompt_retour.md"
@@ -33,11 +37,11 @@ MAX_STEPS = 15
 
 
 class ReturnTools:
-    """Outils de l'agent retour pour un compte rendu ; ajoute chaque brouillon créé à drafts."""
+    """Outils de l'agent retour pour un compte rendu ; appels et brouillons notés dans trace."""
 
-    def __init__(self, kit: KitCaller, drafts: list[str]) -> None:
+    def __init__(self, kit: KitCaller, trace: Trace) -> None:
         self.kit = kit
-        self.drafts = drafts
+        self.trace = trace
 
     def read_document(self, args: dict) -> str:
         reference = require_str(args, "reference")
@@ -66,7 +70,7 @@ class ReturnTools:
             "sources": require_sources(args),
         }
         result = self.kit.call("creer_brouillon", arguments)
-        self.drafts.append(f"{draft_type}#{result['id']}")
+        self.trace.drafts.append(f"{draft_type}#{result['id']}")
         return to_text(result)
 
     def create_evidence_file(self, args: dict) -> str:
@@ -103,7 +107,7 @@ class ReturnTools:
              draft, draft_required, self.ask_technician),
         ]
         return [
-            logged_spec(AGENT_NAME, name, description,
+            logged_spec(AGENT_NAME, self.trace, name, description,
                         {"type": "object", "properties": properties, "required": required}, handler)
             for name, description, properties, required, handler in tools
         ]
@@ -111,11 +115,13 @@ class ReturnTools:
 
 def make_provider() -> LLMProvider:
     """Fournisseur de l'agent retour, selon les réglages en tête de ce module."""
-    return get_provider(provider=LLM_PROVIDER, model=LLM_MODEL, temperature=LLM_TEMPERATURE)
+    return get_provider(
+        provider=LLM_PROVIDER, model=LLM_MODEL, effort=LLM_EFFORT, max_tokens=LLM_MAX_TOKENS
+    )
 
 
-def run_return_agent(provider: LLMProvider, kit: KitCaller, report_ref: str, drafts: list[str]) -> str:
-    """Traite un compte rendu ; renvoie la réponse finale du modèle (brouillons créés ajoutés à drafts)."""
-    tools = ReturnTools(kit, drafts)
+def run_return_agent(provider: LLMProvider, kit: KitCaller, report_ref: str, trace: Trace) -> str:
+    """Traite un compte rendu ; renvoie la réponse finale du modèle (appels et brouillons notés dans trace)."""
+    tools = ReturnTools(kit, trace)
     system = PROMPT_PATH.read_text(encoding="utf-8")
     return provider.run_agent(system, f"Compte rendu à traiter : {report_ref}", tools.specs(), max_steps=MAX_STEPS)

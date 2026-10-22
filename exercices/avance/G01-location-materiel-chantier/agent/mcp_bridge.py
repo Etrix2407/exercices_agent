@@ -12,6 +12,7 @@ import os
 import sys
 from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -131,20 +132,32 @@ def to_text(value: Any) -> str:
     return value if isinstance(value, str) else json.dumps(value, ensure_ascii=False)
 
 
+@dataclass
+class Trace:
+    """Trace d'un traitement d'agent : brouillons créés, appels d'outils et refus."""
+
+    drafts: list[str] = field(default_factory=list)
+    calls: int = 0
+    refusals: int = 0
+
+
 def logged_spec(
-    agent: str, name: str, description: str, parameters: dict, handler: Callable[[dict], str]
+    agent: str, trace: Trace, name: str, description: str, parameters: dict, handler: Callable[[dict], str]
 ) -> ToolSpec:
-    """ToolSpec dont chaque appel est écrit dans le journal des outils."""
+    """ToolSpec dont chaque appel est compté dans trace et écrit dans le journal des outils."""
 
     def wrapper(args: dict) -> str:
+        trace.calls += 1
         logger.info("[%s] %s %s", agent, name, json.dumps(args, ensure_ascii=False))
         try:
             result = handler(args)
         except ToolError as error:
+            trace.refusals += 1
             logger.info("[%s] %s → refus : %s", agent, name, error)
             raise
         except (KeyError, TypeError, ValueError) as error:
             # Résultat inattendu du serveur : renvoyé au modèle plutôt que d'arrêter tout le lot.
+            trace.refusals += 1
             logger.warning("[%s] %s → résultat inattendu : %r", agent, name, error)
             raise ToolError(f"Résultat inattendu de l'outil {name} : {error!r}") from error
         logger.info("[%s] %s → %s", agent, name, result[:300])

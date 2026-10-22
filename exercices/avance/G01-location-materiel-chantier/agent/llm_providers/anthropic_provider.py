@@ -19,6 +19,9 @@ DEFAULT_MODEL = "claude-opus-5-5"
 # Modèles qui acceptent le repli automatique côté serveur en cas de refus.
 FALLBACK_MODELS = {"claude-fable-5-1", "claude-opus-5-5", "claude-opus-5", "claude-sonnet-5-5"}
 FALLBACK_BETA = "server-side-fallback-2026-07-01"
+DEFAULT_MAX_TOKENS = 16000
+# Modèles qui refusent output_config.effort (erreur 400) : l'effort y est ignoré.
+NO_EFFORT_MODELS = {"claude-haiku-4-5", "claude-sonnet-4-5"}
 
 logger = logging.getLogger(__name__)
 
@@ -26,9 +29,21 @@ logger = logging.getLogger(__name__)
 class AnthropicProvider:
     """Génère les réponses avec un modèle Claude."""
 
-    def __init__(self, api_key: str, model: str | None = None, temperature: float | None = None) -> None:
+    def __init__(
+        self,
+        api_key: str,
+        model: str | None = None,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
+        effort: str | None = None,
+    ) -> None:
         self._client = anthropic.Anthropic(api_key=api_key)
         self.model = model or DEFAULT_MODEL
+        self.max_tokens = max_tokens or DEFAULT_MAX_TOKENS
+        self.effort = effort
+        if effort is not None and self.model in NO_EFFORT_MODELS:
+            logger.warning("Effort ignoré : non pris en charge par %s.", self.model)
+            self.effort = None
         if temperature is not None:
             # Les modèles Claude actuels refusent les paramètres d'échantillonnage (erreur 400).
             logger.warning("Température ignorée : non prise en charge par %s.", self.model)
@@ -36,6 +51,8 @@ class AnthropicProvider:
     def generate(self, system: str, user: str) -> str:
         """Envoie la question au modèle et renvoie le texte de la réponse."""
         response = self._create(system, [{"role": "user", "content": user}])
+        if response.stop_reason == "max_tokens":
+            raise LLMError(f"Réponse coupée : limite de {self.max_tokens} tokens atteinte (LLM_MAX_TOKENS).")
         return self._final_text(response)
 
     def run_agent(self, system: str, user: str, tools: list[ToolSpec], max_steps: int = 25) -> str:
@@ -45,6 +62,8 @@ class AnthropicProvider:
         messages: list[dict[str, Any]] = [{"role": "user", "content": user}]
         for step in range(1, max_steps + 1):
             response = self._create(system, messages, tools=tool_params)
+            if response.stop_reason == "max_tokens":
+                raise LLMError(f"Réponse coupée : limite de {self.max_tokens} tokens atteinte (LLM_MAX_TOKENS).")
             if response.stop_reason != "tool_use":
                 return self._final_text(response)
             logger.debug("Étape %d : le modèle demande des outils.", step)
@@ -58,10 +77,12 @@ class AnthropicProvider:
     def _create(self, system: str, messages: list[dict[str, Any]], **extra: Any) -> Any:
         """Appelle l'API Messages avec les options communes et convertit les erreurs en LLMError."""
         fallback_options = {"betas": [FALLBACK_BETA], "fallbacks": "default"} if self.model in FALLBACK_MODELS else {}
+        if self.effort is not None:
+            extra["output_config"] = {"effort": self.effort}
         try:
             return self._client.beta.messages.create(
                 model=self.model,
-                max_tokens=16000,
+                max_tokens=self.max_tokens,
                 # Le prompt système est identique pour chaque appel : on le met en cache.
                 system=[{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
                 messages=messages,

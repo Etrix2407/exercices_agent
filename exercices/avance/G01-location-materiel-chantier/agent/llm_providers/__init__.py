@@ -20,7 +20,10 @@ PROVIDERS: dict[str, tuple[str, type[AnthropicProvider | GeminiProvider]]] = {
     "gemini": ("GEMINI_API_KEY", GeminiProvider),
 }
 
-__all__ = ["LLMError", "LLMProvider", "get_provider"]
+# Niveaux d'effort de l'API Claude (output_config.effort), traduits pour Gemini (thinking_level).
+EFFORTS = ("low", "medium", "high", "xhigh", "max")
+
+__all__ = ["EFFORTS", "LLMError", "LLMProvider", "get_provider"]
 
 
 def get_provider(
@@ -28,9 +31,17 @@ def get_provider(
     provider: str | None = None,
     model: str | None = None,
     temperature: float | None = None,
+    max_tokens: int | None = None,
+    effort: str | None = None,
 ) -> LLMProvider:
-    """Instancie le fournisseur demandé, ou le premier dont la clé est disponible."""
+    """Instancie le fournisseur demandé, ou le premier dont la clé est disponible.
+
+    max_tokens : longueur maximale d'une réponse ; None garde la valeur par défaut du fournisseur.
+    effort : profondeur de raisonnement (low, medium, high, xhigh, max) ; None garde celle du modèle.
+    """
     env = os.environ if env is None else env
+    if effort is not None and effort not in EFFORTS:
+        raise LLMError(f"Effort inconnu : « {effort} ». Valeurs possibles : {', '.join(EFFORTS)}.")
     requested = (provider or env.get("LLM_PROVIDER", "")).strip().lower()
     if requested and requested not in PROVIDERS:
         raise LLMError(f"Fournisseur inconnu : « {requested} ». Valeurs possibles : {', '.join(PROVIDERS)}.")
@@ -41,7 +52,9 @@ def get_provider(
         key_variable, provider_class = PROVIDERS[name]
         api_key = env.get(key_variable, "").strip()
         if api_key:
-            return provider_class(api_key=api_key, model=chosen_model, temperature=temperature)
+            return provider_class(
+                api_key=api_key, model=chosen_model, temperature=temperature, max_tokens=max_tokens, effort=effort
+            )
 
     expected = ", ".join(PROVIDERS[name][0] for name in candidates)
     raise LLMError(f"Aucune clé d'API trouvée. Renseigner {expected} dans le fichier .env.")
