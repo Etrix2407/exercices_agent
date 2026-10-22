@@ -493,7 +493,10 @@ def test_read_file_masks_document_number_but_code_checks_raw_text(fresh_read) ->
     [
         ("Salaire net à payer : 2 150,00 EUR", "2150.00"),
         ("Revenu net mensuel retenu : 3 050,00 EUR", "3050.00"),
-        ("Salaire net\n3 120,00", None),
+        ("Salaire net\n3 120,00", "3120.00"),
+        ("Salaire net\n3 120,00\nSalaire net à payer : 3 120,00 EUR", "3120.00"),
+        ("Salaire net imposable\n3 120,00", None),
+        ("Salaire net 3 120,00", None),
         ("Salaire net à payer : 2 150,00 EUR\nSalaire net à payer : 3 150,00 EUR", None),
     ],
 )
@@ -503,6 +506,31 @@ def test_net_monthly_income_reads_only_the_observed_format(text: str, amount: st
     from agent_tools import net_monthly_income
 
     assert net_monthly_income(text) == (Decimal(amount) if amount else None)
+
+
+@pytest.mark.parametrize(("folder", "amount"), [("leroy", "2960.00"), ("marchal", "3120.00")])
+def test_net_monthly_income_reads_fixture_pdf_payslips(folder: str, amount: str) -> None:
+    from decimal import Decimal
+
+    from pypdf import PdfReader
+
+    from agent_tools import net_monthly_income
+
+    payslips = sorted((Path(__file__).parent / "fixtures" / "candidats" / folder).glob("bulletin_*.pdf"))
+    assert payslips
+    for payslip in payslips:
+        text = "\n".join(page.extract_text() for page in PdfReader(payslip).pages)
+        assert net_monthly_income(text) == Decimal(amount)
+
+
+@pytest.mark.parametrize(
+    ("left", "right"),
+    [("Inès Claes", "INES CLAES"), ("LEROY Amélie", "Amelie Leroy"), ("Claes, Inès", "ines claes")],
+)
+def test_name_key_ignores_case_accents_and_order(left: str, right: str) -> None:
+    from agent_tools import name_key
+
+    assert name_key(left) == name_key(right)
 
 
 # --- Robustesse : dates multiples, Unicode, doublons, relance, chemins, grille -------------------------------------

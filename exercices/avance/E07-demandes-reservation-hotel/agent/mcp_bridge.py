@@ -440,11 +440,11 @@ class HotelTools:
 
         # Contrôle avant tout enregistrement : un brouillon refusé n'est jamais écrit, le modèle reformule.
         # Seuls les problèmes bloquants refusent ; les autres sont signalés dans la synthèse (review_sheet).
-        blocking, _ = draft_body_problems(reply, quote["total_ttc"] if quote else None)
+        blocking, _ = draft_body_problems(reply, quote)
         if blocking:
             raise ToolError(
                 f"Brouillon refusé : {' ; '.join(blocking)} ; reformuler sans remise, réduction ni rabais, "
-                "sans autre montant que le total du devis joint."
+                "sans autre montant que ceux du devis joint."
             )
         # Brouillon d'abord : un échec ici ne laisse aucune fiche orpheline, et le modèle peut réessayer.
         saved = self.kit.call(

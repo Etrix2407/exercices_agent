@@ -31,12 +31,25 @@ AMOUNT = re.compile(
     r"|\d[\d .]*,-(?!\w)"
 )
 PERCENT = re.compile(rf"{NUMBER}\s?(?:%|‰|pour ?cent\b|p\. ?c\.|p\.c\b|pct\b|percent\b)")
+# Groupe « term » : mot du geste sur lequel porte une éventuelle négation (voir gesture_negated).
 COMMERCIAL_GESTURE = re.compile(
     r"\b(?:accord|consent|propos(?:ons|ez|er|e)|offr|fais|faisons|ferons|octroi|octroy|benefic|appliqu|pouvons)\w*\b"
-    r"[^.]{0,60}\b(?:remise|reduction|ristourne|rabais)"
+    r"[^.]{0,60}?\b(?P<term>remise|reduction|ristourne|rabais)"
     r"|\b(?:rabais|ristourne|geste commercial|a titre gracieux|gracieusement|gratuit\w*|offert\w*|cadeau\w*"
     r"|non facture\w*|a notre charge|a nos frais|sans frais)\b"
 )
+# Négation portant sur le geste : « sans », « aucun(e) », « pas de » juste avant le terme, ou « ne … pas/aucun/jamais »
+# suivi uniquement de mots de cette liste jusqu'au terme (« nous ne pouvons pas vous accorder de réduction »).
+NEGATION_FILLER = (
+    r"(?:(?:pou\w*|peu\w*|etre|sommes|suis|est|en|mesure|accord\w*|appliqu\w*|consent\w*|propos\w*"
+    r"|faire|fais|faisons|ferons|ferions|vous|nous|de|une|un|la|le|malheureusement)\s+|d['’]\s*)"
+)
+GESTURE_NEGATION = re.compile(
+    r"(?:\bsans|\baucune?|\bpas\s+de|\bpas\s+d['’])\s*$"
+    rf"|\bn(?:e\s+|['’]\s*){NEGATION_FILLER}*(?:pas|aucune?|jamais)\s+{NEGATION_FILLER}*$"
+)
+# Limite de proposition : la négation doit précéder le terme dans la même proposition.
+CLAUSE_BREAK = re.compile(r"[.;:!?,()\n]|\bmais\b|\bcependant\b|\btoutefois\b")
 # Délai, date ou échéance : un brouillon « à transmettre » n'en donne aucun.
 MONTHS = r"(?:janvier|fevrier|mars|avril|mai|juin|juillet|aout|septembre|octobre|novembre|decembre)"
 DEADLINE = re.compile(
@@ -73,8 +86,20 @@ def forbidden_content(draft: str) -> list[str]:
     text = searchable(draft)
     problems = [f"montant « {match.group().strip()} »" for match in AMOUNT.finditer(text)]
     problems += [f"pourcentage « {match.group().strip()} »" for match in PERCENT.finditer(text)]
-    problems += [f"geste commercial « {match.group()} »" for match in COMMERCIAL_GESTURE.finditer(text)]
+    problems += [
+        f"geste commercial « {match.group()} »"
+        for match in COMMERCIAL_GESTURE.finditer(text)
+        if not gesture_negated(text, match)
+    ]
     return problems
+
+
+def gesture_negated(text: str, match: re.Match[str]) -> bool:
+    """Vrai si le geste trouvé est nié dans sa proposition (« nous ne pouvons pas vous accorder de réduction »)."""
+    term_start = match.start("term") if match.group("term") else match.start()
+    before = text[:term_start]
+    clause_start = max((brk.end() for brk in CLAUSE_BREAK.finditer(before)), default=0)
+    return GESTURE_NEGATION.search(before[clause_start:]) is not None
 
 
 def draft_body(text: str) -> str:

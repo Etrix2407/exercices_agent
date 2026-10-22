@@ -478,10 +478,17 @@ def test_main_exits_with_error_when_a_question_fails(monkeypatch, tmp_path):
         "Les frais sont à notre charge.",
         "Nous vous faisons une r\u0435mise sur ce dossier.",
         "Nous vous proposons un rabais.",
+        "Vous pouvez bénéficier d'une réduction.",
+        "Sans hésiter, une réduction de 10 %.",
     ],
 )
 def test_forbidden_content_resists_bypasses(body):
     assert forbidden_content(body)
+
+
+def test_negated_commercial_gesture_is_not_flagged():
+    body = "Nous ne pouvons pas vous accorder de réduction, votre demande est transmise au gestionnaire du dossier."
+    assert forbidden_content(body) == []
 
 
 def test_percent_quoted_by_client_is_still_to_review(tmp_path):

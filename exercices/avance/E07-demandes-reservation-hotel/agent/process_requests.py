@@ -136,7 +136,7 @@ def build_result(request_id: str, tools: HotelTools, final_text: str) -> Request
         statut=sheet["statut"],
         besoins=needs,
         informations_manquantes=model_texts(sheet.get("informations_manquantes")),
-        dates_alternatives=model_texts(sheet.get("dates_alternatives")),
+        dates_alternatives=model_texts(sheet.get("dates_alternatives"), omitted_note=False),
         devis_total=quote["total_ttc"] if quote else None,
         brouillon=str(tools.draft["brouillon"].get("brouillon", "")),
         points_a_verifier=model_texts(sheet.get("points_a_verifier")),

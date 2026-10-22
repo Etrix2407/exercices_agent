@@ -63,9 +63,9 @@ def test_amounts_read_in_french_and_english_formats() -> None:
 
 
 def test_draft_body_flags_other_amount_and_discount_words() -> None:
-    assert check_draft_body("Devis indicatif de 1 980,00 EUR TTC.", 1980.0) == []
-    problems = check_draft_body("Total 1 800 EUR, avec une réduction et un geste commercial.", 1980.0)
-    assert len(problems) == 3 and "≠ total du devis joint 1980.00 EUR" in problems[0]
+    assert check_draft_body("Devis indicatif de 1 980,00 EUR TTC.", {"total_ttc": 1980.0}) == []
+    problems = check_draft_body("Total 1 800 EUR, avec une réduction et un geste commercial.", {"total_ttc": 1980.0})
+    assert len(problems) == 3 and "absent du devis joint (total 1980.00 EUR)" in problems[0]
     assert "« réduction »" in problems[1] and "« geste commercial »" in problems[2]
     assert "aucun devis" in check_draft_body("Comptez 500 €.", None)[0]
 
@@ -139,7 +139,33 @@ def test_negated_discount_is_neither_blocked_nor_flagged() -> None:
     ):
         assert draft_body_problems(text, None) == ([], []), text
     # La négation ne vaut que pour la même phrase.
-    blocking, _ = draft_body_problems("Pas de souci. Une remise est possible.", None)
+    blocking, _ = draft_body_problems("Pas de souci. Nous vous accordons une remise.", None)
+    assert len(blocking) == 1
+    # La négation doit porter sur le terme : « sans hésiter » ne nie pas la remise.
+    blocking, _ = draft_body_problems("Sans hésiter une remise de 10 % vous est accordée.", None)
+    assert len(blocking) == 1
+    text = "Nous ne sommes malheureusement pas en mesure de vous accorder une réduction."
+    assert draft_body_problems(text, None) == ([], [])
+    assert draft_body_problems("Nous ne pouvons pas vous accorder de remise.", None) == ([], [])
+
+
+def test_harmless_remise_and_cadeau_do_not_block() -> None:
+    for text in ("La remise des badges se fera à l'accueil.", "Un petit cadeau de bienvenue vous attend."):
+        assert draft_body_problems(text, None)[0] == [], text
+    for text in ("Nous vous accordons une remise.", "Vous bénéficiez d'une remise.", "Une remise de 5 sur le total."):
+        assert len(draft_body_problems(text, None)[0]) == 1, text
+    # « % » et « pour cent » : même niveau, bloquants seulement avec un terme de remise.
+    for text in ("Un acompte de 30 % est demandé.", "Un acompte de 30 pour cent est demandé."):
+        assert draft_body_problems(text, None)[0] == [], text
+    for text in ("Une remise de 10 pour cent.", "Dix pour cent de remise."):
+        assert len(draft_body_problems(text, None)[0]) == 1, text
+
+
+def test_amount_of_a_quote_line_is_accepted() -> None:
+    quote = quote_for(REGIONAL_NEEDS)
+    line = quote["lignes"][0]["montant"]
+    assert draft_body_problems(f"Chambres : {line:.2f} EUR.", quote)[0] == []
+    blocking, _ = draft_body_problems("Acompte : 123,45 EUR.", quote)
     assert len(blocking) == 1
 
 
@@ -164,25 +190,22 @@ def test_amounts_with_currency_before_k_tax_dash_other_currencies_and_words() ->
     assert amounts_in(text) == [50, 50, 7000, 6680, 6680, 20, 30, 40, 6680, 50, 1000, 6680, 6680]
     assert amounts_in("du 2026-12-13 au 2026-12-16, 12 chambres, 3 nuits") == []
     # Montant égal au total du devis, même en lettres : accepté ; tout autre montant : bloquant.
-    assert draft_body_problems("Total : six mille six cent quatre-vingts euros.", 6680.0) == ([], [])
-    blocking, _ = draft_body_problems("Le total s'élève à mille euros.", 6680.0)
+    assert draft_body_problems("Total : six mille six cent quatre-vingts euros.", {"total_ttc": 6680.0}) == ([], [])
+    blocking, _ = draft_body_problems("Le total s'élève à mille euros.", {"total_ttc": 6680.0})
     assert len(blocking) == 1 and "1000.00 EUR" in blocking[0]
 
 
 def test_disguised_discounts_and_homoglyphs_are_blocking() -> None:
     for text, label in [
         ("Les cafés vous sont offerts à titre gracieux.", "« à titre gracieux »"),
-        ("La salle, c'est cadeau.", "« cadeau »"),
         ("Nous vous faisons un prix d’ami.", "« prix d'ami »"),
         ("Le dîner sera non facturé.", "« non facturé »"),
         ("La salle est à notre charge.", "« à notre charge »"),
-        ("Soit 10 pour cent de moins.", "« pour cent »"),
-        ("Soit 10 p.c. de moins.", "« pour cent »"),
-        ("Soit 10 pct de moins.", "« pour cent »"),
-        ("Soit dix pour cent de moins.", "« pour cent »"),
-        ("Une rеmise est possible.", "« remise »"),  # « е » cyrillique
-        ("Une ｒｅｍｉｓｅ est possible.", "« remise »"),  # pleine chasse
-        ("Une re\u200bmise est possible.", "« remise »"),  # espace invisible
+        ("Soit 10 p.c. de remise.", "« X % de remise »"),
+        ("Une réduction de dix pour cent.", "« remise de X % »"),
+        ("Nous accordons une rеmise.", "« remise »"),  # « е » cyrillique
+        ("Nous accordons une ｒｅｍｉｓｅ.", "« remise »"),  # pleine chasse
+        ("Nous accordons une re\u200bmise.", "« remise »"),  # espace invisible
         ("Soit −15 % sur les chambres.", "« -X % »"),  # signe moins typographique
     ]:
         blocking, _ = draft_body_problems(text, None)
@@ -196,3 +219,12 @@ def test_out_of_scope_status_always_asks_for_human_confirmation() -> None:
     from agent.checks import HORS_PERIMETRE_NOTE
 
     assert review_sheet("hors_perimetre", {}, None, [], [], "Bonjour") == [HORS_PERIMETRE_NOTE]
+
+
+def test_eleven_alternatives_are_truncated_without_unreadable_note() -> None:
+    from agent.synthesis import model_texts
+
+    dates = [f"2026-12-{day:02d} → 2026-12-{day + 2:02d}" for day in range(1, 12)]
+    kept = model_texts(dates, omitted_note=False)
+    assert len(kept) == 10
+    assert not any("illisible" in problem for problem in check_alternatives(REGIONAL_NEEDS, kept))

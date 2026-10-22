@@ -88,3 +88,13 @@ def test_firm_commitments(text: str, refused: bool):
 def test_length_limit():
     assert text_checks.length_problem("x" * text_checks.MAX_TEXT_CHARS) is None
     assert text_checks.length_problem("x" * (text_checks.MAX_TEXT_CHARS + 1))
+
+
+@pytest.mark.parametrize(("text", "expected"), [
+    ("Facture n° 4512 du dossier, forfait nettoyage 85 €", [85.0]),
+    ("15.11.2026, tarif 84 €", [84.0]),
+    ("Tarif 84 € le 15/11/2026, facture réf. 77, prix no 12, F- 31", [84.0]),
+])
+def test_references_and_full_dates_near_price_words_are_not_amounts(text: str, expected: list[float]):
+    assert text_checks.amounts(text) == expected
+    assert text_checks.amount_problem(text, set(expected)) is None

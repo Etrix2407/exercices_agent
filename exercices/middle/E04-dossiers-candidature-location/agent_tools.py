@@ -100,10 +100,13 @@ ACCEPTED_VERDICT = "RECEVABLE"
 OUTDATED_VERDICT = "PÉRIMÉE"
 TO_CHECK_VERDICT = "À VÉRIFIER"
 # Revenu net mensuel tel qu'écrit sur les bulletins et relevés d'indépendant de candidats/ :
-# « Salaire net à payer : 2 150,00 EUR » ou « Revenu net mensuel retenu : 3 050,00 EUR ».
+# « Salaire net à payer : 2 150,00 EUR » ou « Revenu net mensuel retenu : 3 050,00 EUR » ;
+# bulletins PDF de fixtures/ : « Salaire net » seul sur sa ligne, montant à la ligne suivante (« 2 960,00 »).
+NET_AMOUNT = r"([0-9]{1,3}(?:[ \u00a0\u202f][0-9]{3})*,[0-9]{2})"
 NET_INCOME_PATTERN = re.compile(
-    r"(?:Salaire net à payer|Revenu net mensuel retenu)\s*:\s*([0-9]{1,3}(?:[ \u00a0\u202f][0-9]{3})*,[0-9]{2})\s*EUR",
-    re.IGNORECASE,
+    rf"(?:Salaire net à payer|Revenu net mensuel retenu)\s*:\s*{NET_AMOUNT}\s*EUR"
+    rf"|^[ \t]*Salaire net[ \t]*\n[ \t]*{NET_AMOUNT}[ \t]*$",
+    re.IGNORECASE | re.MULTILINE,
 )
 # Identité, formats observés : « Nom : Inès Claes » et « Date d'expiration : 27/08/2031 » (candidats/*.txt) ;
 # « Nom », « Prénom », « Valable jusqu'au » suivis de la valeur à la ligne (pièces d'identité PDF de fixtures/).
@@ -447,8 +450,10 @@ def person_names(content: str) -> tuple[str, ...]:
 
 
 def name_key(name: str) -> tuple[str, ...]:
-    """Clé de comparaison d'un nom : mots en minuscules, ordre ignoré (« LEROY Amélie » = « Amélie Leroy »)."""
-    return tuple(sorted(normalize_text(name).casefold().replace(",", " ").split()))
+    """Clé de comparaison d'un nom : minuscules, sans accents, ordre ignoré (« LEROY Amelie » = « Amélie Leroy »)."""
+    decomposed = unicodedata.normalize("NFKD", normalize_text(name).casefold())
+    plain = "".join(char for char in decomposed if not unicodedata.combining(char))
+    return tuple(sorted(plain.replace(",", " ").split()))
 
 
 def content_fingerprint(content: str) -> str:
@@ -472,7 +477,7 @@ def deduplicate(names: list[str], fingerprint: Callable[[str], str | None]) -> t
 
 def net_monthly_income(content: str) -> Decimal | None:
     """Revenu net mensuel écrit sur la pièce, ou None s'il est absent ou ambigu (plusieurs montants différents)."""
-    raw_amounts = NET_INCOME_PATTERN.findall(normalize_text(content))
+    raw_amounts = [inline or pdf for inline, pdf in NET_INCOME_PATTERN.findall(normalize_text(content))]
     amounts = {Decimal(re.sub(r"\s", "", raw).replace(",", ".")) for raw in raw_amounts}
     return amounts.pop() if len(amounts) == 1 else None
 

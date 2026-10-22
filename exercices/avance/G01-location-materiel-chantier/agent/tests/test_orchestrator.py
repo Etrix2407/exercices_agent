@@ -204,18 +204,29 @@ def test_unreadable_mail_goes_to_humans_without_stopping_the_batch(tmp_path: Pat
     assert (by_id["casse_01"].route, by_id["casse_01"].status) == (HUMAN_OTHER, "illisible")
 
 
+LONG_BODY = (
+    "Bonjour, nous souhaitons louer une mini-pelle  du 02/11\nau 06/11 pour le chantier de la rue Haute, "
+    "livraison sur place le matin."
+)
+
+DUPLICATE_SUBJECTS = {8: "Affectation DEV-2026-0001", 9: "Affectation DEV-2026-0001", 10: "Affectation DEV-2026-0001",
+                      11: "Affectation DEV-2026-0002", 12: "Affectation DEV-2026-0002", 13: "Affectation DEV-2026-0003"}
+
+
 class DuplicateMailKit:
-    """Faux kit : deux mails au même expéditeur et au même corps (espaces mis à part), un troisième différent."""
+    """Faux kit : 8 et 9 ont même expéditeur, même sujet et même long corps (espaces mis à part) ; 10 a un autre
+    corps ; 11 et 12 ont le même corps court et 13 le même long corps que 8 mais un autre sujet."""
 
     def call(self, name: str, arguments: dict):
         if name == "lister_mails":
-            return {"mails": [{"id": f"demande_{n}", "sujet": "Affectation DEV-2026-0001"} for n in (8, 9, 10)]}
+            return {"mails": [{"id": f"demande_{n}", "sujet": subject} for n, subject in DUPLICATE_SUBJECTS.items()]}
         if name == "rechercher_documents":
             return {"documents": []}
         assert name == "lire_mail", name
         mail_id = arguments["identifiant"]
         sender = "Agence <A@brevalocation.test>" if mail_id != "demande_9" else "a@brevalocation.test"
-        body = "Mini-pelle  du 02/11\nau 06/11." if mail_id != "demande_10" else "Autre demande."
+        bodies = {"demande_10": "Autre demande.", "demande_11": "Merci.", "demande_12": "Merci."}
+        body = bodies.get(mail_id, LONG_BODY.replace("  ", " ") if mail_id == "demande_9" else LONG_BODY)
         return {"id": mail_id, "de": sender, "corps": body}
 
 
@@ -228,8 +239,12 @@ def test_second_identical_mail_goes_to_humans_as_duplicate(tmp_path: Path) -> No
 
     results = process_all(DuplicateMailKit(), {QUOTE: Agent(quote, FakeProvider())}, tmp_path)
     by_id = {result.id: result for result in results}
-    assert calls == ["demande_10", "demande_8"]
+    # Corps courts identiques (11, 12) ou sujet différent (13) : pas des doublons.
+    assert calls == ["demande_10", "demande_11", "demande_12", "demande_13", "demande_8"]
     assert (by_id["demande_9"].route, by_id["demande_9"].status) == (HUMAN_OTHER, "doublon")
     assert "doublon de demande_8" in by_id["demande_9"].summary
+    # Le premier mail du groupe est traité, mais l'humain voit le couple.
+    assert by_id["demande_8"].summary == "doublon possible de demande_9 ; ok"
+    assert by_id["demande_13"].summary == "ok"
     queue = json.loads((tmp_path / "file_humaine.json").read_text(encoding="utf-8"))
     assert [item["id"] for item in queue] == ["demande_9"]

@@ -90,6 +90,10 @@ NOT_MONEY_BEFORE = frozenset({
     "du", "au", "le", "les", "entre", "depuis", "janvier", "fevrier", "mars", "avril", "mai", "juin",
     "juillet", "aout", "septembre", "octobre", "novembre", "decembre",
 })
+# Numéro de référence juste avant le nombre (« n° 4512 », « réf. 12 », « F- 2026 ») : jamais un montant sans devise.
+REFERENCE_BEFORE = re.compile(r"(?:\bn\s*°|\bno\.?|\bnumero|\bref\w*\.?|\b(?:f|loc|cr|bl|dev)\s*-)\s*:?\s*$")
+# Date complète JJ.MM.AAAA, JJ/MM/AAAA ou JJ-MM-AAAA : ses nombres ne sont pas des montants sans devise.
+DATE = re.compile(r"(?<!\d)\d{1,2}([./-])\d{1,2}\1\d{2,4}(?!\d)")
 PRICE_WINDOW_BEFORE, PRICE_WINDOW_AFTER = 4, 2  # mots examinés autour d'un nombre sans devise
 # Montant écrit en toutes lettres suivi d'une devise : « quatre-vingt-quatre euros ».
 NUMBER_WORD = (
@@ -131,8 +135,9 @@ def _near_price_word(simple: str, start: int, end: int) -> bool:
     return any(word in PRICE_WORDS for word in before + after)
 
 
-def _amount(simple: str, match: re.Match) -> float | None:
-    """Montant du nombre trouvé s'il est monétaire (devise après ou avant, ou mot de prix voisin), sinon None."""
+def _amount(simple: str, match: re.Match, dates: list[tuple[int, int]]) -> float | None:
+    """Montant du nombre trouvé s'il est monétaire (devise après ou avant, ou mot de prix voisin), sinon None.
+    Sans devise, un numéro de référence ou un nombre pris dans une date (dates : positions) n'est pas un montant."""
     whole, cents = match.group(1), match.group(2)
     value = _value(whole, cents)
     after = CURRENCY_AFTER.match(simple, match.end())
@@ -140,6 +145,10 @@ def _amount(simple: str, match: re.Match) -> float | None:
         return value * 1000 if after.group(1) else value
     if CURRENCY_BEFORE.search(simple[max(0, match.start() - 12):match.start()]):
         return value
+    if REFERENCE_BEFORE.search(simple[max(0, match.start() - 20):match.start()]):
+        return None
+    if any(start <= match.start() < end for start, end in dates):
+        return None
     long_enough = len(re.sub(r"\D", "", whole)) >= 2 or cents
     return value if long_enough and _near_price_word(simple, match.start(), match.end()) else None
 
@@ -148,7 +157,8 @@ def amounts(text: str) -> list[float]:
     """Montants cités dans un texte : devise avant ou après (€, EUR, k€, HT, HTVA, $, USD, CHF, « ,- »), ou
     nombre de 2 chiffres ou plus près d'un mot de prix."""
     simple = LETTER_ZERO.sub("0", plain(text))
-    found = (_amount(simple, match) for match in NUMBER.finditer(simple))
+    dates = [date.span() for date in DATE.finditer(simple)]
+    found = (_amount(simple, match, dates) for match in NUMBER.finditer(simple))
     return [value for value in found if value is not None]
 
 

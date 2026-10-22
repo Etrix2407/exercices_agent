@@ -110,14 +110,17 @@ def clip_text(value: Any) -> str:
     return text if len(text) <= MAX_MODEL_TEXT_LENGTH else text[: MAX_MODEL_TEXT_LENGTH - 1] + "…"
 
 
-def model_texts(values: Any) -> list[str]:
-    """Textes recopiés de la fiche du modèle : au plus MAX_MODEL_TEXTS, chacun tronqué à MAX_MODEL_TEXT_LENGTH."""
+def model_texts(values: Any, omitted_note: bool = True) -> list[str]:
+    """Textes recopiés de la fiche du modèle : au plus MAX_MODEL_TEXTS, chacun tronqué à MAX_MODEL_TEXT_LENGTH.
+
+    omitted_note=False pour les listes relues ensuite par le code (dates alternatives) : pas de note ajoutée.
+    """
     if isinstance(values, str):
         values = [values]
     if not isinstance(values, list):
         return []
     texts = [clip_text(value) for value in values[:MAX_MODEL_TEXTS]]
-    if len(values) > MAX_MODEL_TEXTS:
+    if omitted_note and len(values) > MAX_MODEL_TEXTS:
         texts.append(f"{len(values) - MAX_MODEL_TEXTS} élément(s) supplémentaire(s) omis")
     return texts
 

@@ -15,7 +15,7 @@ import json
 import logging
 import re
 from collections.abc import Callable
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from email.utils import parseaddr
 from pathlib import Path
 
@@ -83,6 +83,8 @@ MODEL_ROUTED_PREFIX = "(classé par le modèle)"
 MODEL_ROUTED_KEY = "classe_par_modele"
 # Statuts des mails écartés avant tout agent : illisibles par le kit, ou doublons d'un mail déjà listé.
 UNREADABLE, DUPLICATE = "illisible", "doublon"
+# Corps (espaces normalisés) plus court : pas de détection de doublon, deux demandes brèves peuvent coïncider.
+DUPLICATE_MIN_BODY = 80
 
 # (modèle, outils du kit, identifiant, trace à compléter) -> réponse finale
 AgentRunner = Callable[[LLMProvider, KitCaller, str, Trace], str]
@@ -123,6 +125,8 @@ class Event:
     # Mail écarté avant tout agent (UNREADABLE ou DUPLICATE) et pourquoi : il part en file humaine.
     issue: str = ""
     reason: str = ""
+    # Mail traité normalement mais à rapprocher d'autres mails (« doublon possible de X »), repris dans le résumé.
+    note: str = ""
 
 
 @dataclass
@@ -194,15 +198,18 @@ def listed_mails(kit: KitCaller, inbox: Path) -> dict[str, str]:
         return {path.stem: "" for path in inbox.glob("*.eml")}
 
 
-def duplicate_key(mail: dict) -> tuple[str, str] | None:
-    """Expéditeur (adresse) et corps sans différence d'espaces ; None s'il manque l'un des deux."""
+def duplicate_key(mail: dict) -> tuple[str, str, str] | None:
+    """Expéditeur (adresse), sujet et corps sans différence d'espaces ; None s'il manque l'expéditeur ou si le
+    corps est trop court (moins de DUPLICATE_MIN_BODY caractères) pour conclure à un doublon."""
     sender = parseaddr(str(mail.get("de") or ""))[1].lower()
+    subject = " ".join(str(mail.get("sujet") or "").split()).lower()
     body = " ".join(str(mail.get("corps") or "").split())
-    return (sender, body) if sender and body else None
+    return (sender, subject, body) if sender and len(body) >= DUPLICATE_MIN_BODY else None
 
 
 def read_mails(kit: KitCaller, inbox: Path) -> list[Event]:
-    """Mails de la boîte, lus un par un : un mail illisible ou en double part en file humaine, sans arrêter le lot."""
+    """Mails de la boîte, lus un par un : un mail illisible ou en double part en file humaine, sans arrêter le lot.
+    Le premier mail d'un groupe de doublons est traité, avec une note qui cite ses doublons."""
     events, seen = [], {}
     listed = listed_mails(kit, inbox)
     for mail_id in sorted(listed):
@@ -213,13 +220,16 @@ def read_mails(kit: KitCaller, inbox: Path) -> list[Event]:
             events.append(Event(mail_id, "mail", issue=UNREADABLE, reason=f"mail illisible : {error}"))
             continue
         subject = listed[mail_id] or str(mail.get("sujet") or "")
-        key = duplicate_key(mail)
+        key = duplicate_key({**mail, "sujet": subject})
         if key in seen:
-            reason = f"doublon de {seen[key]} (même expéditeur, même corps) : {subject}"
+            first = seen[key]
+            reason = f"doublon de {events[first].id} (même expéditeur, même sujet, même corps) : {subject}"
             events.append(Event(mail_id, "mail", subject, DUPLICATE, reason))
+            note = f"{events[first].note}, {mail_id}" if events[first].note else f"doublon possible de {mail_id}"
+            events[first] = replace(events[first], note=note)
             continue
         if key is not None:
-            seen[key] = mail_id
+            seen[key] = len(events)
         events.append(Event(mail_id, "mail", subject))
     return events
 
@@ -331,6 +341,8 @@ def process_all(
                 result.summary = f"{MODEL_ROUTED_PREFIX} {result.summary}"
         else:
             result = EventResult(id=event.id, route=target, status="file_humaine", summary=event.subject)
+        if event.note:
+            result.summary = f"{event.note} ; {result.summary}"
         logger.info("→ %s : %s", event.id, result.status)
         results.append(result)
         write_outputs(results, output_dir, models)

@@ -61,17 +61,20 @@ AMOUNT_IN_WORDS = re.compile(rf"({WORDS_SEQUENCE})\s*(?:d'\s*)?(?:€|eur(?:os?)
 # Mentions cherchées dans le texte normalisé -> libellé affiché, dans l'ordre.
 # Une mention déjà retenue par un motif précédent (« remise de 10 % ») n'est pas comptée deux fois.
 SPELLED_PERCENT = r"(?:pour\s*cents?\b|p\.\s*c\.|pcts?\b)"
-PERCENT = rf"\d+(?:[.,]\d+)?\s*(?:%|{SPELLED_PERCENT})"
+# « 10 % », « 10 pour cent », « 10 p.c. », « dix pour cent » : même niveau, quelle que soit la forme.
+PERCENT = rf"(?:\d+(?:[.,]\d+)?\s*(?:%|{SPELLED_PERCENT})|{WORDS_SEQUENCE}\s*{SPELLED_PERCENT})"
 DISCOUNT_WORD = r"(?:remises?|reductions?|rabais)"
+# Verbe d'octroi devant « remise » : « nous vous accordons une remise », « bénéficier d'une remise ».
+GRANT_VERB = r"\b(?:accord|appliqu|consent|fai|offr|benefici)\w*"
+GRANT_FILLER = r"(?:(?:vous|nous|leur|lui|une|un|d'|de|la|les|des|exceptionnelle(?:ment)?)\s*)*"
 # BLOQUANT : remise explicite sur le prix ; write_draft refuse le brouillon (sauf mention niée).
-# « remise » seule n'est pas visée dans « remise des clés ».
 DISCOUNT_PATTERNS = (
     (re.compile(rf"\b{DISCOUNT_WORD}\s+de\s+{PERCENT}"), "remise de X %"),
     (re.compile(rf"(?<![\d.,]){PERCENT}\s+de\s+{DISCOUNT_WORD}\b"), "X % de remise"),
     (re.compile(rf"(?<![\w%])-\s*{PERCENT}"), "-X %"),
-    # « 10 pour cent », « 10 p.c. », « 10 pct », « dix pour cent » : formes qui contournent « % ».
-    (re.compile(rf"(?:(?<![\d.,])\d+(?:[.,]\d+)?|{WORDS_SEQUENCE})\s*{SPELLED_PERCENT}"), "pour cent"),
-    (re.compile(r"\bremises?\b(?!\s+(?:des|de la|de vos|de votre)\s+cle)"), "remise"),
+    # « remise » seule : bloquante suivie d'un montant ou précédée d'un verbe d'octroi ; sinon signalée.
+    (re.compile(rf"\bremises?\s+(?:de|d'|sur)\s*(?:\d|{NUMBER_WORD})"), "remise"),
+    (re.compile(rf"{GRANT_VERB}\s+{GRANT_FILLER}remises?\b"), "remise"),
     (re.compile(r"\breductions?\b"), "réduction"),
     (re.compile(r"\bgestes?\s+commercia(?:l|ux)\b"), "geste commercial"),
     (re.compile(r"\brabais\b"), "rabais"),
@@ -79,23 +82,29 @@ DISCOUNT_PATTERNS = (
     (re.compile(r"\btarifs?\s+preferentiels?\b"), "tarif préférentiel"),
     (re.compile(r"\bdiscounts?\b"), "discount"),
     (re.compile(r"\bgracieu(?:x|se|ses|sement)\b"), "à titre gracieux"),
-    (re.compile(r"\bcadeaux?\b"), "cadeau"),
     (re.compile(r"\bprix\s+d'\s*amis?\b"), "prix d'ami"),
     (re.compile(r"\bnon[\s-]+factur\w*"), "non facturé"),
     (re.compile(r"\b(?:a|aux)\s+(?:notre\s+charge|nos\s+frais)\b"), "à notre charge"),
 )
 # SIGNALÉ seulement : formulations courantes d'hôtel (« acompte de 30 % », « parking gratuit »), à relire.
+# « remise des clés / de la clé » n'est pas visée.
 WARNING_PATTERNS = (
+    (re.compile(r"\bremises?\b(?!\s+(?:des|de la|de vos|de votre)\s+cle)"), "remise"),
+    (re.compile(r"\bcadeaux?\b"), "cadeau"),
     (re.compile(r"\bofferte?s?\b"), "offert"),
     (re.compile(r"\bgratuit(?:e|s|es|ement)?\b"), "gratuit"),
     (re.compile(r"\bpromo(?:tion)?s?\b"), "promotion"),
     (re.compile(rf"(?<![\d.,]){PERCENT}"), "pourcentage"),
 )
-# Négation dans les NEGATION_WINDOW mots qui précèdent, dans la même phrase : « sans remise »,
-# « aucune réduction », « pas de rabais », « ni remise », « nous ne faisons pas de remise ».
-NEGATION_WORDS = frozenset({"sans", "aucun", "aucune", "pas", "ni"})
-NEGATION_WINDOW = 5
-SENTENCE_END = re.compile(r"[.!?;:\n]")
+# Négation qui porte sur le terme : entre elle et le terme, dans la même proposition, seulement des mots
+# de NEGATION_LINKS (« sans aucune remise », « pas de rabais », « ne pouvons pas vous accorder de remise »,
+# « ne sommes malheureusement pas en mesure de vous accorder une réduction »).
+NEGATION_WORDS = frozenset({"sans", "aucun", "aucune", "pas", "ni", "jamais"})
+NEGATION_LINKS = re.compile(
+    r"(?:vous|nous|de|d|une|un|la|le|en|mesure|malheureusement|etre|sommes|est|sont"
+    r"|accord\w*|appliqu\w*|consent\w*|propos\w*|faire|faisons|fait|offr\w*|pouv\w*|peu[tx]?|peuvent|pourr\w*)"
+)
+CLAUSE_END = re.compile(r"[.!?;:,\n]")
 HORS_PERIMETRE_NOTE = (
     "statut « hors_perimetre » : confirmer à la lecture du courriel que la demande sort bien du périmètre "
     "(aucun devis n'a été préparé)"
@@ -253,56 +262,74 @@ def amounts_in(text: str) -> list[float]:
 
 
 def is_negated(plain: str, start: int) -> bool:
-    """Vrai si une négation figure parmi les NEGATION_WINDOW mots qui précèdent, dans la même phrase."""
-    sentence = SENTENCE_END.split(plain[:start])[-1]
-    return not NEGATION_WORDS.isdisjoint(re.findall(r"[a-z]+", sentence)[-NEGATION_WINDOW:])
+    """Vrai si une négation porte sur le terme : seuls des mots de liaison les séparent, même proposition."""
+    for word in reversed(re.findall(r"[a-z]+", CLAUSE_END.split(plain[:start])[-1])):
+        if word in NEGATION_WORDS:
+            return True
+        if not NEGATION_LINKS.fullmatch(word):
+            return False
+    return False
 
 
-def find_mentions(
-    plain: str, patterns: tuple, taken: list[tuple[int, int]], skip_negated: bool
-) -> list[str]:
-    """Libellés des motifs trouvés ; chaque passage retenu (même nié) est ajouté à taken et compté une fois."""
+def find_mentions(plain: str, patterns: tuple, taken: list[tuple[int, int]]) -> list[str]:
+    """Libellés des motifs trouvés hors mention niée ; chaque passage retenu (même nié) est ajouté à taken
+    et compté une fois."""
     labels = []
     for pattern, label in patterns:
         for match in pattern.finditer(plain):
             if any(start < match.end() and match.start() < end for start, end in taken):
                 continue
             taken.append(match.span())
-            if not (skip_negated and is_negated(plain, match.start())) and label not in labels:
+            if not is_negated(plain, match.start()) and label not in labels:
                 labels.append(label)
     return labels
 
 
-def draft_body_problems(body: str, quote_total: float | None) -> tuple[list[str], list[str]]:
+def quote_amounts(quote: dict[str, Any] | None) -> list[float]:
+    """Montants du devis joint qu'un brouillon peut citer : total TTC, total HT et sous-totaux s'ils y figurent,
+    montant de chaque ligne. Rien n'est recalculé : un HT absent du devis n'est pas inventé."""
+    if not quote:
+        return []
+    values = [quote.get("total_ttc")]
+    values += [value for key, value in quote.items() if key.startswith(("total_h", "sous_total"))]
+    values += [line.get("montant") for line in quote.get("lignes") or [] if isinstance(line, dict)]
+    values += [line.get("sous_total") for line in quote.get("lignes") or [] if isinstance(line, dict)]
+    return [float(value) for value in values if isinstance(value, int | float) and not isinstance(value, bool)]
+
+
+def draft_body_problems(body: str, quote: dict[str, Any] | None) -> tuple[list[str], list[str]]:
     """Contrôle du brouillon en deux niveaux : (bloquants, signalés).
 
-    Bloquants : montant différent du total du devis joint, remise explicite sur le prix (sauf mention niée).
-    Signalés : autre pourcentage, « gratuit », « offert », « promotion » (formulations courantes à relire).
+    Bloquants : montant absent du devis joint (ni total, ni HT, ni ligne), remise explicite sur le prix
+    (sauf mention niée). Signalés : pourcentage, « remise » seule, « cadeau », « gratuit », « offert »,
+    « promotion » (formulations courantes à relire).
     """
     blocking = []
+    allowed = quote_amounts(quote)
     for amount in amounts_in(body):
-        if quote_total is None:
+        if quote is None:
             blocking.append(f"montant {amount:.2f} EUR écrit dans le brouillon alors qu'aucun devis n'est joint")
-        elif abs(amount - quote_total) > 0.005:
+        elif not any(abs(amount - value) <= 0.005 for value in allowed):
             blocking.append(
-                f"montant {amount:.2f} EUR écrit dans le brouillon ≠ total du devis joint {quote_total:.2f} EUR"
+                f"montant {amount:.2f} EUR écrit dans le brouillon absent du devis joint "
+                f"(total {quote.get('total_ttc', 0):.2f} EUR)"
             )
     plain = normalize_text(body)
     taken: list[tuple[int, int]] = []
     blocking += [
         f"le brouillon mentionne « {label} » : aucune remise n'est permise, le prix est celui du devis"
-        for label in find_mentions(plain, DISCOUNT_PATTERNS, taken, skip_negated=True)
+        for label in find_mentions(plain, DISCOUNT_PATTERNS, taken)
     ]
     warnings = [
         f"le brouillon mentionne « {label} » : vérifier qu'aucune remise n'est promise"
-        for label in find_mentions(plain, WARNING_PATTERNS, taken, skip_negated=False)
+        for label in find_mentions(plain, WARNING_PATTERNS, taken)
     ]
     return blocking, warnings
 
 
-def check_draft_body(body: str, quote_total: float | None) -> list[str]:
+def check_draft_body(body: str, quote: dict[str, Any] | None) -> list[str]:
     """Tous les points du brouillon à vérifier (bloquants puis signalés), repris dans la synthèse."""
-    blocking, warnings = draft_body_problems(body, quote_total)
+    blocking, warnings = draft_body_problems(body, quote)
     return blocking + warnings
 
 
@@ -328,4 +355,4 @@ def review_sheet(
     if status == "hors_perimetre":
         # Une consigne glissée dans le courriel peut faire écarter une vraie demande : l'humain tranche.
         problems.append(HORS_PERIMETRE_NOTE)
-    return problems + check_draft_body(body, quote["total_ttc"] if quote else None)
+    return problems + check_draft_body(body, quote)
