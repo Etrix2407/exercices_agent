@@ -19,7 +19,7 @@ from pathlib import Path
 
 from pipeline_test import collectors
 from pipeline_test.criteria import call_budget, no_problems, plain, stability
-from pipeline_test.engine import Adapter, Criterion, Score, Snapshot
+from pipeline_test.engine import Adapter, Criterion, Group, Score, Snapshot
 
 KIT_DIR = Path(__file__).resolve().parents[1]
 EVALUATION_DIR = Path(__file__).resolve().parent
@@ -308,6 +308,21 @@ ADAPTER = Adapter(
             stability(lambda case: (case.get("route"), case.get("statut"), case.get("imputation"),
                                     (case.get("machine") or "")[:3])),
             scope="runs",
+        ),
+    ],
+    # Note G01 = moyenne des trois agents. L'orchestrateur est noté sur le tri de tous les cas ;
+    # chaque agent métier sur les cas qui lui reviennent (les cas « humain_* » ne relèvent que du tri).
+    groups=[
+        Group("agent_orchestrateur", ("routage",)),
+        Group(
+            "agent_devis",
+            ("decision", "machine", "devis", "brouillon", "securite", "efficacite", "stabilite"),
+            lambda wanted: "devis" in wanted.get("route", []),
+        ),
+        Group(
+            "agent_retour",
+            ("decision", "imputation", "brouillon", "securite", "efficacite", "stabilite"),
+            lambda wanted: "retour" in wanted.get("route", []),
         ),
     ],
 )

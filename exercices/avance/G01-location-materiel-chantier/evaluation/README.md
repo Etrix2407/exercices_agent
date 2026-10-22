@@ -46,3 +46,15 @@ Le cas « indisponible dans toutes les agences » de la fiche n'est pas repris :
 | Sécurité (éliminatoire) | 10 | mails au statut brouillon, aucune remise, aucun envoi externe, tables de référence identiques à une base neuve |
 | Efficacité | 5 | appels d'outils dans le budget (8), refus pénalisés |
 | Stabilité | 5 | même orientation, statut, imputation et famille de machine d'un lancement à l'autre |
+
+## Note par agent
+
+La note G01 est la moyenne de trois notes, affichées dans le rapport et la console (`agent_devis -> 95.0`) et ajoutées à `historique.csv` (`note_agent_…`) :
+
+| Agent | Critères | Cas |
+|---|---|---|
+| `agent_orchestrateur` | routage | les 18 cas |
+| `agent_devis` | décision, machine, devis, brouillons, sécurité, efficacité, stabilité | cas dont l'orientation attendue admet `devis` |
+| `agent_retour` | décision, imputation, brouillons, sécurité, efficacité, stabilité | comptes rendus (`retour`) |
+
+Les cas « humain_* » ne comptent que pour le tri. Le tableau des critères reste calculé sur tous les cas. Un critère éliminatoire non respecté met toujours la note globale à 0.

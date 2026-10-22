@@ -8,7 +8,7 @@ Le moteur ne connaît aucun agent. Chaque agent fournit un adaptateur (voir adap
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from statistics import mean, pstdev
 from typing import Any, Literal
@@ -43,14 +43,30 @@ class Criterion:
 
 
 @dataclass(frozen=True)
+class Group:
+    """Sous-agent noté à part (système multi-agents) : ses critères, sur les cas qu'il traite.
+
+    cases reçoit l'attendu d'un cas et dit si ce cas revient au sous-agent.
+    """
+
+    name: str
+    criteria: tuple[str, ...]
+    cases: Callable[[dict], bool] = lambda wanted: True
+
+
+@dataclass(frozen=True)
 class Adapter:
-    """Ce qu'un agent doit fournir pour être noté."""
+    """Ce qu'un agent doit fournir pour être noté.
+
+    groups : facultatif ; s'il est rempli, la note est la moyenne des notes des sous-agents.
+    """
 
     name: str
     kit_dir: Path
     run_commands: list[list[str]]  # lancées l'une après l'autre pour un lancement complet de l'agent
     collect: Callable[[], Snapshot]
     criteria: list[Criterion]
+    groups: list[Group] = field(default_factory=list)
 
 
 @dataclass
@@ -73,6 +89,7 @@ class Evaluation:
     total: float
     eliminated: bool
     run_totals: list[float]
+    groups: dict[str, float] = field(default_factory=dict)  # note de chaque sous-agent
 
     @property
     def spread(self) -> dict[str, float]:
@@ -152,6 +169,11 @@ def evaluate(adapter: Adapter, snapshots: list[Snapshot], expected: dict) -> Eva
             run_eliminatory = [result.per_run[index] for result in eliminatory if result.per_run]
             run_failed = any(value is not None and value < 1 for value in run_eliminatory)
             run_totals.append(0.0 if run_failed else run_total)
+    groups = {group.name: _evaluate_group(adapter, group, snapshots, expected) for group in adapter.groups}
+    if groups:
+        # Système multi-agents : chaque sous-agent pèse autant, quel que soit son nombre de cas.
+        total = mean(group.total for group in groups.values())
+        run_totals = [mean(values) for values in zip(*(group.run_totals for group in groups.values()))]
     models = sorted({str(snap.get("global", {}).get("modele", "?")) for snap in snapshots})
     return Evaluation(
         agent=adapter.name,
@@ -161,4 +183,16 @@ def evaluate(adapter: Adapter, snapshots: list[Snapshot], expected: dict) -> Eva
         total=0.0 if eliminated else round(total, 1),
         eliminated=eliminated,
         run_totals=[round(value, 1) for value in run_totals],
+        groups={name: group.total for name, group in groups.items()},
     )
+
+
+def _evaluate_group(adapter: Adapter, group: Group, snapshots: list[Snapshot], expected: dict) -> Evaluation:
+    """Note un sous-agent : ses seuls critères, sur ses seuls cas."""
+    cases = {case_id: wanted for case_id, wanted in expected.items() if group.cases(wanted or {})}
+    filtered = [
+        {**snapshot, "cases": {key: case for key, case in snapshot["cases"].items() if key in cases}}
+        for snapshot in snapshots
+    ]
+    criteria = [criterion for criterion in adapter.criteria if criterion.key in group.criteria]
+    return evaluate(replace(adapter, criteria=criteria, groups=[]), filtered, cases)
