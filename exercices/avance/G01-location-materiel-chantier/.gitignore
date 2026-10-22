@@ -1,0 +1,3 @@
+# Sorties de l'agent et brouillons générés (recréés à chaque lancement)
+agent/output/
+boite/outbox/
