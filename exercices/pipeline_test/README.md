@@ -42,6 +42,7 @@ python -m pipeline_test e07 --rescore avance/E07-demandes-reservation-hotel/eval
 - Un critère non mesuré (champ attendu à `null`, stabilité avec un seul lancement) ne compte pas : son poids est réparti sur les autres.
 - Si un critère **éliminatoire** n'est pas respecté, la note est 0.
 - Un cas attendu que l'agent n'a pas traité vaut 0 sur chaque critère qui l'aurait évalué.
+- Système multi-agents : si l'adaptateur déclare des `groups` (`Group(nom, critères, filtre des cas)`), chaque sous-agent reçoit sa note et la note globale est leur moyenne (exemple : G01).
 
 ## Ajouter un exercice
 

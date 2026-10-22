@@ -25,6 +25,10 @@ def to_markdown(evaluation: Evaluation, date: str) -> str:
         "",
         f"Note globale : {verdict}",
     ]
+    if evaluation.groups:
+        lines += ["", "Note par agent (la note globale est leur moyenne) :", ""]
+        lines += [f"- {name} -> {score} / 100" for name, score in evaluation.groups.items()]
+        lines.append("")
     if evaluation.runs > 1 and spread:
         lines.append(
             f"Par lancement : moyenne {spread['moyenne']}, écart-type {spread['ecart_type']}, "
@@ -65,6 +69,7 @@ def append_history(evaluation: Evaluation, path: Path, date: str) -> None:
         "elimine": evaluation.eliminated,
         "ecart_type": spread.get("ecart_type", ""),
         **criteria,
+        **{f"note_{name}": score for name, score in evaluation.groups.items()},
     }
     existing_header: list[str] = []
     if path.is_file():

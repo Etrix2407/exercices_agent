@@ -71,6 +71,8 @@ def evaluate_exercise(exercise: Exercise, arguments: argparse.Namespace, stamp: 
     report = write_reports(evaluation, exercise.reports_dir, stamp, date)
     append_history(evaluation, HISTORY_PATH, date)
     logger.info("[%s] note : %s / 100 — rapport : %s", adapter.name, evaluation.total, report)
+    for name, score in evaluation.groups.items():
+        logger.info("  %s -> %s", name, score)
     return evaluation.total
 
 
