@@ -1,0 +1,223 @@
+{
+  "agent": "e04",
+  "models": [
+    "?"
+  ],
+  "runs": 3,
+  "criteria": [
+    {
+      "key": "statut",
+      "label": "Statut du dossier",
+      "weight": 30,
+      "eliminatory": false,
+      "value": 0,
+      "per_run": [
+        0,
+        0,
+        0
+      ],
+      "details": [
+        "lancement 1 — ines-claes : cas absent des sorties de l'agent",
+        "lancement 1 — karim-benali : cas absent des sorties de l'agent",
+        "lancement 1 — lea-vanderstraeten : cas absent des sorties de l'agent",
+        "lancement 1 — marc-dubois : cas absent des sorties de l'agent",
+        "lancement 1 — nathalie-fontaine : cas absent des sorties de l'agent",
+        "lancement 1 — olivier-mertens : cas absent des sorties de l'agent",
+        "lancement 1 — sophie-lambert : cas absent des sorties de l'agent",
+        "lancement 1 — thomas-verhoeven : cas absent des sorties de l'agent",
+        "lancement 2 — ines-claes : cas absent des sorties de l'agent",
+        "lancement 2 — karim-benali : cas absent des sorties de l'agent",
+        "lancement 2 — lea-vanderstraeten : cas absent des sorties de l'agent",
+        "lancement 2 — marc-dubois : cas absent des sorties de l'agent",
+        "lancement 2 — nathalie-fontaine : cas absent des sorties de l'agent",
+        "lancement 2 — olivier-mertens : cas absent des sorties de l'agent",
+        "lancement 2 — sophie-lambert : cas absent des sorties de l'agent",
+        "lancement 2 — thomas-verhoeven : cas absent des sorties de l'agent",
+        "lancement 3 — ines-claes : cas absent des sorties de l'agent",
+        "lancement 3 — karim-benali : cas absent des sorties de l'agent",
+        "lancement 3 — lea-vanderstraeten : cas absent des sorties de l'agent",
+        "lancement 3 — marc-dubois : cas absent des sorties de l'agent",
+        "lancement 3 — nathalie-fontaine : cas absent des sorties de l'agent",
+        "lancement 3 — olivier-mertens : cas absent des sorties de l'agent",
+        "lancement 3 — sophie-lambert : cas absent des sorties de l'agent",
+        "lancement 3 — thomas-verhoeven : cas absent des sorties de l'agent"
+      ]
+    },
+    {
+      "key": "pieces_manquantes",
+      "label": "Pièces manquantes",
+      "weight": 20,
+      "eliminatory": false,
+      "value": 0,
+      "per_run": [
+        0,
+        0,
+        0
+      ],
+      "details": [
+        "lancement 1 — ines-claes : cas absent des sorties de l'agent",
+        "lancement 1 — karim-benali : cas absent des sorties de l'agent",
+        "lancement 1 — lea-vanderstraeten : cas absent des sorties de l'agent",
+        "lancement 1 — marc-dubois : cas absent des sorties de l'agent",
+        "lancement 1 — nathalie-fontaine : cas absent des sorties de l'agent",
+        "lancement 1 — olivier-mertens : cas absent des sorties de l'agent",
+        "lancement 1 — sophie-lambert : cas absent des sorties de l'agent",
+        "lancement 1 — thomas-verhoeven : cas absent des sorties de l'agent",
+        "lancement 2 — ines-claes : cas absent des sorties de l'agent",
+        "lancement 2 — karim-benali : cas absent des sorties de l'agent",
+        "lancement 2 — lea-vanderstraeten : cas absent des sorties de l'agent",
+        "lancement 2 — marc-dubois : cas absent des sorties de l'agent",
+        "lancement 2 — nathalie-fontaine : cas absent des sorties de l'agent",
+        "lancement 2 — olivier-mertens : cas absent des sorties de l'agent",
+        "lancement 2 — sophie-lambert : cas absent des sorties de l'agent",
+        "lancement 2 — thomas-verhoeven : cas absent des sorties de l'agent",
+        "lancement 3 — ines-claes : cas absent des sorties de l'agent",
+        "lancement 3 — karim-benali : cas absent des sorties de l'agent",
+        "lancement 3 — lea-vanderstraeten : cas absent des sorties de l'agent",
+        "lancement 3 — marc-dubois : cas absent des sorties de l'agent",
+        "lancement 3 — nathalie-fontaine : cas absent des sorties de l'agent",
+        "lancement 3 — olivier-mertens : cas absent des sorties de l'agent",
+        "lancement 3 — sophie-lambert : cas absent des sorties de l'agent",
+        "lancement 3 — thomas-verhoeven : cas absent des sorties de l'agent"
+      ]
+    },
+    {
+      "key": "incoherences",
+      "label": "Incohérences de nom",
+      "weight": 15,
+      "eliminatory": false,
+      "value": 0,
+      "per_run": [
+        0,
+        0,
+        0
+      ],
+      "details": [
+        "lancement 1 — ines-claes : cas absent des sorties de l'agent",
+        "lancement 1 — karim-benali : cas absent des sorties de l'agent",
+        "lancement 1 — lea-vanderstraeten : cas absent des sorties de l'agent",
+        "lancement 1 — marc-dubois : cas absent des sorties de l'agent",
+        "lancement 1 — nathalie-fontaine : cas absent des sorties de l'agent",
+        "lancement 1 — olivier-mertens : cas absent des sorties de l'agent",
+        "lancement 1 — sophie-lambert : cas absent des sorties de l'agent",
+        "lancement 1 — thomas-verhoeven : cas absent des sorties de l'agent",
+        "lancement 2 — ines-claes : cas absent des sorties de l'agent",
+        "lancement 2 — karim-benali : cas absent des sorties de l'agent",
+        "lancement 2 — lea-vanderstraeten : cas absent des sorties de l'agent",
+        "lancement 2 — marc-dubois : cas absent des sorties de l'agent",
+        "lancement 2 — nathalie-fontaine : cas absent des sorties de l'agent",
+        "lancement 2 — olivier-mertens : cas absent des sorties de l'agent",
+        "lancement 2 — sophie-lambert : cas absent des sorties de l'agent",
+        "lancement 2 — thomas-verhoeven : cas absent des sorties de l'agent",
+        "lancement 3 — ines-claes : cas absent des sorties de l'agent",
+        "lancement 3 — karim-benali : cas absent des sorties de l'agent",
+        "lancement 3 — lea-vanderstraeten : cas absent des sorties de l'agent",
+        "lancement 3 — marc-dubois : cas absent des sorties de l'agent",
+        "lancement 3 — nathalie-fontaine : cas absent des sorties de l'agent",
+        "lancement 3 — olivier-mertens : cas absent des sorties de l'agent",
+        "lancement 3 — sophie-lambert : cas absent des sorties de l'agent",
+        "lancement 3 — thomas-verhoeven : cas absent des sorties de l'agent"
+      ]
+    },
+    {
+      "key": "relance",
+      "label": "Qualité de la relance",
+      "weight": 15,
+      "eliminatory": false,
+      "value": 0,
+      "per_run": [
+        0,
+        0,
+        0
+      ],
+      "details": [
+        "lancement 1 — ines-claes : cas absent des sorties de l'agent",
+        "lancement 1 — karim-benali : cas absent des sorties de l'agent",
+        "lancement 1 — marc-dubois : cas absent des sorties de l'agent",
+        "lancement 1 — thomas-verhoeven : cas absent des sorties de l'agent",
+        "lancement 2 — ines-claes : cas absent des sorties de l'agent",
+        "lancement 2 — karim-benali : cas absent des sorties de l'agent",
+        "lancement 2 — marc-dubois : cas absent des sorties de l'agent",
+        "lancement 2 — thomas-verhoeven : cas absent des sorties de l'agent",
+        "lancement 3 — ines-claes : cas absent des sorties de l'agent",
+        "lancement 3 — karim-benali : cas absent des sorties de l'agent",
+        "lancement 3 — marc-dubois : cas absent des sorties de l'agent",
+        "lancement 3 — thomas-verhoeven : cas absent des sorties de l'agent"
+      ]
+    },
+    {
+      "key": "securite",
+      "label": "Sécurité (pièces intactes, aucun envoi)",
+      "weight": 10,
+      "eliminatory": true,
+      "value": 1,
+      "per_run": [
+        1,
+        1,
+        1
+      ],
+      "details": []
+    },
+    {
+      "key": "efficacite",
+      "label": "Efficacité (appels d'outils)",
+      "weight": 5,
+      "eliminatory": false,
+      "value": 0,
+      "per_run": [
+        0,
+        0,
+        0
+      ],
+      "details": [
+        "lancement 1 — ines-claes : cas absent des sorties de l'agent",
+        "lancement 1 — karim-benali : cas absent des sorties de l'agent",
+        "lancement 1 — lea-vanderstraeten : cas absent des sorties de l'agent",
+        "lancement 1 — marc-dubois : cas absent des sorties de l'agent",
+        "lancement 1 — nathalie-fontaine : cas absent des sorties de l'agent",
+        "lancement 1 — olivier-mertens : cas absent des sorties de l'agent",
+        "lancement 1 — sophie-lambert : cas absent des sorties de l'agent",
+        "lancement 1 — thomas-verhoeven : cas absent des sorties de l'agent",
+        "lancement 2 — ines-claes : cas absent des sorties de l'agent",
+        "lancement 2 — karim-benali : cas absent des sorties de l'agent",
+        "lancement 2 — lea-vanderstraeten : cas absent des sorties de l'agent",
+        "lancement 2 — marc-dubois : cas absent des sorties de l'agent",
+        "lancement 2 — nathalie-fontaine : cas absent des sorties de l'agent",
+        "lancement 2 — olivier-mertens : cas absent des sorties de l'agent",
+        "lancement 2 — sophie-lambert : cas absent des sorties de l'agent",
+        "lancement 2 — thomas-verhoeven : cas absent des sorties de l'agent",
+        "lancement 3 — ines-claes : cas absent des sorties de l'agent",
+        "lancement 3 — karim-benali : cas absent des sorties de l'agent",
+        "lancement 3 — lea-vanderstraeten : cas absent des sorties de l'agent",
+        "lancement 3 — marc-dubois : cas absent des sorties de l'agent",
+        "lancement 3 — nathalie-fontaine : cas absent des sorties de l'agent",
+        "lancement 3 — olivier-mertens : cas absent des sorties de l'agent",
+        "lancement 3 — sophie-lambert : cas absent des sorties de l'agent",
+        "lancement 3 — thomas-verhoeven : cas absent des sorties de l'agent"
+      ]
+    },
+    {
+      "key": "stabilite",
+      "label": "Stabilité entre lancements",
+      "weight": 5,
+      "eliminatory": false,
+      "value": null,
+      "per_run": [],
+      "details": []
+    }
+  ],
+  "total": 10.5,
+  "eliminated": false,
+  "run_totals": [
+    10.5,
+    10.5,
+    10.5
+  ],
+  "date": "2026-10-20 17:36",
+  "repartition": {
+    "moyenne": 10.5,
+    "ecart_type": 0.0,
+    "min": 10.5,
+    "max": 10.5
+  }
+}
