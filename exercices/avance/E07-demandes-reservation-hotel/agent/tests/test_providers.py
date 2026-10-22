@@ -84,6 +84,20 @@ def test_anthropic_max_steps() -> None:
         provider.run_agent("sys", "go", [make_tool([])], max_steps=3)
 
 
+@pytest.mark.parametrize("name", ["pre_reserver", "outil_invente"])
+def test_anthropic_unknown_tool_is_refused(name: str) -> None:
+    calls: list[dict] = []
+    block = SimpleNamespace(type="tool_use", id="tu_1", name=name, input={"path": "a.txt"})
+    provider, client = anthropic_provider(
+        [SimpleNamespace(stop_reason="tool_use", content=[block]), text_response("ok")]
+    )
+
+    assert provider.run_agent("sys", "go", [make_tool(calls)]) == "ok"
+    result = client.requests[1]["messages"][-1]["content"][0]
+    assert result["is_error"] is True and result["content"] == f"Outil inconnu : « {name} »."
+    assert calls == []
+
+
 # --- Gemini ------------------------------------------------------------------------------------------------
 
 
@@ -141,6 +155,19 @@ def test_gemini_max_steps() -> None:
 
     with pytest.raises(LLMError, match="max_steps"):
         provider.run_agent("sys", "go", [make_tool([])], max_steps=3)
+
+
+@pytest.mark.parametrize("name", ["pre_reserver", "outil_invente"])
+def test_gemini_unknown_tool_is_refused(name: str) -> None:
+    calls: list[dict] = []
+    call = types.FunctionCall(id="fc_1", name=name, args={"path": "a.txt"})
+    provider, client = gemini_provider(
+        [gemini_response(types.Part(function_call=call)), gemini_response(types.Part.from_text(text="ok"))]
+    )
+
+    assert provider.run_agent("sys", "go", [make_tool(calls)]) == "ok"
+    response = client.requests[1]["contents"][-1].parts[0].function_response.response
+    assert response == {"error": f"Outil inconnu : « {name} »."} and calls == []
 
 
 def test_exercise_settings_override_env_and_set_temperature() -> None:

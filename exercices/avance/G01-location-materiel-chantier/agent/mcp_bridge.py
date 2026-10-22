@@ -121,9 +121,18 @@ def require_sources(args: dict) -> list[str]:
     return sources
 
 
+def neutralize_markers(text: str) -> str:
+    """Remplace les chevrons des balises d'encadrement : un contenu ne peut pas imiter une balise."""
+    return text.replace("<<<", "‹‹‹").replace(">>>", "›››")
+
+
 def wrap_data(ref: str, content: Any) -> str:
-    """Encadre un contenu externe (mail, document) pour rappeler au modèle qu'il s'agit d'une donnée."""
+    """Encadre un contenu externe (mail, document) pour rappeler au modèle qu'il s'agit d'une donnée.
+
+    Les balises sont fixes ; un faux pied glissé dans le contenu ou la référence est neutralisé.
+    """
     text = content if isinstance(content, str) else json.dumps(content, ensure_ascii=False, indent=1)
+    ref, text = neutralize_markers(ref), neutralize_markers(text)
     return f"{DATA_HEADER.format(ref=ref)}\n{text}\n{DATA_FOOTER.format(ref=ref)}"
 
 
@@ -139,6 +148,8 @@ class Trace:
     drafts: list[str] = field(default_factory=list)
     calls: int = 0
     refusals: int = 0
+    # Machines que le code a déclarées proposables (find_machines) : la seule réponse acceptable.
+    proposable: set[str] = field(default_factory=set)
 
 
 def logged_spec(

@@ -9,27 +9,105 @@ from __future__ import annotations
 import hashlib
 import re
 import sqlite3
+import unicodedata
 from contextlib import closing
 from datetime import date
 from typing import Any
 
 import planning
 from agent.llm_providers.base import ToolError
-from agent.mcp_bridge import database_path, halls_with_dates, quote_arguments, rooms_by_type, same_hall
+from agent.mcp_bridge import (
+    database_path,
+    halls_with_dates,
+    quote_arguments,
+    rooms_by_type,
+    same_hall,
+)
 
 ALTERNATIVE_PATTERN = re.compile(r"(\d{4}-\d{2}-\d{2})\s*(?:→|->|au|à)\s*(\d{4}-\d{2}-\d{2})")
-# Montant en euros dans un texte : « 6 680,00 EUR », « 6680.00 € », « 1.980 euros »…
-AMOUNT_PATTERN = re.compile(
-    r"(?<![\d.,])(\d{1,3}(?:[   .]\d{3})+|\d+)(?:[.,](\d{1,2}))?\s*(?:€|EUR\b|euros?\b)", re.IGNORECASE
+
+# Homoglyphes courants (cyrilliques, grecs), apostrophes et tirets typographiques ramenés à l'ASCII,
+# caractères invisibles retirés : « rеmise » écrit avec un « е » cyrillique reste une remise.
+CONFUSABLES = str.maketrans(
+    {
+        **dict(zip("аеорсухіјѕԁһԛԝкмАВЕКМНОРСТХУІЈЅ", "aeopcyxijsdhqwkmABEKMHOPCTXYIJS", strict=True)),
+        **dict(zip("αοεινρτυχκΑΒΕΖΗΙΚΜΝΟΡΤΥΧ", "aoeivrtuxkABEZHIKMNOPTYX", strict=True)),
+        **dict.fromkeys("’‘ʼ`´", "'"),
+        **dict.fromkeys("‐‑‒–—―−", "-"),
+        **dict.fromkeys("\u00ad\u200b\u200c\u200d\u2060\ufeff"),
+    }
 )
-# Mentions d'une remise (cherchées dans le texte sans accents ni casse) -> libellé affiché, dans l'ordre.
-# « remise de X % » est toujours signalée ; « remise » seule ne l'est pas après « sans » ou « aucune »,
-# ni dans « remise des clés ».
+# Nombre en chiffres : « 6 680 », « 6.680 », « 6,680 », « 6'680 », « 6680 », décimales éventuelles.
+NUMBER = r"(\d{1,3}(?:[ .,']\d{3})+(?!\d)|\d+)(?:[.,](\d{1,2})(?!\d))?"
+CURRENCY = r"(?:€|\$|eur(?:os?)?\b|usd\b|chf\b|dollars?\b|francs?\b)"
+# Montant dans le texte normalisé (sans accents ni casse) : devise ou taxe après le nombre
+# (« 6 680,00 eur », « 7 k€ », « 6 680 htva »), tiret comptable (« 6 680,- ») ou devise avant (« € 50 »).
+AMOUNT_AFTER = re.compile(
+    rf"(?<![\d.,']){NUMBER}"
+    rf"(?:\s*(?P<k>k)\s*(?:€|eur(?:os?)?\b)|\s*{CURRENCY}|\s*(?:htva|ht|tvac|ttc)\b|\s*hors\s+tva\b|[.,]-)"
+)
+AMOUNT_BEFORE = re.compile(rf"(?:€|\$|\beur\b|\busd\b|\bchf\b)\s*{NUMBER}")
+# Nombres en lettres (« cinquante », « six mille six cent quatre-vingts ») : valeur de chaque mot.
+NUMBER_WORDS = {
+    "zero": 0, "un": 1, "une": 1, "deux": 2, "trois": 3, "quatre": 4, "cinq": 5, "six": 6, "sept": 7,
+    "huit": 8, "neuf": 9, "dix": 10, "onze": 11, "douze": 12, "treize": 13, "quatorze": 14, "quinze": 15,
+    "seize": 16, "vingt": 20, "vingts": 20, "trente": 30, "quarante": 40, "cinquante": 50, "soixante": 60,
+    "cent": 100, "cents": 100, "mille": 1000, "million": 1_000_000, "millions": 1_000_000,
+}  # fmt: skip
+NUMBER_WORD = rf"\b(?:{'|'.join(sorted(NUMBER_WORDS, key=len, reverse=True))})\b"
+WORDS_SEQUENCE = rf"{NUMBER_WORD}(?:[\s-]+(?:{NUMBER_WORD}|et\b))*"
+AMOUNT_IN_WORDS = re.compile(rf"({WORDS_SEQUENCE})\s*(?:d'\s*)?(?:€|eur(?:os?)?\b|dollars?\b|francs?\b)")
+
+# Mentions cherchées dans le texte normalisé -> libellé affiché, dans l'ordre.
+# Une mention déjà retenue par un motif précédent (« remise de 10 % ») n'est pas comptée deux fois.
+SPELLED_PERCENT = r"(?:pour\s*cents?\b|p\.\s*c\.|pcts?\b)"
+# « 10 % », « 10 pour cent », « 10 p.c. », « dix pour cent » : même niveau, quelle que soit la forme.
+PERCENT = rf"(?:\d+(?:[.,]\d+)?\s*(?:%|{SPELLED_PERCENT})|{WORDS_SEQUENCE}\s*{SPELLED_PERCENT})"
+DISCOUNT_WORD = r"(?:remises?|reductions?|rabais)"
+# Verbe d'octroi devant « remise » : « nous vous accordons une remise », « bénéficier d'une remise ».
+GRANT_VERB = r"\b(?:accord|appliqu|consent|fai|offr|benefici)\w*"
+GRANT_FILLER = r"(?:(?:vous|nous|leur|lui|une|un|d'|de|la|les|des|exceptionnelle(?:ment)?)\s*)*"
+# BLOQUANT : remise explicite sur le prix ; write_draft refuse le brouillon (sauf mention niée).
 DISCOUNT_PATTERNS = (
-    (re.compile(r"\bremises?\s+de\s+\d+(?:[.,]\d+)?\s*%"), "remise de X %"),
-    (re.compile(r"(?<!\bsans )(?<!\baucune )\bremises?\b(?!\s+(?:des|de la|de vos|de votre)\s+cle)"), "remise"),
+    (re.compile(rf"\b{DISCOUNT_WORD}\s+de\s+{PERCENT}"), "remise de X %"),
+    (re.compile(rf"(?<![\d.,]){PERCENT}\s+de\s+{DISCOUNT_WORD}\b"), "X % de remise"),
+    (re.compile(rf"(?<![\w%])-\s*{PERCENT}"), "-X %"),
+    # « remise » seule : bloquante suivie d'un montant ou précédée d'un verbe d'octroi ; sinon signalée.
+    (re.compile(rf"\bremises?\s+(?:de|d'|sur)\s*(?:\d|{NUMBER_WORD})"), "remise"),
+    (re.compile(rf"{GRANT_VERB}\s+{GRANT_FILLER}remises?\b"), "remise"),
     (re.compile(r"\breductions?\b"), "réduction"),
     (re.compile(r"\bgestes?\s+commercia(?:l|ux)\b"), "geste commercial"),
+    (re.compile(r"\brabais\b"), "rabais"),
+    (re.compile(r"\bristournes?\b"), "ristourne"),
+    (re.compile(r"\btarifs?\s+preferentiels?\b"), "tarif préférentiel"),
+    (re.compile(r"\bdiscounts?\b"), "discount"),
+    (re.compile(r"\bgracieu(?:x|se|ses|sement)\b"), "à titre gracieux"),
+    (re.compile(r"\bprix\s+d'\s*amis?\b"), "prix d'ami"),
+    (re.compile(r"\bnon[\s-]+factur\w*"), "non facturé"),
+    (re.compile(r"\b(?:a|aux)\s+(?:notre\s+charge|nos\s+frais)\b"), "à notre charge"),
+)
+# SIGNALÉ seulement : formulations courantes d'hôtel (« acompte de 30 % », « parking gratuit »), à relire.
+# « remise des clés / de la clé » n'est pas visée.
+WARNING_PATTERNS = (
+    (re.compile(r"\bremises?\b(?!\s+(?:des|de la|de vos|de votre)\s+cle)"), "remise"),
+    (re.compile(r"\bcadeaux?\b"), "cadeau"),
+    (re.compile(r"\bofferte?s?\b"), "offert"),
+    (re.compile(r"\bgratuit(?:e|s|es|ement)?\b"), "gratuit"),
+    (re.compile(r"\bpromo(?:tion)?s?\b"), "promotion"),
+    (re.compile(rf"(?<![\d.,]){PERCENT}"), "pourcentage"),
+)
+# Négation qui porte sur le terme : entre elle et le terme, dans la même proposition, seulement des mots
+# de NEGATION_LINKS (« sans aucune remise », « pas de rabais », « ne pouvons pas vous accorder de remise »,
+# « ne sommes malheureusement pas en mesure de vous accorder une réduction »).
+NEGATION_WORDS = frozenset({"sans", "aucun", "aucune", "pas", "ni", "jamais"})
+NEGATION_LINKS = re.compile(
+    r"(?:vous|nous|de|d|une|un|la|le|en|mesure|malheureusement|etre|sommes|est|sont"
+    r"|accord\w*|appliqu\w*|consent\w*|propos\w*|faire|faisons|fait|offr\w*|pouv\w*|peu[tx]?|peuvent|pourr\w*)"
+)
+CLAUSE_END = re.compile(r"[.!?;:,\n]")
+HORS_PERIMETRE_NOTE = (
+    "statut « hors_perimetre » : confirmer à la lecture du courriel que la demande sort bien du périmètre "
+    "(aucun devis n'a été préparé)"
 )
 
 
@@ -137,32 +215,122 @@ def check_alternative_quote(needs: dict[str, Any], quote: dict[str, Any] | None,
     return []
 
 
+def normalize_text(text: str) -> str:
+    """Texte comparé aux motifs : NFKC (espaces insécables, chiffres pleine chasse…), homoglyphes ramenés
+    à l'ASCII, puis sans accents ni casse."""
+    return planning._sans_accent(unicodedata.normalize("NFKC", text).translate(CONFUSABLES))
+
+
+def words_value(words: str) -> int:
+    """Valeur d'un nombre en lettres (« six mille six cent quatre-vingts » -> 6680)."""
+    total = current = previous = 0
+    for word in re.split(r"[\s-]+", words):
+        value = NUMBER_WORDS.get(word)
+        if value is None:  # « et »
+            continue
+        if value == 20 and previous == 4:  # quatre-vingt(s)
+            current += 80 - 4
+        elif value == 100:
+            current = max(current, 1) * 100
+        elif value >= 1000:
+            total += max(current, 1) * value
+            current = 0
+        else:
+            current += value
+        previous = value
+    return total + current
+
+
 def amounts_in(text: str) -> list[float]:
-    """Montants en euros écrits dans un texte (espaces ou points comme séparateurs de milliers)."""
-    amounts = []
-    for match in AMOUNT_PATTERN.finditer(text):
-        units = re.sub(r"[   .]", "", match.group(1))
-        amounts.append(float(f"{units}.{match.group(2) or 0}"))
+    """Montants écrits dans un texte, dans l'ordre : chiffres avec devise avant ou après, k€, HTVA, « ,- »,
+    ou nombre en lettres suivi d'une devise. Un même passage n'est compté qu'une fois."""
+    plain = normalize_text(text)
+    found: list[tuple[int, int, float]] = []
+    for pattern in (AMOUNT_AFTER, AMOUNT_BEFORE):
+        for match in pattern.finditer(plain):
+            units = re.sub(r"[ .,']", "", match.group(1))
+            value = float(f"{units}.{match.group(2) or 0}")
+            found.append((*match.span(), value * 1000 if match.groupdict().get("k") else value))
+    found += [(*match.span(), float(words_value(match.group(1)))) for match in AMOUNT_IN_WORDS.finditer(plain)]
+    amounts: list[float] = []
+    taken: list[tuple[int, int]] = []
+    for start, end, value in sorted(found):
+        if not any(start < other_end and other_start < end for other_start, other_end in taken):
+            taken.append((start, end))
+            amounts.append(value)
     return amounts
 
 
-def check_draft_body(body: str, quote_total: float | None) -> list[str]:
-    """Signale un montant du brouillon différent du devis joint, et toute mention d'une remise."""
-    problems = []
+def is_negated(plain: str, start: int) -> bool:
+    """Vrai si une négation porte sur le terme : seuls des mots de liaison les séparent, même proposition."""
+    for word in reversed(re.findall(r"[a-z]+", CLAUSE_END.split(plain[:start])[-1])):
+        if word in NEGATION_WORDS:
+            return True
+        if not NEGATION_LINKS.fullmatch(word):
+            return False
+    return False
+
+
+def find_mentions(plain: str, patterns: tuple, taken: list[tuple[int, int]]) -> list[str]:
+    """Libellés des motifs trouvés hors mention niée ; chaque passage retenu (même nié) est ajouté à taken
+    et compté une fois."""
+    labels = []
+    for pattern, label in patterns:
+        for match in pattern.finditer(plain):
+            if any(start < match.end() and match.start() < end for start, end in taken):
+                continue
+            taken.append(match.span())
+            if not is_negated(plain, match.start()) and label not in labels:
+                labels.append(label)
+    return labels
+
+
+def quote_amounts(quote: dict[str, Any] | None) -> list[float]:
+    """Montants du devis joint qu'un brouillon peut citer : total TTC, total HT et sous-totaux s'ils y figurent,
+    montant de chaque ligne. Rien n'est recalculé : un HT absent du devis n'est pas inventé."""
+    if not quote:
+        return []
+    values = [quote.get("total_ttc")]
+    values += [value for key, value in quote.items() if key.startswith(("total_h", "sous_total"))]
+    values += [line.get("montant") for line in quote.get("lignes") or [] if isinstance(line, dict)]
+    values += [line.get("sous_total") for line in quote.get("lignes") or [] if isinstance(line, dict)]
+    return [float(value) for value in values if isinstance(value, int | float) and not isinstance(value, bool)]
+
+
+def draft_body_problems(body: str, quote: dict[str, Any] | None) -> tuple[list[str], list[str]]:
+    """Contrôle du brouillon en deux niveaux : (bloquants, signalés).
+
+    Bloquants : montant absent du devis joint (ni total, ni HT, ni ligne), remise explicite sur le prix
+    (sauf mention niée). Signalés : pourcentage, « remise » seule, « cadeau », « gratuit », « offert »,
+    « promotion » (formulations courantes à relire).
+    """
+    blocking = []
+    allowed = quote_amounts(quote)
     for amount in amounts_in(body):
-        if quote_total is None:
-            problems.append(f"montant {amount:.2f} EUR écrit dans le brouillon alors qu'aucun devis n'est joint")
-        elif abs(amount - quote_total) > 0.005:
-            problems.append(
-                f"montant {amount:.2f} EUR écrit dans le brouillon ≠ total du devis joint {quote_total:.2f} EUR"
+        if quote is None:
+            blocking.append(f"montant {amount:.2f} EUR écrit dans le brouillon alors qu'aucun devis n'est joint")
+        elif not any(abs(amount - value) <= 0.005 for value in allowed):
+            blocking.append(
+                f"montant {amount:.2f} EUR écrit dans le brouillon absent du devis joint "
+                f"(total {quote.get('total_ttc', 0):.2f} EUR)"
             )
-    plain = planning._sans_accent(body)
-    labels = [label for pattern, label in DISCOUNT_PATTERNS if pattern.search(plain)]
-    if "remise de X %" in labels and "remise" in labels:
-        labels.remove("remise")  # même mention, déjà signalée avec son pourcentage
-    for label in labels:
-        problems.append(f"le brouillon mentionne « {label} » : vérifier qu'aucune remise n'est promise")
-    return problems
+    plain = normalize_text(body)
+    taken: list[tuple[int, int]] = []
+    blocking += [
+        f"le brouillon mentionne « {label} » : aucune remise n'est permise, le prix est celui du devis"
+        for label in find_mentions(plain, DISCOUNT_PATTERNS, taken)
+    ]
+    warnings = [
+        f"le brouillon mentionne « {label} » : vérifier qu'aucune remise n'est promise"
+        for label in find_mentions(plain, WARNING_PATTERNS, taken)
+    ]
+    return blocking, warnings
+
+
+def check_draft_body(body: str, quote: dict[str, Any] | None) -> list[str]:
+    """Tous les points du brouillon à vérifier (bloquants puis signalés), repris dans la synthèse."""
+    blocking, warnings = draft_body_problems(body, quote)
+    return blocking + warnings
 
 
 def review_sheet(
@@ -184,4 +352,7 @@ def review_sheet(
         problems += check_alternative_quote(needs, quote, alternatives)
     if status == "precisions_requises" and not missing:
         problems.append("statut « precisions_requises » sans aucune information manquante listée")
-    return problems + check_draft_body(body, quote["total_ttc"] if quote else None)
+    if status == "hors_perimetre":
+        # Une consigne glissée dans le courriel peut faire écarter une vraie demande : l'humain tranche.
+        problems.append(HORS_PERIMETRE_NOTE)
+    return problems + check_draft_body(body, quote)

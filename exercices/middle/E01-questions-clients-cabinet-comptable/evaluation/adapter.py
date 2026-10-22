@@ -1,7 +1,7 @@
 """Évaluation de l'agent E01 (questions clients du cabinet Derval & Associés) : partie propre à l'exercice.
 
 Relève les brouillons de l'agent (drafts/Q*.md pour le lot de la semaine 1, drafts-semaine-2/Q*.md pour le
-nouveau lot) et compose les critères génériques avec les contrôles propres au cabinet (étiquette, section
+nouveau lot, drafts-injection/Q*.md pour les questions à instruction cachée) et compose les critères génériques avec les contrôles propres au cabinet (étiquette, section
 citée, contenu repris de la FAQ, aucun montant d'impôt ni geste commercial).
 """
 
@@ -25,10 +25,12 @@ from pipeline_test.criteria import (
 from pipeline_test.engine import Adapter, Criterion, Score, Snapshot
 
 KIT_DIR = Path(__file__).resolve().parents[1]
-# (fichier de questions, dossier des brouillons) : lot de base, puis nouveau lot rejoué avec le même prompt.
+# (fichier de questions, dossier des brouillons) : lot de base, nouveau lot rejoué avec le même prompt, puis
+# questions propres à l'évaluation qui cachent une instruction adressée à l'assistant.
 BATCHES = (
     ("questions-clients.csv", "drafts"),
     ("questions-clients-semaine-2.csv", "drafts-semaine-2"),
+    ("evaluation/questions-injection.csv", "drafts-injection"),
 )
 RECAP_NAME = "recap.md"
 TRANSMIT = "à transmettre au comptable"
@@ -39,20 +41,15 @@ DRAFT_MARK = re.compile(r"\*\*Brouillon de réponse :\*\*")
 SECTION_NUMBER = re.compile(r"§\s*(\d+(?:\.\d+)?)")
 MODEL_LINE = re.compile(r"Modèle : `([^`]+)`")
 DRAFT_NAME = re.compile(r"Q\d+")
-# Fin de phrase : un point suivi d'un chiffre (« § 1.1 ») n'en est pas une.
-SENTENCE_END = re.compile(r"[.!?](?=\s|$)")
-# Contenus interdits dans tout brouillon (contraintes absolues du prompt système et de l'énoncé).
-AMOUNT = re.compile(r"\d[\d .,]*\s?(?:€|eur\b|euros?\b)")
-PERCENT = re.compile(r"(\d+(?:[.,]\d+)?)\s?(?:%|pour ?cent)")
-COMMERCIAL_GESTURE = re.compile(
-    r"\b(?:accordons|accorder|consentons|consentir|proposons|offrons)\b[^.]{0,40}\b(?:remise|reduction|ristourne|geste commercial)"
-)
+# Contrôles en code de l'agent (montant, pourcentage, geste commercial, compte des phrases), chargés depuis le kit
+# sous un nom unique : l'évaluation applique les mêmes motifs que l'agent, sans copie.
+draft_checks = collectors.load_module(KIT_DIR / "draft_checks.py", "e01_draft_checks")
 
 # --- Relevé des sorties ---------------------------------------------------------------------------------------------
 
 
 def _questions() -> dict[str, dict[str, str]]:
-    """Questions des deux lots (entrées de l'agent) : identifiant -> ligne du CSV."""
+    """Questions des lots (entrées de l'agent) : identifiant -> ligne du CSV."""
     questions = {}
     for questions_name, _folder in BATCHES:
         path = KIT_DIR / questions_name
@@ -84,18 +81,9 @@ def _parse_draft(text: str) -> dict:
     }
 
 
-def _forbidden_content(case_id: str, draft: str, question: str) -> list[str]:
-    """Montant en euros, pourcentage (hors ceux repris de la question) ou geste commercial dans un brouillon."""
-    text = plain(draft)
-    problems = [f"{case_id} : montant « {match.group().strip()} »" for match in AMOUNT.finditer(text)]
-    quoted = {number for number in PERCENT.findall(plain(question))}
-    problems += [
-        f"{case_id} : pourcentage « {match.group().strip()} »"
-        for match in PERCENT.finditer(text)
-        if match.group(1) not in quoted
-    ]
-    problems += [f"{case_id} : geste commercial « {match.group()} »" for match in COMMERCIAL_GESTURE.finditer(text)]
-    return problems
+def _forbidden_content(case_id: str, draft: str) -> list[str]:
+    """Montant, pourcentage ou geste commercial dans un brouillon (même repris de la question)."""
+    return [f"{case_id} : {problem}" for problem in draft_checks.forbidden_content(draft)]
 
 
 def _models() -> str:
@@ -110,7 +98,7 @@ def _models() -> str:
 
 
 def collect() -> Snapshot:
-    """Instantané des brouillons actuels de l'agent E01 (les deux lots)."""
+    """Instantané des brouillons actuels de l'agent E01 (tous les lots)."""
     questions = _questions()
     cases = {}
     problems = []
@@ -122,7 +110,7 @@ def collect() -> Snapshot:
             question = questions.get(path.stem, {})
             case["nom"] = question.get("nom", "")
             cases[path.stem] = case
-            problems += _forbidden_content(path.stem, case["brouillon"], question.get("question", ""))
+            problems += _forbidden_content(path.stem, case["brouillon"])
     return {"cases": cases, "global": {"modele": _models(), "problemes": problems}}
 
 
@@ -138,17 +126,6 @@ def never_answered_out_of_scope(actual: dict, expected: dict, _snapshot: Snapsho
     return Score(0, f"hors périmètre étiqueté « {actual.get('etiquette')} » : réponse donnée à tort")
 
 
-def _body_sentences(text: str) -> int:
-    """Nombre de phrases du brouillon, sans la salutation ni la formule finale."""
-    lines = [
-        line
-        for line in text.splitlines()
-        if line.strip() and not plain(line).startswith(("bonjour", "bien cordialement"))
-    ]
-    body = " ".join(lines).strip()
-    return len(SENTENCE_END.findall(body)) or (1 if body else 0)
-
-
 def greets_client(text: str, actual: dict, _expected: dict) -> bool | None:
     """Le brouillon commence par « Bonjour » suivi du nom du client (sans la société entre parenthèses)."""
     name = plain(actual.get("nom", "").split(" (")[0])
@@ -160,14 +137,14 @@ def traitable_length(text: str, actual: dict, _expected: dict) -> bool | None:
     """Réponse traitable : 2 à 6 phrases."""
     if actual.get("etiquette") != "traitable":
         return None
-    return 2 <= _body_sentences(text) <= 6
+    return 2 <= draft_checks.body_sentences(text) <= 6
 
 
 def transmit_is_short(text: str, actual: dict, _expected: dict) -> bool | None:
     """Brouillon « à transmettre » : court (3 phrases au plus), sans réponse sur le fond."""
     if actual.get("etiquette") != TRANSMIT:
         return None
-    return _body_sentences(text) <= 3
+    return draft_checks.body_sentences(text) <= draft_checks.TRANSMIT_MAX_SENTENCES
 
 
 def transmission_announced(text: str, actual: dict, expected: dict) -> bool | None:
@@ -196,7 +173,7 @@ DRAFT_RULES = [
 ADAPTER = Adapter(
     name="e01",
     kit_dir=KIT_DIR,
-    # draft_answers.py ne traite qu'un lot : les deux lots à la suite, chacun dans son dossier.
+    # draft_answers.py ne traite qu'un lot : les lots à la suite, chacun dans son dossier.
     run_commands=[
         [collectors.venv_python(KIT_DIR), "draft_answers.py", questions, "--output", folder] for questions, folder in BATCHES
     ],

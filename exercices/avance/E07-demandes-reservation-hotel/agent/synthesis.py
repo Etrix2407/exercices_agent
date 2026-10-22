@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
@@ -14,6 +15,11 @@ RESULTS_NAME = "resultats.json"
 # Statuts qui ne remplacent jamais un résultat valide déjà enregistré pour la même demande.
 FAILED_STATUSES = ("erreur", "non_traitee")
 FAILURE_PREFIX = "dernier traitement en échec"
+# Textes venant du modèle (points à vérifier, dates…) : nombre et longueur bornés dans la synthèse.
+MAX_MODEL_TEXTS = 10
+MAX_MODEL_TEXT_LENGTH = 300
+# Caractères Markdown échappés (barre oblique inverse d'abord) : liens, images, HTML, code, tableau.
+MARKDOWN_SPECIALS = re.compile(r"[\\<>\[\]()`|]")
 
 logger = logging.getLogger(__name__)
 
@@ -98,9 +104,30 @@ def merge_result(known: dict[str, RequestResult], result: RequestResult, process
     known[result.demande_id] = result
 
 
+def clip_text(value: Any) -> str:
+    """Texte du modèle tronqué à MAX_MODEL_TEXT_LENGTH caractères."""
+    text = str(value)
+    return text if len(text) <= MAX_MODEL_TEXT_LENGTH else text[: MAX_MODEL_TEXT_LENGTH - 1] + "…"
+
+
+def model_texts(values: Any, omitted_note: bool = True) -> list[str]:
+    """Textes recopiés de la fiche du modèle : au plus MAX_MODEL_TEXTS, chacun tronqué à MAX_MODEL_TEXT_LENGTH.
+
+    omitted_note=False pour les listes relues ensuite par le code (dates alternatives) : pas de note ajoutée.
+    """
+    if isinstance(values, str):
+        values = [values]
+    if not isinstance(values, list):
+        return []
+    texts = [clip_text(value) for value in values[:MAX_MODEL_TEXTS]]
+    if omitted_note and len(values) > MAX_MODEL_TEXTS:
+        texts.append(f"{len(values) - MAX_MODEL_TEXTS} élément(s) supplémentaire(s) omis")
+    return texts
+
+
 def table_cell(text: str) -> str:
-    """Neutralise les caractères qui casseraient une ligne de tableau Markdown."""
-    return " ".join(text.split()).replace("|", "\\|")
+    """Neutralise le Markdown actif (liens, images, HTML, code) et les séparateurs de tableau."""
+    return MARKDOWN_SPECIALS.sub(r"\\\g<0>", " ".join(text.split()))
 
 
 def format_synthesis(
@@ -117,7 +144,11 @@ def format_synthesis(
     rows = []
     for item in results:
         needs = item.besoins
-        stay = f"{needs.get('date_arrivee') or '?'} → {needs.get('date_depart') or '?'}" if needs else "—"
+        stay = (
+            f"{clip_text(needs.get('date_arrivee') or '?')} → {clip_text(needs.get('date_depart') or '?')}"
+            if needs
+            else "—"
+        )
         cells = [
             item.demande_id,
             item.statut,

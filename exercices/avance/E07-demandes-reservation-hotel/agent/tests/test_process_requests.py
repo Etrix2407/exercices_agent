@@ -220,6 +220,58 @@ def test_new_draft_replaces_previous_one_under_same_id(tmp_path: Path) -> None:
     assert sorted(path.stem for path in tmp_path.glob("b*.eml")) == ["b001", "b002"]
 
 
+def test_draft_of_another_request_never_replaces_anything(tmp_path: Path, caplog) -> None:
+    from agent.process_requests import replace_previous_draft
+
+    for name in ("b001", "b002"):
+        (tmp_path / f"{name}.eml").write_text(name, encoding="utf-8")
+
+    class DraftsKit:
+        def call(self, name: str, arguments: dict) -> dict:
+            return {"nombre": 2, "brouillons": [{"id": "b001", "pour": "dem"}, {"id": "b002", "pour": "autre"}]}
+
+    assert replace_previous_draft(DraftsKit(), "dem", "b002", tmp_path) == "b002"
+    assert [(tmp_path / f"{name}.eml").read_text(encoding="utf-8") for name in ("b001", "b002")] == ["b001", "b002"]
+    assert "aucun ancien brouillon remplacé" in caplog.text
+
+
+def test_model_texts_escaped_and_limited_in_synthesis() -> None:
+    from agent.synthesis import RequestResult, model_texts
+
+    injected = r"voir [ici](https://x.example) <img src=x> `code` \<b>"
+    points = model_texts([injected, "x" * 1000, *[f"point {n}" for n in range(20)]])
+    assert len(points) == 11 and len(points[1]) == 300 and points[-1].startswith("12 élément")
+    needs = {"date_arrivee": "<script>", "date_depart": "2026-12-16"}
+    item = RequestResult(demande_id="dem", statut="proposition", besoins=needs, points_a_verifier=points)
+    text = format_synthesis([item], "factice", True)
+    assert r"voir \[ici\]\(https://x.example\) \<img src=x\> \`code\` \\\<b\>" in text
+    assert r"\<script\> → 2026-12-16" in text and " <img" not in text and "](" not in text
+
+
+def test_code_note_kept_after_ten_model_points() -> None:
+    from typing import Any
+
+    from agent.llm_providers.base import ToolError
+    from agent.mcp_bridge import HotelTools
+    from agent.process_requests import build_result
+
+    class SheetFailingKit(FakeKit):
+        def call(self, name: str, arguments: dict) -> Any:
+            if name == "enregistrer_fiche_besoins":
+                raise ToolError("disque plein")
+            return super().call(name, arguments)
+
+    tools = HotelTools(SheetFailingKit(), "dem")
+    handlers = {spec.name: spec.handler for spec in tools.specs()}
+    handlers["calc_devis"]({"besoins": WEDDING_NEEDS})
+    points = [f"point {n}" for n in range(10)]
+    sheet = {"statut": "proposition", "besoins": WEDDING_NEEDS, "brouillon_reponse": "Bonjour", "points_a_verifier": points}
+    handlers["write_draft"]({"fiche_json": sheet})
+    result = build_result("dem", tools, "")
+    assert result.points_a_verifier[:10] == points
+    assert "fiche non enregistrée" in result.points_a_verifier[10] and "disque plein" in result.points_a_verifier[10]
+
+
 def test_unknown_only_stops_before_starting_the_server(tmp_path: Path, monkeypatch) -> None:
     import pytest
 
@@ -291,3 +343,51 @@ def test_server_lost_during_write_draft_fallback_stops_batch(tmp_path: Path, mon
     stopped, *pending = process_all(ClosingKit(), ForgetfulAgent(), tmp_path)
     assert stopped.statut == "erreur" and "serveur MCP" in stopped.points_a_verifier[0]
     assert [item.statut for item in pending] == ["non_traitee", "non_traitee"]
+
+
+BAD_DATE_EML = "From: P <p@x.example>\nDate: le mardi prochain\nSubject: groupe\n\nBonjour, 10 chambres.\n"
+BAD_CHARSET_EML = (
+    "From: P <p@x.example>\nDate: Fri, 02 Oct 2026 09:14:00 +0200\nSubject: groupe\nMIME-Version: 1.0\n"
+    'Content-Type: text/plain; charset="inexistant-123"\n\nBonjour, 10 chambres.\n'
+)
+
+
+def test_unreadable_emails_fail_alone_with_the_real_kit_server(tmp_path: Path, monkeypatch) -> None:
+    """Vrai serveur MCP (local) sur une copie de la boîte : Date illisible et charset inconnu."""
+    import shutil
+
+    import anyio
+
+    import planning
+    from agent.mcp_bridge import KIT_DIR, KitClient, kit_session
+
+    mailbox = tmp_path / "boite"
+    shutil.copytree(KIT_DIR / "boite", mailbox)
+    (mailbox / "inbox" / "zz_date.eml").write_text(BAD_DATE_EML, encoding="utf-8")
+    (mailbox / "inbox" / "zz_charset.eml").write_text(BAD_CHARSET_EML, encoding="utf-8")
+    monkeypatch.setenv("KIT_BOITE", str(mailbox))
+    monkeypatch.setattr(planning, "CHEMIN_BASE", planning.CHEMIN_BASE)
+    monkeypatch.setattr("agent.checks.planning_fingerprint", lambda: "empreinte")
+
+    class SilentAgent(ScriptedAgent):
+        """Ne touche à rien : seule compte la liste des demandes confiées au modèle."""
+
+        def __init__(self) -> None:
+            self.seen: list[str] = []
+
+        def run_agent(self, system: str, user: str, tools: list, max_steps: int = 25) -> str:
+            self.seen.append(user.split(":", 1)[1].strip())
+            return ""
+
+    agent = SilentAgent()
+
+    async def scenario() -> list:
+        async with kit_session() as client:
+            return await anyio.to_thread.run_sync(process_all, KitClient(client), agent, tmp_path)
+
+    results = {result.demande_id: result for result in anyio.run(scenario)}
+    assert len(results) == 12 and len(agent.seen) == 10
+    for unreadable in ("zz_date", "zz_charset"):
+        assert unreadable not in agent.seen
+        assert results[unreadable].statut == "erreur"
+        assert "courriel illisible" in results[unreadable].points_a_verifier[0]
