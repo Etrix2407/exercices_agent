@@ -1,6 +1,6 @@
 """Tests du filtre des machines libres."""
 
-from agent.machine_filter import usable_machines
+from agent.machine_filter import out_of_service_machines, usable_machines
 
 END = "2026-10-24"
 
@@ -29,3 +29,16 @@ def test_filter_keeps_ready_machines_and_explains_exclusions() -> None:
     reasons = {item["reference_machine"]: item["raison"] for item in excluded}
     assert set(reasons) == {"MAINT", "SANS-CTRL", "ECHUE"}
     assert "échu" in reasons["ECHUE"]
+
+
+def test_latest_return_report_overrides_declared_status() -> None:
+    reports = [
+        {"reference": "CR-1", "reference_machine": "A", "date_document": "2026-09-01", "texte": "Hors service."},
+        {"reference": "CR-2", "reference_machine": "B", "date_document": "2026-08-01", "texte": "Hors location."},
+        {"reference": "CR-3", "reference_machine": "B", "date_document": "2026-09-10", "texte": "Remise en service."},
+    ]
+    out = out_of_service_machines(reports)
+    assert out == {"A": "CR-1"}
+    usable, excluded = usable_machines([machine("A"), machine("B")], END, out)
+    assert [m["reference_machine"] for m in usable] == ["B"]
+    assert excluded == [{"reference_machine": "A", "raison": "hors service selon CR-1"}]

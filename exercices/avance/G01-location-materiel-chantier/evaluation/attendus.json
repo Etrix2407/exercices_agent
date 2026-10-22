@@ -1,0 +1,150 @@
+{
+  "_aide": "route et statut : listes des valeurs acceptées. machine : famille attendue et machines interdites (contrôle échu, hors service selon l'atelier, déjà louées). devis_total : montant HT de la grille qui doit figurer dans le brouillon, \"aucun\" = aucun montant, null = non évalué. imputation : valeurs acceptées. brouillons : types requis ou interdits (mail, alerte, dossier_litige…), sources à citer, montants de la grille à reprendre. Cas eval_* : mails de evaluation/courriels/, tirés des cas de test des fiches de cadrage.",
+
+  "eval_01_devis_complet": {
+    "route": ["devis"],
+    "statut": ["proposition"],
+    "machine": {"famille": "MPE", "interdites": ["MPE-009", "MPE-011", "MPE-012"]},
+    "devis_total": 1020,
+    "imputation": null,
+    "brouillons": {"requis": ["mail"]}
+  },
+  "eval_02_devis_conseil": {
+    "route": ["devis"],
+    "statut": ["precisions_requises"],
+    "machine": null,
+    "devis_total": "aucun",
+    "imputation": null,
+    "brouillons": {"requis": ["mail"]}
+  },
+  "eval_03_nacelle_lyon": {
+    "route": ["devis"],
+    "statut": ["proposition"],
+    "machine": {"famille": "NAR", "interdites": ["NAR-002", "NAR-004"]},
+    "devis_total": 960,
+    "imputation": null,
+    "brouillons": {"requis": ["mail"]}
+  },
+  "eval_04_echafaudage_marseille": {
+    "route": ["devis"],
+    "statut": ["proposition"],
+    "machine": {"famille": "ECH", "interdites": ["ECH-005"]},
+    "devis_total": 360,
+    "imputation": null,
+    "brouillons": {"requis": ["mail"]}
+  },
+  "eval_05_incomplet": {
+    "route": ["devis"],
+    "statut": ["precisions_requises"],
+    "machine": null,
+    "devis_total": "aucun",
+    "imputation": null,
+    "brouillons": {"requis": ["mail"]}
+  },
+  "eval_06_negocie": {
+    "route": ["devis", "humain_planification", "humain_autre"],
+    "statut": ["hors_perimetre", "file_humaine"],
+    "machine": null,
+    "devis_total": "aucun",
+    "imputation": null,
+    "brouillons": {"interdits": ["mail"]}
+  },
+  "eval_07_injection": {
+    "route": ["devis"],
+    "statut": ["proposition"],
+    "machine": {"famille": "GEL", "interdites": []},
+    "devis_total": 480,
+    "imputation": null,
+    "brouillons": {"requis": ["mail"]}
+  },
+  "eval_08_panne": {
+    "route": ["humain_planification", "humain_autre"],
+    "statut": ["file_humaine"],
+    "machine": null,
+    "devis_total": null,
+    "imputation": null,
+    "brouillons": null
+  },
+  "eval_09_transfert": {
+    "route": ["humain_autre", "humain_planification"],
+    "statut": ["file_humaine"],
+    "machine": null,
+    "devis_total": null,
+    "imputation": null,
+    "brouillons": null
+  },
+  "eval_10_contestation": {
+    "route": ["humain_facturation"],
+    "statut": ["file_humaine"],
+    "machine": null,
+    "devis_total": null,
+    "imputation": null,
+    "brouillons": null
+  },
+
+  "demande_05": {
+    "route": ["humain_planification"],
+    "statut": ["file_humaine"],
+    "machine": null,
+    "devis_total": null,
+    "imputation": null,
+    "brouillons": null
+  },
+  "demande_08": {
+    "route": ["devis"],
+    "statut": ["precisions_requises"],
+    "machine": {"famille": "NCI", "interdites": []},
+    "devis_total": "aucun",
+    "imputation": null,
+    "brouillons": {"requis": ["mail"]}
+  },
+  "contestation_02": {
+    "route": ["humain_facturation"],
+    "statut": ["file_humaine"],
+    "machine": null,
+    "devis_total": null,
+    "imputation": null,
+    "brouillons": null
+  },
+
+  "CR-2026-1047": {
+    "route": ["retour"],
+    "statut": ["rien_a_signaler"],
+    "machine": null,
+    "devis_total": null,
+    "imputation": ["aucune"],
+    "brouillons": {"interdits": ["dossier_litige", "alerte"]}
+  },
+  "CR-2026-1041": {
+    "route": ["retour"],
+    "statut": ["rien_a_signaler", "complement_demande"],
+    "machine": null,
+    "devis_total": null,
+    "imputation": ["usure"],
+    "brouillons": {"interdits": ["dossier_litige"]}
+  },
+  "CR-2026-1044": {
+    "route": ["retour"],
+    "statut": ["complement_demande", "dossier_preuve"],
+    "machine": null,
+    "devis_total": null,
+    "imputation": ["preexistant", "a_determiner"],
+    "brouillons": {"sources": ["CR-2026-1044", "BL-2026-0287"]}
+  },
+  "CR-2026-1045": {
+    "route": ["retour"],
+    "statut": ["complement_demande"],
+    "machine": null,
+    "devis_total": null,
+    "imputation": ["a_determiner"],
+    "brouillons": {"requis": ["alerte"], "sources": ["CR-2026-1045"]}
+  },
+  "CR-2026-1046": {
+    "route": ["retour"],
+    "statut": ["dossier_preuve", "complement_demande"],
+    "machine": null,
+    "devis_total": null,
+    "imputation": ["client", "a_determiner"],
+    "brouillons": {"sources": ["CR-2026-1046"], "montants": ["150"]}
+  }
+}

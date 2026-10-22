@@ -23,6 +23,14 @@ from agent.llm_providers.base import (
 )
 
 DEFAULT_MODEL = "gemini-3.5-flash"
+# Effort (vocabulaire de l'API Claude) traduit en niveau de réflexion Gemini, plafonné à HIGH.
+EFFORT_TO_THINKING_LEVEL = {
+    "low": types.ThinkingLevel.LOW,
+    "medium": types.ThinkingLevel.MEDIUM,
+    "high": types.ThinkingLevel.HIGH,
+    "xhigh": types.ThinkingLevel.HIGH,
+    "max": types.ThinkingLevel.HIGH,
+}
 # Aucun nouvel essai silencieux du SDK : c'est _generate qui décide, avec un message visible.
 RETRY_OPTIONS = types.HttpRetryOptions(attempts=1)
 # Erreurs serveur passagères : nouvel essai après ces attentes (en secondes), puis abandon.
@@ -49,26 +57,44 @@ logger = logging.getLogger(__name__)
 class GeminiProvider:
     """Génère les réponses avec un modèle Gemini."""
 
-    def __init__(self, api_key: str, model: str | None = None, temperature: float | None = None) -> None:
+    def __init__(
+        self,
+        api_key: str,
+        model: str | None = None,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
+        effort: str | None = None,
+    ) -> None:
         http_options = types.HttpOptions(retry_options=RETRY_OPTIONS, timeout=REQUEST_TIMEOUT_MS)
         self._client = genai.Client(api_key=api_key, http_options=http_options)
         self.model = model or DEFAULT_MODEL
-        # None : valeur par défaut du modèle.
+        # None : valeurs par défaut du modèle. Chez Gemini, la réflexion compte dans max_tokens.
         self.temperature = temperature
+        self.max_tokens = max_tokens
+        self.thinking = (
+            None if effort is None else types.ThinkingConfig(thinking_level=EFFORT_TO_THINKING_LEVEL[effort])
+        )
 
     def generate(self, system: str, user: str) -> str:
         """Envoie la question au modèle et renvoie le texte de la réponse."""
-        config = types.GenerateContentConfig(system_instruction=system, temperature=self.temperature)
+        config = types.GenerateContentConfig(
+            system_instruction=system,
+            temperature=self.temperature,
+            max_output_tokens=self.max_tokens,
+            thinking_config=self.thinking,
+        )
         response = self._generate(user, config)
+        self._check_truncated(response)
         return _final_text(response)
 
     def run_agent(self, system: str, user: str, tools: list[ToolSpec], max_steps: int = 25) -> str:
         """Fait tourner une boucle d'appels d'outils jusqu'à la réponse finale du modèle."""
         tools_by_name = {tool.name: tool for tool in tools}
-        config = _agent_config(system, tools, self.temperature)
+        config = _agent_config(system, tools, self.temperature, self.max_tokens, self.thinking)
         contents: list[types.Content] = [types.Content(role="user", parts=[types.Part.from_text(text=user)])]
         for step in range(1, max_steps + 1):
             response = self._generate(contents, config)
+            self._check_truncated(response)
             calls = response.function_calls
             if not calls:
                 return _final_text(response)
@@ -81,6 +107,13 @@ class GeminiProvider:
             # Toutes les réponses d'outils partent dans un seul message utilisateur.
             contents.append(types.Content(role="user", parts=parts))
         raise LLMError(f"Nombre maximal d'étapes atteint (max_steps={max_steps}) sans réponse finale du modèle.")
+
+    def _check_truncated(self, response: types.GenerateContentResponse) -> None:
+        """Réponse coupée par la limite de tokens : erreur claire plutôt qu'un texte ou un appel d'outil tronqué."""
+        candidate = response.candidates[0] if response.candidates else None
+        if candidate is not None and candidate.finish_reason == types.FinishReason.MAX_TOKENS:
+            limit = self.max_tokens or "par défaut"
+            raise LLMError(f"Réponse coupée : limite de tokens ({limit}) atteinte (LLM_MAX_TOKENS).")
 
     def _generate(
         self, contents: str | list[types.Content], config: types.GenerateContentConfig
@@ -170,7 +203,13 @@ def _classify(error: errors.APIError) -> LLMError:
     return LLMError(message)
 
 
-def _agent_config(system: str, tools: list[ToolSpec], temperature: float | None) -> types.GenerateContentConfig:
+def _agent_config(
+    system: str,
+    tools: list[ToolSpec],
+    temperature: float | None,
+    max_tokens: int | None = None,
+    thinking: types.ThinkingConfig | None = None,
+) -> types.GenerateContentConfig:
     """Construit la configuration avec les déclarations d'outils, appel automatique désactivé."""
     declarations = [
         types.FunctionDeclaration(name=t.name, description=t.description, parameters_json_schema=t.parameters)
@@ -179,6 +218,8 @@ def _agent_config(system: str, tools: list[ToolSpec], temperature: float | None)
     return types.GenerateContentConfig(
         system_instruction=system,
         temperature=temperature,
+        max_output_tokens=max_tokens,
+        thinking_config=thinking,
         tools=[types.Tool(function_declarations=declarations)],
         automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
     )
