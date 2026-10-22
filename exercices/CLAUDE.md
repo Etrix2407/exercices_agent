@@ -42,6 +42,10 @@ Exposition via un serveur MCP local.
 - Pour un simple nettoyage (lisibilité, duplication) sans recherche de bugs, utiliser `/simplify`.
 - Signaler honnêtement ce qui n'a pas été vérifié (tests non lancés, cas non couverts).
 
+## workflow
+
+- tu peux travailler avec des sous-agents specialise, un agent par tache simple (haiku code et tu vérifie si au bout de 3 fois le resultat est pas concluant tu reprend la main)
+
 ## workflow GIT
 
 - La branche `main` est protégée : ne jamais pousser directement dessus.
